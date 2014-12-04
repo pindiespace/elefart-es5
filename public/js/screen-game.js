@@ -23,7 +23,7 @@ elefart.screens['screen-game'] = (function () {
 		INFO:5,
 		EXIT:6	
 	},
-	state = gameStates.LOAD;
+	state = gameStates.LOAD; //set a default state
 		
 	/** 
 	 * @method init
@@ -36,6 +36,8 @@ elefart.screens['screen-game'] = (function () {
 	}
 	
 	/** 
+	 * @method gameLoop
+	 * NOTE: uses requestAnimationFrame()
 	 * run the gameloop. the loop runs constantly, but 
 	 * pauses and resumes based on state. User input is 
 	 * handled separately
@@ -54,9 +56,8 @@ elefart.screens['screen-game'] = (function () {
 			default:
 				break;
 		}
-		
+		requestAnimationFrame(gameLoop);
 	}
-	
 	
 	function run () {
 		console.log("running screen-game");

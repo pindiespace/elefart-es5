@@ -1,10 +1,11 @@
 /** @namespace */
 var elefart = (function() {
 	var screen,
-		screens = {},
-		dom,
-		$,
-		activeScreen;     // DOM refence to currently visible screen
+		screens = {},     //stores screen JS objects
+		dom,              //link to .dom
+		$,                //link to .dom querySelector
+		activeScreen,     // DOM refence to currently visible screen
+		DEBUG = true;     // debug line
 		
 	/** 
 	 * @method errorScreen

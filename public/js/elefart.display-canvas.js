@@ -103,12 +103,14 @@ elefart.display = (function () {
 	
 		//make the background layer
 		bkgnd = document.createElement('canvas');
+		bkgnd.id = 'game-background';
 		bctx = bkgnd.getContext("2d");
 		bkgnd.width = width;
 		bkgnd.height = height;
 		
 		//make the foreground layer
 		foreground = document.createElement('canvas');
+		foreground.id = 'game-foreground';
 		fctx = foreground.getContext("2d");
 		foreground.width = width;
 		foreground.height = height;	
@@ -651,6 +653,7 @@ elefart.display = (function () {
 	 */
 	function makeForeground () {
 
+		console.log("in display::makeForeground()");
 		board.init(floorCols, floorCount);
 		board.fillBuilding();
 		
@@ -761,6 +764,7 @@ elefart.display = (function () {
 	/** 
 	 * @method run
 	 * run the routines needed when screen becomes visible
+	 * @param {DOMElement} gamePanel the DOM element we are adding the game to
 	 */
 	function run (gamePanel) {
 		console.log("in display-canvas run");
@@ -777,6 +781,7 @@ elefart.display = (function () {
 	return {
 		preload:preload,
 		init:init,
+		foreground:foreground,
 		makeDisplay:makeDisplay,
 		gridReadout:gridReadout,
 		run:run

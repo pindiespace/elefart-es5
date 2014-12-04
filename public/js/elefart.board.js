@@ -491,20 +491,17 @@ elefart.board = (function () {
 			}
 		}
 		
-		for(var y = 0; y < rows; y++) {
-			
+		for(var y = 0; y < rows; y++) {			
 			var p = getRandomInt(0, rows-1);
 			elevators[y][p] = true;
 			
 		}
 		
-		console.log("doing stuff");
 		var str = "";
 		for(var y = 0; y < rows; y++) {
 			for(var x = 0; x < cols; x++) {
 				str += elevators[x][y] + " "
 			}
-			console.log("x("+x+")" + str);
 			str = "";
 		}
 
@@ -534,6 +531,7 @@ elefart.board = (function () {
 	 * @param {Number} height the number of rows
 	 */
 	function init (c, r) {
+		console.log("board.init(), re-initializing board logic");
 		//create the default building
 		fillBuilding(c, r);
 	}
@@ -570,11 +568,10 @@ elefart.board = (function () {
 	}
 	
 	
-	//default setup
+	//default board setup
 	init();
 	
-	//TODO: MAY WANT TO MAKE THIS DIFFERENTLY
-	//make a default user (name, floor)
+	//make the default user, and 2 machine users
 	users.push(makeUser("default", userTypes.MALE_STANDING, 0));
 	users.push(makeUser("bobo", userTypes.MALE_SQUATTING, 2));
 	users.push(makeUser("skanky", userTypes.MALE_RUNNING, 4));
