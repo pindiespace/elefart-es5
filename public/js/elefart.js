@@ -77,8 +77,7 @@ var elefart = (function() {
 	function load (srcArr, callback) {
 
 		//ADDED
-		console.log("in elefart.load()");
-		console.log("srcArr is:" + srcArr);
+		console.log("elefart::load(), srcArr:" + srcArr);
 
 		/* 
 		 * example of direct load
@@ -126,7 +125,7 @@ var elefart = (function() {
 	 */
 	function fixScreen () {
 		
-		console.log("in fixScreen");
+		console.log("elefart::fixScreen()");
 		
 		//disable touchmove
 		elefart.dom.bind(document, "touchmove", function (e) {
@@ -154,14 +153,12 @@ var elefart = (function() {
 		$ = dom.$;
 		//ADDED
 		fixScreen(); //fix quirks in mobile platforms
-		console.log("yay we are in elefart.setup()");
-		console.log("isStandalone returned:" + isStandalone());
 		if(isStandalone()) {
-			console.log("in setup(), about to show splash screen");
+			console.log("elefart::setup(), show splash screen");
 			elefart.showScreen("screen-splash"); //desktops and iOS in standalone	
 		}
 		else {
-			console.log("in setup(), about to show install screen");
+			console.log("elefart::setup(), show install screen");
 			elefart.showScreen("screen-install"); //iOS not in standalone (inside Mobile Safari)
 		}
 
@@ -179,7 +176,8 @@ var elefart = (function() {
        setup:setup, //p. 28
        isStandalone:isStandalone, //BOOK: p. 64 
        showScreen:showScreen, //BOOK: p. 34
-       screens:screens //BOOK: p 52
+       screens:screens, //BOOK: p 52
+       DEBUG:DEBUG
     };
     
 })();

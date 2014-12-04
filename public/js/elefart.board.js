@@ -169,7 +169,7 @@ elefart.board = (function () {
 	 */
 	function makeUser (uName, type, r) {
 		
-		console.log("MAKING USER:" + uName);
+		console.log("elefart.board::makeUser(), username:" + uName);
 		var availCols = [];
 		for(var i = 0; i < cols; i++) {
 			availCols[i] = true;	
@@ -184,7 +184,7 @@ elefart.board = (function () {
 		//occupied spaces
 		for(var i in users) {
 			if(users[i].uname === uName) {
-				console.log("user name " + uName + " already taken at pos:" + i);
+				console.log("user name " + uName + " already taken at position:" + i);
 				return false;
 			}
 			if(users[i].row == r) {
@@ -221,11 +221,11 @@ elefart.board = (function () {
 		//otherwise, we are a remote user, or a machine-generated user
 		var loc = true;
 		if(users.length) {
-			console.log("setting loc to false for user:" + uName + ", users.length:" + users.length);
+			//console.log("setting loc to false for user:" + uName + ", users.length:" + users.length);
 			loc = false;
 		}
 		else {
-			console.log("loc is true for user:" + uName);
+			//console.log("loc is true for user:" + uName);
 		}
 				
 		//create a new user
@@ -261,7 +261,7 @@ elefart.board = (function () {
 	 */
 	function getUser (id) {
 		if(typeof  id === "string") {
-			console.log("STRING ID:" + id);
+			//console.log("STRING ID:" + id);
 			window.users = users;
 			return users[id];
 		}
@@ -370,7 +370,6 @@ elefart.board = (function () {
 	 */
 	function makeUserFart (id, fartType) {
 		var user = getUser(id);
-		console.log("ID IS:" + id);
 		return {
 			uid:id,
 			tstamp:getTimeStamp(),
@@ -531,7 +530,7 @@ elefart.board = (function () {
 	 * @param {Number} height the number of rows
 	 */
 	function init (c, r) {
-		console.log("board.init(), re-initializing board logic");
+		console.log("board::init(), re-initializing board logic");
 		//create the default building
 		fillBuilding(c, r);
 	}

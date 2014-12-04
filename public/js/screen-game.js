@@ -30,7 +30,7 @@ elefart.screens['screen-game'] = (function () {
 	 * initialize the game
 	 */
 	function init () {
-		console.log("in game init, running display.run()");
+		console.log(".game::init(), running display.run()");
 		display.run(panel);
 		firstRun = false;
 	}
@@ -60,7 +60,7 @@ elefart.screens['screen-game'] = (function () {
 	}
 	
 	function run () {
-		console.log("running screen-game");
+		console.log("screen-game::run");
 		if(firstRun) {
 			init();
 		}

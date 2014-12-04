@@ -242,7 +242,7 @@
 					"js/dom.js",
 					"js/elefart.board.js"], 
 					function () {
-						console.log("loaded dom");
+						console.log("elefart::load(), loaded dom");
 						//conditionally load either 'splash'or 'install' screen
 						if(elefart.isStandalone()) {
 							indicator.style.width = "40%";
@@ -255,7 +255,7 @@
 									indicator.style.width = "60%";
 									elefart.load([
 										"js/elefart.display-canvas.js",
-										"js/elevart.controller.js",
+										"js/elefart.controller.js",
 										"js/screen-game.js"
 										], 
 										function () {

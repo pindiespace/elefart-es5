@@ -51,25 +51,25 @@ elefart.display = (function () {
 	 * in index.html after head.load()
 	 */
 	function preload () {
-		console.log("preloading images...");
+		console.log("elefart.display::preload()");
 		//hotel wallpaper
 		walls = new Image();
 		walls.onload = function() {
-			console.log("loaded background patterns");
+			console.log("display::preload(), loaded background patterns");
       		};
       		walls.src = 'img/bkgnd/wallpaper.png';
 		
 		//hotel sign
 		hotelSign = new Image();
 		hotelSign.onload = function () {
-			console.log("loaded hotel sign");
+			console.log("display::preload(), loaded hotel sign");
 		}
 		hotelSign.src = 'img/game/hotel_sign.png';
 		
 		//character sprites
 		spriteBoard = new Image ();
 		spriteBoard.onload = function () {
-			console.log("loaded character sprites");
+			console.log("display::preload(), loaded character sprites");
 		}
 		spriteBoard.src = 'img/game/spriteboard.png';
 	}
@@ -80,7 +80,7 @@ elefart.display = (function () {
 	 */	
 	function init (gamePanel) {
 		
-		console.log("in display init, getting client rect");
+		console.log("in display::init()");
 		var rect = gamePanel.getBoundingClientRect();
 		
 		//width and height of entire game
@@ -363,7 +363,6 @@ elefart.display = (function () {
 		bctx.fillStyle = "rgba(248, 237, 29, 1.0)";
 		bctx.rect(0, 0, width, height);
 		bctx.fill();
-		console.log("WIDTH:" + width + " HEIGHT:" + height + ", ABOUT TO MAKE BACKGROUND");
 		
 		/////////////////////////////////////////////
 		//sky above building
@@ -767,14 +766,12 @@ elefart.display = (function () {
 	 * @param {DOMElement} gamePanel the DOM element we are adding the game to
 	 */
 	function run (gamePanel) {
-		console.log("in display-canvas run");
+		console.log("display-canvas::run");
 		if(firstRun) {
 			init(gamePanel);
 			
 		}
 		makeDisplay(gamePanel);
-		
-		console.log("running display-canvas");
 		gridReadout(); //////////////////////////////////////////////////////////////////////////////////
 	}
 	
