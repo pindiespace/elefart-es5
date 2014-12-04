@@ -8,14 +8,27 @@ Part I: Setting Up Your Local Computer
 1.	Create an account on GitHub, if you haven’t already
 	- http://www.github.com
 
-2.	Download and install git
+2.	Download and install git, NodeJS, and Sublime Text
 	- http://git-scm.com/download
+	- http://nodejs.org/download/
 
-	Windows: 
-		make sure you select "use git from Windows command prompt" 
-		(the bottom of the three shell options, in red)
-	Mac: 
-		no special instructions
+	Note that Node will install into your System area, e.g.
+		Windows: 
+			C:\Program Files (x86)\nodejs\
+			to make npm work, you need to create the following directory on C: drive
+
+				mkdir C:\Users\xxxx\AppData\Roaming\npm
+
+			where 'xxx' is the user name you are currently logged in with under Windows
+
+		Mac:
+			Usr/local/bin/node
+
+		Windows: 
+			make sure you select "use git from Windows command prompt" 
+			(the bottom of the three shell options, in red)
+		Mac: 
+			no special instructions
 
 3.	Load the git command line console window
 
@@ -24,42 +37,17 @@ Part I: Setting Up Your Local Computer
 	- Put your current folder holding all your HTML, JS, CSS and other files into this folder. 
 	- Name it "public"
 
-5.	Add the following files and folders from the default repository
+5.	Note the following files will be invisible on a Mac or Linux system, unless you 
+	make them visible
 
-	package.json
-	bower.json
-	.gitignore
-	.bowerrc
-	/test
-
-6.	Edit "repository" in "package.json" to reflect your git default project directory
-
-7.	Edit "homepage" in "bower.json" to reflect your git default project home page
-
-8.	Download and install NodeJS and npm, if you haven’t already
-	- http://nodejs.org/download/
-
-	Note that Node will install into your System area, e.g.
-	Windows: 
-		C:\Program Files (x86)\nodejs\
-	Mac:
-		Usr/local/bin/node
+		.gitignore (remove stuff we don't want to upload)
+		.bowerrc (allows bower to place files grabbed by bower in a sub-directory)
 
 8.	Load the NodeJS command-line console window 
 
-	Windows
-		cd into C:\Users\xxxxx\Appdata\Roaming
-		Create a new directory
-		mkdir npm
- 		(needed by npm, not created by installer)
-
-		Note that the Windows version of Git and Node Command prompt will use Windows shell commands, instead of Unix 
-		(e.g. "dir"instead of "ls" to list files)
-
-	Mac: 
-		No special configuration necessary
 
 9. Setting up Your Git Repository
+	- use the NodeJS command line (git should be available, test by typing 'git')
 	- Basic git manipulation
 		@link http://rogerdudler.github.io/git-guide/ 
 

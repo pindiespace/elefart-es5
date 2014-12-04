@@ -4,6 +4,7 @@ bin-debug/
 bin-release/
 
 # Other files and folders
+node_modules
 .settings/
 logs/*
 !.gitkeep
