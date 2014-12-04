@@ -1,0 +1,322 @@
+<!doctype html>
+
+<html>
+
+<head>
+
+	<meta charset="UTF-8">
+
+<!--prefetch Google Font CDN and other APIs
+	@link https://developer.mozilla.org/en-US/docs/Controlling_DNS_prefetching 
+	-->
+	<link rel="dns-prefetch" href="//ajax.googleapis.com">
+
+<!--set the viewport. Required to prevent page from scaling on mobile devices. 
+	Note how multiple variables are set apart by commas
+	-->
+	<meta name="viewport" content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+
+<!--favicon, in all browsers after IE5
+	-->
+	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+<!--larger favicons for modern browsers
+	generated using Real Favicon Generator
+	@link http://realfavicongenerator.net/
+	-->
+	<link rel="icon" type="image/png" href="img/icon/favicon-192x192.png" sizes="192x192">
+	<link rel="icon" type="image/png" href="img/icon/favicon-160x160.png" sizes="160x160">
+	<link rel="icon" type="image/png" href="img/icon/favicon-96x96.png" sizes="96x96">
+	<link rel="icon" type="image/png" href="img/icon/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/png" href="img/icon/favicon-32x32.png" sizes="32x32">
+
+
+<!--touch icons. iOS, but most other mobiles will use them. If you use a different rel:
+	rel="apple-touch-icon-precomposed" instead of rel="apple-touch-icon", 
+	then iOS won't add a gloss to your icon
+	generated using Real Favicon Generator
+	@link http://realfavicongenerator.net/
+	-->
+	<link rel="apple-touch-icon" sizes="57x57" href="img/icon/apple-touch-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="img/icon/apple-touch-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="img/icon/apple-touch-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="img/icon/apple-touch-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="img/icon/apple-touch-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="img/icon/apple-touch-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="img/icon/apple-touch-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="img/icon/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="img/icon/apple-touch-icon-180x180.png">
+
+<!--high resolution android touch icons
+	-->
+	<link rel="icon" sizes="196x196" href="img/icon/android-touch-icon-196x196.png">
+	<link rel="icon" sizes="128x128" href="img/icon/android-touch-icon-128x128.png">
+
+<!--tile icons for windows 8 (also in browserconfig.xml) 
+	-->
+	<meta name="msapplication-TileColor" content="#603cba">
+	<meta name="msapplication-TileImage" content="/mstile-144x144.png">
+
+<!--splash screens
+	BOOK: Listing 3-24, p. 70
+	-->
+    <link rel="apple-touch-startup-image" href="img/splash/startup-748x1024.png" media="screen and (min-device-width: 768px) and (orientation:landscape)">
+    <link rel="apple-touch-startup-image" href="img/splash/startup-768x1004.png" media="screen and (min-device-width: 768px) and (orientation:portrait)" >
+    <link rel="apple-touch-startup-image" href="img/splash/startup-320x460.png" media="screen and (max-device-width:320px)">
+
+<!--apple ios specific meta tags
+	let iOS know we can run as a 'web app'
+	-->
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<!--customize iOS home screen title
+	-->
+	<meta name="apple-mobile-web-app-title" content="Elefart">
+
+<!--Android specific meta tags
+	run in full screen mode on Android
+	-->
+	<meta name="mobile-web-app-capable" content="yes">
+
+<!--windows 8 specific meta tags 
+	-->
+	<meta name="application-name" content="WeVidHere">
+
+<!--disable the annoying tap highlighting thing in Windows phones
+	-->
+	<meta name="msapplication-tap-highlight" content="no">
+
+<!--older mobiles	
+	used by older Palm, AvantGo, Blackberry phones
+	-->
+	<meta name="HandheldFriendly" content="True">
+	
+<!--used by ancient Microsoft PocketPC phones
+	-->
+	<meta name="MobileOptimized" content="320">
+
+<!--SEO related
+	-->
+	<title>Elefart - Freak Out Your Friends</title>
+
+	<meta name="description" content="Elefart lets you try to beat the obnoxious AIGA icon guy in the elevator at his own gassy game">
+
+<!--CSS loading. We load CSS before JavaScript since most browsers 
+	can download css in parallel, while javascript files are loaded one at a time, 
+	freezing the browser.
+	start with webfont download. We put this into a different directory to simplify 
+	the file paths
+	-->
+	<link rel="stylesheet" href="css/fonts/fonts-local.css">
+
+<!--NOTE: special CSS load for old IE
+	fix inline-block problem
+	@link http://blog.mozilla.org/webdev/2009/02/20/cross-browser-inline-block/
+	fix visiblity problem
+	NOTE: we use the conditional load in an HTML comment ONLY supported 
+	by old versions of Internet Explorer
+	-->
+
+<!--[if lt IE 9]>
+<link rel="stylesheet" type="text/css" href="css/oldie.css">
+<![endif]-->
+
+<!--main stylesheet
+	-->
+	<link rel="stylesheet" href="css/main.css">
+
+<!--mobile responsive styles 
+	-->
+	<link rel="stylesheet" href="css/mobile.css" 
+	media="screen and (max-device-width: 768px) and (orientation: portrait), 
+		screen and (max-device-width: 1024px) and (orientation: landscape)">
+
+<!--JavaScript loading
+	NOTE: ****NEW IN version 3****
+	HeadJS loader - feature detector and loader library, used to 
+	replace the event queue used in the textbook in Chapter 2
+	-->
+ 	<script src="js/lib/head.min.js"></script>
+
+<!--prefix free, (automatically add annoying vendor prefixes to 
+	css, reducing CSS code dramatically)
+	@link http://leaverou.github.io/prefixfree/
+	-->
+	<script src="js/lib/prefixfree.min.js"></script>
+
+<!-- addEventListener polyfill
+	old Internet Explorer doesn't understand 
+	how to 'trap' events, so add some JavaScript that teaches it 
+	to do so following W3C standards
+	@link https://github.com/jonathantneal/EventListener
+	@link https://gist.github.com/jonathantneal/2415137
+	-->
+	<script src="js/lib/EventListener.js"></script>
+
+</head>
+
+<body>
+
+	<!--NOTE: changed to new HTML5 main tag-->
+	<main id="game">
+		
+		<!--initial splash screen-->
+		<article class="screen" id="screen-splash">
+
+			<h1 class="logo">Elefart</h1>
+			<img id="splash-screen-img" src="img/icon/apple-touch-icon-144x144.png" width="144" height="144">
+			<div class="progress">
+				<div class="indicator-wrapper">
+					<div class="indicator"></div>
+				</div>
+				<span class="continue">Loading</span>	
+			</div>
+
+		</article>
+
+		<!--installation screen
+			BOOL: Listing 3-21, p. 66
+			NOTE: we added the inline-block class to fix old IE
+			-->
+		<article class="screen" id="screen-install">
+
+			<h1 class="logo">Elefart</h1>
+			<span>
+				Click the <img src="img/install-icon.png" alt="Install icon"> button to install the game to your home screen.
+			</span>
+            <p>
+            <a id="dont-install" href="#">Don't Install</a> by clicking here
+            </p>
+
+		</article>
+
+		<!--main menu for the game-->
+		<article class="screen" id="screen-main-menu">
+
+			<h2 class="logo">Elefart</h2>
+			<form>
+			<ul id="menu-main" class="menu">
+				<li><button name="game">Play</button>
+				<li><button name="high-scores">Highscore</button>
+				<li><button name="about">About</button>
+				<li><button name="exit">Exit</button>
+			</ul>
+			</form>
+		</article>
+
+		<!--the game canvas-->
+		<article class="screen" id="screen-game">
+        	<!--the actual game in HTML5 canvas will go here-->
+			
+		</article>
+
+		<!--high scores screen-->
+		<article class="screen" id="screen-high-scores">
+        	<!--screen displaying high scores goes here-->
+		</article>
+
+	</main><!--end of main #game-->
+
+	<!--BOOK: List 2-10, p.33-->
+	<script src="js/elefart.js"></script>
+	<script>
+
+		/** 
+		 * BOOK: bottom of p. 55
+		 * NOTE: added test for elefart object loading correctly, and if 
+		 * it has loaded, loading the rest of our JS code. A callback function 
+		 * calls our program setup
+		 */
+		
+			//addEventListener will 'fire' this function only after static page assets are loaded
+			window.addEventListener("load", function () {
+				var completeIcon = document.getElementById('splash-screen-img');
+				var progress  = document.getElementsByClassName('progress')[0];
+				var indicator = progress.getElementsByClassName('indicator')[0];
+				var status = progress.getElementsByClassName('continue')[0];
+				//var indicatorIcon = progress.getElementsByTagName('img')[0];
+				//load required libraries for Elefart. We pass an empty callback function
+				elefart.load([
+					"js/dom.js",
+					"js/elefart.board.js"], 
+					function () {
+						console.log("loaded dom");
+						//conditionally load either 'splash'or 'install' screen
+						if(elefart.isStandalone()) {
+							indicator.style.width = "40%";
+							elefart.load([
+								"js/screen-splash.js",
+								"js/screen-main-menu.js"
+								],
+								function () {
+									elefart.setup();
+									indicator.style.width = "60%";
+									elefart.load([
+										"js/elefart.display-canvas.js",
+										"js/elevart.controller.js",
+										"js/screen-game.js"
+										], 
+										function () {
+											elefart.display.preload(); //preload HTML5 canvas images
+											indicator.style.width = "80%";
+											elefart.load([
+												"js/screen-about.js",
+												"js/screen-exit.js",
+												"js/screen-high-scores.js"											
+												],
+												function () {											
+													indicator.style.width = "100%";
+													completeIcon.style.opacity = "1.0";
+													status.innerHTML = "Click to Continue";
+													//elefart.setup();	
+												}
+											); //end of fourth load
+										}
+									); //end of third load
+								}
+							); //end of second load
+						}
+						else {
+							console.log("NOT STANDALONE");
+							elefart.load([
+								"js/screen-install.js",
+								"js/screen-main-menu.js",
+								],function () {
+									/** 
+									 * here we kludge if the user elects not to install the app. We 
+									 * force the app's test to a true value if the user doesn't want to 
+									 * install on the iOS desktop
+									 */
+									elefart.setup(); //iOS not in standalone (inside Mobile Safari)
+									document.getElementById('dont-install').onclick = function () {
+										console.log("DON'T INSTALL ROUTE#EEEEEEEEEEEEEEE");
+										//load in background while showing setup choices
+										elefart.load([
+											"js/display-canvas.js",
+											"js/screen-game.js",
+											"js/screen-about.js",
+											"js/screen-exit.js",
+											"js/screen-high-scores.js"	
+											], function () {
+												elefart.display.preload(); //preload HTML5 canvas and associated images
+												console.log("not standalone load complete");
+												elefart.showScreen("screen-main-menu"); //desktops and iOS in standalone	
+											
+										}); //end of alternate load via dont-install click
+										
+									} //callback function for dont-install click
+									
+								}); //callback shows the install-screen for NOT STANDALONE
+								
+							} //end of else
+							
+					}); //end of first load
+					
+				}); //complete loader function
+	</script>
+
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+/* HUMANSTXT.ORG */
+
+
+    /* TEAM */
+    Creator: Slam Thunderhide.
+    Site: plyojump.com, pindiespace@gmail.com
+    Twitter: @pindiespace
+    Location: Los Angeles, California, USA.
+						
+
+    /* THANKS */
+    Name: Kepler
+                        
+
+    /* SITE */
+    Last update: 2014/10/04
+    Standards: HTML5, CSS3, Javascript (ECMA 5), Camera API
+    Components: Modernizr, Native JavaScript code
+    Software: Sublime Text, Terminal (Mac)
+
+
+                    
