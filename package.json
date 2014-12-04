@@ -1,0 +1,16 @@
+{
+
+	"name" : "Elefart",
+	"version" : "1.0.0",
+	"repository" : "https://github.com/pindiespace/Elefart",
+	"description" : "implemented using basecode HTML5 Games: Creating Fun with HTML5, CSS3, and WebGL by Jacob Seidelin",
+	"dependencies" : {
+		"path" : "latest",
+		"express" : "4.x",
+		"serve-favicon" : "~2.x"
+		},
+	"scripts" : {
+		"start" : "node server.js"
+	}
+
+}
