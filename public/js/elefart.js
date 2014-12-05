@@ -5,7 +5,7 @@ var elefart = (function() {
 		dom,              //link to .dom
 		$,                //link to .dom querySelector
 		activeScreen,     // DOM refence to currently visible screen
-		DEBUG = true;     // debug line
+		DEBUG = false;     // debug line
 		
 	/** 
 	 * @method errorScreen
@@ -76,8 +76,7 @@ var elefart = (function() {
 	 */
 	function load (srcArr, callback) {
 
-		//ADDED
-		console.log("elefart::load(), srcArr:" + srcArr);
+		if(DEBUG) console.log("elefart::load(), srcArr:" + srcArr);
 
 		/* 
 		 * example of direct load
@@ -125,7 +124,7 @@ var elefart = (function() {
 	 */
 	function fixScreen () {
 		
-		console.log("elefart::fixScreen()");
+		if(DEBUG) console.log("elefart::fixScreen()");
 		
 		//disable touchmove
 		elefart.dom.bind(document, "touchmove", function (e) {

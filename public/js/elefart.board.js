@@ -516,11 +516,11 @@ elefart.board = (function () {
 		//randomly choose one of the defined fart types
 		return {
 			busy:false, //elevator available
-            floor:floor,
-            floorCol: floorCol,
-            floorList:[],
-            deposits:[],    //list of users recently at elevator (and what they left behind)
-            moving:elevatorStates.STATIONARY
+			floor:floor,
+			floorCol: floorCol,
+			floorList:[],
+			deposits:[],    //list of users recently at elevator (and what they left behind)
+			moving:elevatorStates.STATIONARY
 		};
 	}
 	
@@ -551,7 +551,8 @@ elefart.board = (function () {
                 }
         } 
         else {
-            console.log("ERROR: elefart.board::getElevator(), floor:" + floor + " floorCol:" + floorCol);
+            if(elefart.DEBUG) 
+	    	console.log("ERROR: elefart.board::getElevator(), floor:" + floor + " floorCol:" + floorCol);
         }
 		return false;
 	}

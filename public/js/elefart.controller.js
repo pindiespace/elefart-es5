@@ -11,8 +11,9 @@
  */
 elefart.controller = (function () {
 	
-	var 
+	var gamePanel,
 	foreground = null, //reference to HTML5 canvas foreground
+	background = null,
 	firstRun = true;
     
 
@@ -24,36 +25,42 @@ elefart.controller = (function () {
         
 		console.log("initializing elefart controller");
 
-		//get the canvas
-		foreground = panel;
-        
+		//get the dom object with foreground and background
+		gamePanel = panel;
+		
+		//get the canvas objects
+		var canvasList = gamePanel.getElementsByTagName('canvas');
+		for(var i = 0; i < canvasList.length; i++) {
+			switch(canvasList[i].id) {
+				case 'game-foreground':
+					foreground = canvasList[i];
+					break;
+				case 'game-background':
+					background = canvasList[i];
+					break;
+				default:
+					break;
+			}
+		}
+		
 		console.log("in elefart.controller, elefart.display.foreground is a:" + foreground);
         
-        //keypress event listener
-        document.addEventListener("keypress", function (e) {
-            handleKeyPress();
-        }, false);
+        	//keypress event listener
+        	document.addEventListener("keypress", function (e) {
+			handleKeyPress(e.keyCode);
+       		}, false);
         
-        //mouse click listener
-        foreground.addEventListener("click", function (e) {
-            handleTouchPoint({
-                                x:e.clientX,
-                                y:e.clientY
-                            });
-        }, false);
+        	//mouse click listener
+        	foreground.addEventListener("click", function (e) {
+           		handleTouchPoint({x:e.clientX, y:e.clientY});
+        	}, false);
         
-        foreground.addEventListener("touchmove", function (e) {
-            handleTouchPoint({
-                                x:e.touches[0].clientX,
-                                y:e.touches[0].clientY
-                            });
-        }, false);
-
-		//setup event handler for canvas. it just returns the 
-		//place that the user clicked, or put their finger on
+		foreground.addEventListener("touchmove", function (e) {
+			handleTouchPoint({x:e.touches[0].clientX, y:e.touches[0].clientY});
+		}, false);
+	
 	}
     
-
     
     /** 
 	 * =========================================
@@ -135,6 +142,7 @@ elefart.controller = (function () {
      */
     function handleKeyPress(k) {
         console.log("elefart.controller::handleKeyPress(), keypress is:" + k);
+	
     }
     
     
@@ -146,6 +154,9 @@ elefart.controller = (function () {
     function handleTouchPoint (pt) {
         
         console.log("elefart.controller::handleTouchPoint(), x:" + pt.x + ", y:" + pt.y);
+	//get the row and column of the selection (or none if outside)
+	
+	
         //switch on game state
         
         //determine if a player, elevator, floor was selected
@@ -163,9 +174,9 @@ elefart.controller = (function () {
     }
     
 		
-	function run () {
+	function run (panel) {
 		if(firstRun) {
-			init();
+			init(panel);
 			firstRun = false;
 		}
 		console.log("elefart.controller::run()");

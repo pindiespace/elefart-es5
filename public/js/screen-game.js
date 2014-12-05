@@ -40,7 +40,9 @@ elefart.screens['screen-game'] = (function () {
 		board.init(display.getFloorCols(), display.getFloorCount());
 
 		//create the display screen, and start the display loop
-		display.run(controller);
+		display.run();
+		
+		controller.run(panel);
 		
 		//create users
 		if(elefart.DEBUG) elefart.board.printUsers();

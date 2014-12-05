@@ -11,7 +11,7 @@ elefart.display = (function () {
 		$ = dom.$,
 		board = elefart.board,
 		game = elefart.game,
-        displayPanel,  //display panel = gamePanel
+        	displayPanel,  //display panel = gamePanel
 		foreground,    //game foreground
 		fctx,          //context
 		bkgnd,         //game underlying background
@@ -111,6 +111,25 @@ elefart.display = (function () {
         floorCols = Math.floor((width - floorOffsetWidth)/floorColWidth);        
 		return floorCols;
 	}
+	
+	/** 
+	 * @method getFloor
+	 * for a given {x, y} return the floor
+	 * @param {Point} pt the {x, y}
+	 * @returns {Number|-1} is found, return true, else -1 (floor might be zero)
+	 */
+	function getFloor(pt) {
+		
+	}
+	
+	/** 
+	 * @method getShaft
+	 * for a given {x, y} return the elevator shaft, if selection
+	 * was in a legal region of the elevator shaft
+	 */
+	function getShaft(pt) {
+		
+	}
     
     /** 
      * @method preInit
@@ -127,9 +146,9 @@ elefart.display = (function () {
         //calculations before standard initialization
 	var rect = displayPanel.getBoundingClientRect();
 		
-		//width and height of entire game
-		width = rect.width;
-		height = rect.height;
+	//width and height of entire game
+	width = rect.width;
+	height = rect.height;
         
         //number of visible floors and elevator shafts
         getFloorCount();
@@ -828,7 +847,7 @@ elefart.display = (function () {
 			init();
 			
 		}
-		drawDisplay();		
+		drawDisplay();	
 	}
 	
 	return {
@@ -839,6 +858,8 @@ elefart.display = (function () {
 		drawDisplay:drawDisplay,
 		getFloorCols:getFloorCols,
 		getFloorCount:getFloorCount,
+		getFloor:getFloor,
+		getShaft:getShaft,
 		gridReadout:gridReadout,
 		run:run
 	};
