@@ -11,6 +11,7 @@ elefart.display = (function () {
 		$ = dom.$,
 		board = elefart.board,
 		game = elefart.game,
+        displayPanel,  //display panel = gamePanel
 		foreground,    //game foreground
 		fctx,          //context
 		bkgnd,         //game underlying background
@@ -44,31 +45,24 @@ elefart.display = (function () {
 		spriteHeight = 150,
 		spriteBoard,   //image with sprites
 		firstRun = true;
-	
 
+    
 	/** 
-	 * @method getFloorCount
+	 * =========================================
+	 * IMAGE PRELOADER
+	 * =========================================
 	 */
-	function getFloorCount () {
-		return floorCount;
-	}
 
-	/** 
-	 * @method getFloorCols
-	 * return the number of columns (a.k.a. elevator shafts)
-	 * for the given screen
-	 */
-	function getFloorCols () {
-		return floorCols;
-	}
-	
+    
 	/** 
 	 * @method preload
 	 * start game images loading before game screen appears
-	 * in index.html after head.load()
+	 * in index.html after head.load(), called before other
+     * game modules load
 	 */
 	function preload () {
-		console.log("elefart.display::preload()");
+        
+		console.log("elefart.display::preload(), image loading");
 		//hotel wallpaper
 		walls = new Image();
 		walls.onload = function() {
@@ -90,23 +84,68 @@ elefart.display = (function () {
 		}
 		spriteBoard.src = 'img/game/spriteboard.png';
 	}
+    
+
+	/** 
+	 * =========================================
+	 * PRELIMINARY DISPLAY CALCULATIONS
+     * DONE BEFORE DISPLAY INITIALIZATION SO 
+     * THEY CAN BE USED BY elefart.board
+	 * =========================================
+	 */
+
+	/** 
+	 * @method getFloorCount
+	 */
+	function getFloorCount () {
+        floorCount = Math.ceil((height - floorOffsetHeight - gameUiHeight)/floorHeight);
+		return floorCount;
+	}
+
+	/** 
+	 * @method getFloorCols
+	 * return the number of columns (a.k.a. elevator shafts)
+	 * for the given screen
+	 */
+	function getFloorCols () {
+        floorCols = Math.floor((width - floorOffsetWidth)/floorColWidth);        
+		return floorCols;
+	}
+    
+    /** 
+     * @method preInit
+     * called by elefart.game to pre-initialize and determine the number of floors 
+     * and elevators needed to compute board logic
+     * @param {HTMLDOMObject} panel the game screen
+     */
+    function preInit (panel) {
+    
+        console.log("elefart.display::preload(), floors and floorCol calculations, panel:" + panel);
+
+        displayPanel = panel;
+        
+        //calculations before standar initialization
+		var rect = displayPanel.getBoundingClientRect();
+		
+		//width and height of entire game
+		width = rect.width;
+		height = rect.height;
+        
+        //number of visible floors and elevator shafts
+        getFloorCount();
+        getFloorCols();
+
+    }
+	
 	
 	/** 
 	 * @method init
 	 * initialize the display
 	 */	
-	function init (gamePanel) {
+	function init () {
 		
 		console.log("in display::init()");
-		var rect = gamePanel.getBoundingClientRect();
-		
-		//width and height of entire game
-		width = rect.width;
-		height = rect.height;
-		
-		//number of visible floors
-		floorCount = Math.ceil((height - floorOffsetHeight - gameUiHeight)/floorHeight);
-
+        
 		//scale elevator to floor
 		elevatorWidth =  floorColWidth * 0.75; //floorColWidth - 12;
 		elevatorLeftMargin = Math.floor((floorColWidth - elevatorWidth)/2);
@@ -661,24 +700,24 @@ elefart.display = (function () {
 	}
 	 
 	/** 
-	 * @method makeForeground
+	 * @method drawForeground
 	 * make the active layer of the display. Includes 
 	 * People, Goodies (Perfume and Food), Elevators
 	 * @param {Number} w width of game screen
 	 * @param {Number} h height of game screen
 	 */
-	function makeForeground () {
+	function drawForeground () {
 
-		console.log("in display::makeForeground()");
+		console.log("in display::drawForeground()");
 		
 		//fill in the elevators
-		for(var y = 0; y <= floorCount; y++) {
-			for(var x = 2; x <= floorCols; x++) {
-				if(board.getElevator(y, x-2)) {
-					drawElevator(y+1, x, false);
+		for(var y = 0; y < floorCount; y++) {
+			for(var x = 0; x < floorCols; x++) {
+				if(board.getElevator(y, x)) { //elevator on floor y is in shaft x
+					drawElevator(y+1, x+2, false);
 				}
 				else if(y < floorCount) {
-					drawElevatorDoors(y+1, x);
+					drawElevatorDoors(y+1, x+2);
 				}
 			}
 		}
@@ -686,12 +725,11 @@ elefart.display = (function () {
 		var noShaftTop = true;
 		
 		//draw in the bands and shaft top
-		for(var x = 2; x <= floorCols; x++) {
-			drawElevatorBand(x-1);			
+		for(var x = 0; x < floorCols; x++) {
+			drawElevatorBand(x+1);			
 			for(var y = 0; y <= floorCount; y++) {
 				//check if there is an elevator below us
-				if(board.getElevator(y, x-2) && board.getElevator(y, x-2)) {
-					//drawElevatorBand (y+1, y+2, x-1);
+				if(board.getElevator(y, x-1) && board.getElevator(y, x-1)) {
 					//draw in the shaft top
 					if(noShaftTop && y == floorCount-1) {
 						drawShaftTop(x-1);
@@ -724,7 +762,7 @@ elefart.display = (function () {
 	 */
 	
 	/** 
-	 * @method make
+	 * @method drawDisplay
 	 * make the foreground and background of the game display
 	 * Grid Dimensions
 	 * - Width: 320
@@ -736,19 +774,19 @@ elefart.display = (function () {
 	 * 		* Leftmost: 30
 	 * 		* 6 more rows of 50 = 300
 	 */
-	function makeDisplay (gamePanel) {
-		console.log("in display.makeDisplay()");
+	function drawDisplay () {
+		console.log("in display.drawDisplay()");
 		
 		//background to game
 		drawBackground();
 		
 		//game foreground objects
-		makeForeground();
+		drawForeground();
 		
 		//add to display
 		if(foreground && bkgnd) {
-			gamePanel.appendChild(bkgnd);
-			gamePanel.appendChild(foreground);		
+			displayPanel.appendChild(bkgnd);
+			displayPanel.appendChild(foreground);		
 		}
 		else {
 			console.log("ERROR: failed to make canvas objects");
@@ -781,20 +819,21 @@ elefart.display = (function () {
 	 * run the routines needed when screen becomes visible
 	 * @param {DOMElement} gamePanel the DOM element we are adding the game to
 	 */
-	function run (gamePanel) {
+	function run () {
 		console.log("elefart.display::run() (canvas version)");
 		if(firstRun) {
-			init(gamePanel);
+			init();
 			
 		}
-		makeDisplay(gamePanel);
+		drawDisplay();
 	}
 	
 	return {
 		preload:preload,
+        preInit:preInit,
 		init:init,
 		foreground:foreground,
-		makeDisplay:makeDisplay,
+		drawDisplay:drawDisplay,
 		getFloorCols:getFloorCols,
 		getFloorCount:getFloorCount,
 		gridReadout:gridReadout,

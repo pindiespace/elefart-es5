@@ -31,17 +31,19 @@ elefart.screens['screen-game'] = (function () {
 	 */
 	function init () {
 		console.log(".game::init(), running display.run()");
-
+        
 		//ask the display for the final row and column count
+        console.log("PANEL:" + panel);
+        display.preInit(panel);
+        
 		board.init(display.getFloorCols(), display.getFloorCount());
 
 		//create the display
-		display.run(panel);
+		display.run();
 
 		if(elefart.DEBUG) elefart.board.printUsers();
 		if(elefart.DEBUG) elefart.board.printBuilding();
 		if(elefart.DEBUG) elefart.display.gridReadout();
-
 
 		firstRun = false;
 	}

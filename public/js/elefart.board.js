@@ -117,7 +117,7 @@ elefart.board = (function () {
 	
 	
 	/** 
-	 * @method getRendomInt
+	 * @method getRandomInt
 	 * bounded random number
 	 * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
 	 */
@@ -129,7 +129,25 @@ elefart.board = (function () {
 		var rnd = Math.random();
 		if(rnd < 0.5) return true; else return false;
 	}
-		
+
+    /** 
+     * polyfill Array.prototype with a shuffle algorithm
+     * shuffle and array
+     * @link http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_modern_algorithm
+     * @link http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+     */
+    Array.prototype.shuffle = function() {
+        var i = this.length, j, temp;
+        if ( i == 0 ) return this;
+        while ( --i ) {
+            j = Math.floor( Math.random() * ( i + 1 ) );
+            temp = this[i];
+            this[i] = this[j];
+            this[j] = temp;
+        }
+        return this;
+    }
+    
 	/** 
 	 * @method makeTimestamp
 	 * return a Unix-style timestamp
@@ -154,10 +172,12 @@ elefart.board = (function () {
 	 * @param {Number} width the number of columns
 	 * @param {Number} height the number of rows
 	 */
-	function init (c, r) {
-		console.log("elefart.board::init(), re-initializing board logic");
+	function init (c, f) {
+		console.log("elefart.board::init(), re-initializing board logic with rows:" + f + ", cols:" + c);
 		//create the default building
-		fillBuilding(c, r);
+        rows = f;
+        cols = c;
+		fillBuilding();
 
 		//make the default user, and 2 machine users
 		makeUser("default", userTypes.MALE_STANDING, 0);
@@ -315,7 +335,7 @@ elefart.board = (function () {
 	function clearUserByName (uName) {
 		for(var i in users) {
 			if(uName === users[i].uid) {
-				return array.splice(uname, 1)[0];		
+				return users.splice(i, 1)[0];		
 			}
 		}
 		return false;
@@ -488,19 +508,19 @@ elefart.board = (function () {
 	 * @method makeElevator
 	 * BOOK: Listing 4-7, p. 91
 	 * define an individual elevator and its properties
-	 * @param {Number} startFloor the y coordinate of the elevator (floor)
+	 * @param {Number} floor the y coordinate of the elevator (floor)
 	 * @param {Number} floorCol the x coordinate of the floor (shaft number)
 	 * @returns {Object} object with fart type and an 
 	 */
-	function makeElevator (startFloor, floorCol) {
+	function makeElevator (floorCol, floor) {
 		//randomly choose one of the defined fart types
 		return {
 			busy:false, //elevator available
-			currFloor:startFloor,
-			col: floorCol,
+			floor:floor,
+			floorCol: floorCol,
             floorList:[],
-			moving:elevatorStates.STATIONARY,
-			deposits:[]    //list of users recently at elevator (and what they left behind)
+			deposits:[],    //list of users recently at elevator (and what they left behind)
+			moving:elevatorStates.STATIONARY
 		};
 	}
 	
@@ -511,17 +531,29 @@ elefart.board = (function () {
 	 * (cleared by reference to original)
 	 */
 	function clearElevator (elev) {
-		elev = makeElevator();
+		for(var i = 0; i < elevators.length; i++) {
+			if(elev === elevators[i]) {
+				return elevators.splice(i, 1)[0];		
+			}
+		}
 	}
 
 	/** 
 	 * @method getElevator
 	 * BOOK: Listing 4-9, p. 92
+     * @param {Number} floor the elevator floor (y)
+     * @param {Number} floorCol the elevator shaft
 	 */
-	function getElevator (y, x) {
-		if(y < rows && x < cols) {
-			return elevators[x][y];
-		}
+	function getElevator (floor, floorCol) {
+        console.log("getElevator floor:" + floor + " incoming floorCol:" + floorCol);
+        if(floor >= 0 && floorCol >= 0) {
+            if(elevators[floorCol].floor == floor) {
+                    return elevators[floorCol];
+                }
+        } 
+        else {
+            console.log("ERROR: elefart.board::getElevator(), floor:" + floor + " floorCol:" + floorCol);
+        }
 		return false;
 	}
     
@@ -532,8 +564,8 @@ elefart.board = (function () {
 	 * this should be called with a time delay corresponding to moving from one floor 
 	 * to the other with an elevator
 	 */
-	function getElevatorFarts (x, y) {
-		var elev = getElevator(x, y);
+	function getElevatorFarts (y, x) {
+		var elev = getElevator(y, x);
 		var stink = 0;
 		for(var i in elev.farts) {
 			stink += elev.farts[i].smell;
@@ -564,35 +596,21 @@ elefart.board = (function () {
      * =========================================
      */
 
-
 	/** 
 	 * @method fillBuilding
-	 * reset the building
+	 * reset the building. Elevators are attached to a list of 
+     * elevator shafts
 	 */
 	function fillBuilding () {
 		elevators = [];
-		
-		for(var y = 0; y < rows; y++) {
-			elevators[y] = [];
-			for(var x = 0; x < cols; x++) {
-				elevators[y][x] = false;
-			}
-		}
-		
-		for(var y = 0; y < rows; y++) {			
-			var p = getRandomInt(0, rows-1);
-			elevators[y][p] = true;
-			
-		}
-		
-		var str = "";
-		for(var y = 0; y < rows; y++) {
-			for(var x = 0; x < cols; x++) {
-				str += elevators[x][y] + " "
-			}
-			str = "";
-		}
-
+        
+        //x is florCols
+        for(var x = 0; x < cols; x++) {
+            var p = getRandomInt(0, rows-1);
+            elevators[x] = makeElevator(x, p);
+        }
+        
+        window.elevators = elevators;
 	}
 	
 
@@ -625,6 +643,7 @@ elefart.board = (function () {
 		console.log("--------------------------------");		
 	}
 	
+    
 	/** 
 	 * @method printUsers
 	 */
@@ -641,10 +660,6 @@ elefart.board = (function () {
 		}
 	}
     
-
-	//default board setup
-	init();
-		
 	//return public methods
 	return {
 		init:init,
