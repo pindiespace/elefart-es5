@@ -10,6 +10,7 @@ elefart.screens['screen-game'] = (function () {
 		$ = dom.$,
 		board = elefart.board,
 		display = elefart.display,
+        controller = elefart.controller,
 		panel = document.getElementById('screen-game'),
 		elevatorWidth,
 		floorHeight,
@@ -40,6 +41,9 @@ elefart.screens['screen-game'] = (function () {
 
 		//create the display
 		display.run();
+        
+        //start up the event listners
+        controller.run(elefart.display.foreground);
 
 		if(elefart.DEBUG) elefart.board.printUsers();
 		if(elefart.DEBUG) elefart.board.printBuilding();

@@ -20,12 +20,13 @@ elefart.controller = (function () {
      * @method init
      * initialize the controller
      */
-	function init () {
+	function init (panel) {
         
 		console.log("initializing elefart controller");
 
 		//get the canvas
-		foreground = elefart.display.foreground;
+		foreground = panel;
+        
 		console.log("in elefart.controller, elefart.display.foreground is a:" + foreground);
         
         //keypress event listener
@@ -133,7 +134,7 @@ elefart.controller = (function () {
      * @param {CharCode} k the character code for the key pressed
      */
     function handleKeyPress(k) {
-        
+        console.log("elefart.controller::handleKeyPress(), keypress is:" + k);
     }
     
     
@@ -143,6 +144,8 @@ elefart.controller = (function () {
      * @param {Point} pt and {x, y} coordinate where click or touch happened
      */
     function handleTouchPoint (pt) {
+        
+        console.log("elefart.controller::handleTouchPoint(), x:" + pt.x + ", y:" + pt.y);
         //switch on game state
         
         //determine if a player, elevator, floor was selected
@@ -156,7 +159,7 @@ elefart.controller = (function () {
      * @param {Rect} rt the rect where the event happened
      */
     function handleTouchRect(rt) {
-        
+        console.log("elefart.controller::handleTouchRect(), top:" + rt.top + " left:" + rt.left + " width:" + rt.width + " height:" + rt.height);
     }
     
 		

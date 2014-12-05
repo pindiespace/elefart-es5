@@ -516,11 +516,11 @@ elefart.board = (function () {
 		//randomly choose one of the defined fart types
 		return {
 			busy:false, //elevator available
-			floor:floor,
-			floorCol: floorCol,
+            floor:floor,
+            floorCol: floorCol,
             floorList:[],
-			deposits:[],    //list of users recently at elevator (and what they left behind)
-			moving:elevatorStates.STATIONARY
+            deposits:[],    //list of users recently at elevator (and what they left behind)
+            moving:elevatorStates.STATIONARY
 		};
 	}
 	
@@ -545,7 +545,6 @@ elefart.board = (function () {
      * @param {Number} floorCol the elevator shaft
 	 */
 	function getElevator (floor, floorCol) {
-        console.log("getElevator floor:" + floor + " incoming floorCol:" + floorCol);
         if(floor >= 0 && floorCol >= 0) {
             if(elevators[floorCol].floor == floor) {
                     return elevators[floorCol];

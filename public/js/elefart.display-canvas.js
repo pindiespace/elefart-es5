@@ -782,7 +782,7 @@ elefart.display = (function () {
 		
 		//game foreground objects
 		drawForeground();
-		
+        		
 		//add to display
 		if(foreground && bkgnd) {
 			displayPanel.appendChild(bkgnd);
