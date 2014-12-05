@@ -31,7 +31,18 @@ elefart.screens['screen-game'] = (function () {
 	 */
 	function init () {
 		console.log(".game::init(), running display.run()");
+
+		//ask the display for the final row and column count
+		board.init(display.getFloorCols(), display.getFloorCount());
+
+		//create the display
 		display.run(panel);
+
+		if(elefart.DEBUG) elefart.board.printUsers();
+		if(elefart.DEBUG) elefart.board.printBuilding();
+		if(elefart.DEBUG) elefart.display.gridReadout();
+
+
 		firstRun = false;
 	}
 	
@@ -59,8 +70,12 @@ elefart.screens['screen-game'] = (function () {
 		requestAnimationFrame(gameLoop);
 	}
 	
+	/** 
+	 * @method run
+	 * runs every time sreen becomes visible
+	 */
 	function run () {
-		console.log("screen-game::run");
+		console.log("elefart.screens['screen-game']::run()");
 		if(firstRun) {
 			init();
 		}

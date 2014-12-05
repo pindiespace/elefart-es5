@@ -21,7 +21,7 @@ elefart.screens['screen-splash'] = (function () {
 	 */
 	function run () {
 		//ADDED
-		console.log("yay, we are in elefart.screens['screen-splash']");
+		console.log("elefart.screens['screen-splash']::run()");
 		if(firstRun) {
 			setup();
 			firstRun = false;

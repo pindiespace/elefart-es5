@@ -11,7 +11,7 @@ elefart.screens['screen-install'] = (function () {
 	 */
 	function run () {
 		//ADDED
-		console.log("yay, we are in elefart.screens['screen-install']");
+		console.log("elefart.screens['screen-install']::run()");
 	}
 
 	return {

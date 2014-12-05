@@ -230,7 +230,7 @@ elefart.board = (function () {
 				
 		//create a new user
 		var id = randomUserId(settings.uidLength);
-		users[id] = {
+		users.push( {
 			uname:uName,           //public user name
 			uid:id,                //unique identifier (independent of name)
 			local:loc,             //are we the first (local) user?
@@ -244,14 +244,15 @@ elefart.board = (function () {
 			health:healthVals.PERFECT, //current user health
 			score:0,               //score for quests
 			path:[],               //last path taken
-			lastWayPoint:null,     //position at end of last turn
+			lastWayPoint:{
+				x:0,
+				y:0
+			},                     //position at end of last turn
 			skill:skills.BASIC
-		};
-		
-		users[id].lastWayPoint = makeUserFart(id, farts.NONE);
+		});
 		
 		//return the new user
-		return users[id];
+		//return users[id];
 	}
 	
 	/** 
@@ -442,7 +443,7 @@ elefart.board = (function () {
 	function makeElevator (startFloor, floorCol) {
 		//randomly choose one of the defined fart types
 		return {
-			busy:false, //elevator not available
+			busy:false, //elevator available
 			currFloor:startFloor,
 			col: floorCol,
 			moving:elevatorStates.STATIONARY,
@@ -523,6 +524,43 @@ elefart.board = (function () {
 	
 	
 	/** 
+	 * @mthod print
+	 * BOOK: Listing 4-4, p. 88
+	 * a way of printing out the current game board 
+	 * in string format for debugging
+	 */
+	function printBuilding () {
+		console.log("--------------------------------");
+		console.log("BUILDING:");		
+		for(var y = 0; y < rows; y++) {
+			var str = "";
+			for(var x = 0; x < cols; x++) {
+				var elv = getElevator(y, x);
+				str += "("+y+","+x+")";
+				if(elv.busy) str += " busy:"; else str += "open";
+				str += "  ";
+			}
+			console.log(str);
+		}
+		console.log("--------------------------------");		
+	}
+	
+	/** 
+	 * @method printUsers
+	 */
+	function printUsers () {
+		console.log("--------------------------------");
+		console.log("USERS:");		
+		for(var i in users) {
+			u = users[i];
+			console.log("USER("+u.uname+")");
+			console.log(" - uid:" + u.uid + ", skill:" + u.skill);	
+			console.log(" - x:" + u.lastWayPoint.x + ", y:" + u.lastWayPoint.y + ", gas:" + u.gas);
+			console.log("--------------------------------");
+		}
+	}
+
+	/** 
 	 * @method initialize
 	 * Creates the default building array
 	 * the width and height come from display-canvas.js (View)
@@ -530,51 +568,20 @@ elefart.board = (function () {
 	 * @param {Number} height the number of rows
 	 */
 	function init (c, r) {
-		console.log("board::init(), re-initializing board logic");
+		console.log("elefart.board::init(), re-initializing board logic");
 		//create the default building
 		fillBuilding(c, r);
+
+		//make the default user, and 2 machine users
+		makeUser("default", userTypes.MALE_STANDING, 0);
+		makeUser("bobo", userTypes.MALE_SQUATTING, 2);
+		makeUser("skanky", userTypes.MALE_RUNNING, 4);
+
 	}
-	/** 
-	 * @mthod print
-	 * BOOK: Listing 4-4, p. 88
-	 * a way of printing out the current game board 
-	 * in string format for debugging
-	 */
-	function printBuilding () {
-		console.log("Building:");
-		for(var y = 0; y < rows; y++) {
-			var str = "";
-			for(var x = 0; x < cols; x++) {
-				var elv = getElevator(y, x);
-				str += "("+y+","+x+")" + " busy:" + elv.busy + "  ";
-			}
-			console.log(str);
-		}
-	}
-	
-	/** 
-	 * @method printUsers
-	 */
-	function printUsers () {
-		var str = "--------------\nUSERS:";
-		for(var i in users) {
-			u = users[i];
-			console.log("("+i+") uname:" + u.uname + " uid:" + u.uid + " skill:" + u.skill);	
-			console.log(u.uname + " last position:"); 
-			console.log("x:" + u.lastWayPoint.x + " y:" + u.lastWayPoint.y + " fart:" + u.lastWayPoint.fart);
-		}
-		console.log("-------------");
-	}
-	
-	
+
 	//default board setup
 	init();
-	
-	//make the default user, and 2 machine users
-	users.push(makeUser("default", userTypes.MALE_STANDING, 0));
-	users.push(makeUser("bobo", userTypes.MALE_SQUATTING, 2));
-	users.push(makeUser("skanky", userTypes.MALE_RUNNING, 4));
-	
+		
 	//return public methods
 	return {
 		init:init,

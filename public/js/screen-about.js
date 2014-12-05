@@ -7,7 +7,7 @@ elefart.screens['screen-about'] = (function () {
 	
 	
 	function run () {
-		console.log("running screen-about");
+		console.log("elefart.screens['screen-about']::run()");
 	}
 	
 	return {

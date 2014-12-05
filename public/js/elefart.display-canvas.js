@@ -38,12 +38,29 @@ elefart.display = (function () {
 		floorHeight = 60,
 		floorDivHeight = 10,
 		floorCount = 6,
+		floorCols = 6,
 		//character spriteboard
 		spriteWidth = 100,
 		spriteHeight = 150,
 		spriteBoard,   //image with sprites
 		firstRun = true;
 	
+
+	/** 
+	 * @method getFloorCount
+	 */
+	function getFloorCount () {
+		return floorCount;
+	}
+
+	/** 
+	 * @method getFloorCols
+	 * return the number of columns (a.k.a. elevator shafts)
+	 * for the given screen
+	 */
+	function getFloorCols () {
+		return floorCols;
+	}
 	
 	/** 
 	 * @method preload
@@ -377,14 +394,15 @@ elefart.display = (function () {
 		drawWallPaper();
 		
 		/////////////////////////////////////////////
-		//make floor divisions
-		var c = floorCount;
-		floorCols = 0,
+		//make floor divisions, compute floor count
+		var c = floorCount,
+		fCols = 0,
 		fCount= 0;
+
 		for(var y = floorOffsetHeight; y < height; y += floorHeight) {
 			
-			//count the number of floor columns
-			floorCols++;
+			//count the number of floor columns and floors (checksum)
+			fCols++;
 			fCount++;
 			
 			//floor division (horizontal band)
@@ -417,7 +435,6 @@ elefart.display = (function () {
 			bctx.fillRect(0, y+floorDivHeight, width, floorDivHeight/3);
 		}
 		
-		console.log("FINISHED BACKGROUND");
 		bctx.restore(); //reset to original
 		
 	}
@@ -653,12 +670,10 @@ elefart.display = (function () {
 	function makeForeground () {
 
 		console.log("in display::makeForeground()");
-		board.init(floorCols, floorCount);
-		board.fillBuilding();
 		
 		//fill in the elevators
 		for(var y = 0; y <= floorCount; y++) {
-			for(var x = 2; x < floorCols; x++) {
+			for(var x = 2; x <= floorCols; x++) {
 				if(board.getElevator(y, x-2)) {
 					drawElevator(y+1, x, false);
 				}
@@ -671,7 +686,7 @@ elefart.display = (function () {
 		var noShaftTop = true;
 		
 		//draw in the bands and shaft top
-		for(var x = 2; x < floorCols; x++) {
+		for(var x = 2; x <= floorCols; x++) {
 			drawElevatorBand(x-1);			
 			for(var y = 0; y <= floorCount; y++) {
 				//check if there is an elevator below us
@@ -693,9 +708,7 @@ elefart.display = (function () {
 		
 		//draw in the default user
 		//drawPerson(board.users[0]);
-		window.users = board.users;
-		
-		for(var i = 0; i < board.users.length; i++) {
+		for (var i = 0; i < board.users.length; i++) {
 			console.log("drawing user:" + board.users[i].uname);
 			drawPerson(board.users[i]);	
 		}
@@ -748,11 +761,14 @@ elefart.display = (function () {
 	 * final calculations of game sizes and dimensions
 	 */
 	function gridReadout () {
-		console.log("game:" + width + "x" + height);
-		console.log("ui left:" + floorOffsetWidth);
-		console.log("building roof starts:" + floorOffsetHeight);
-		console.log("floorCount:" + floorCount);
-		console.log("FloorCell:" + floorColWidth + "x" + floorHeight);		
+		console.log("--------------------------------");
+		console.log("GAME:");
+		console.log(" - game dimensions:" + width + "x" + height);
+		console.log(" - ui left ends at:" + floorOffsetWidth);
+		console.log(" - building roof starts at:" + floorOffsetHeight);
+		console.log(" - floorCount:" + floorCount);
+		console.log(" - floorCell:" + floorColWidth + "x" + floorHeight);
+		console.log("--------------------------------");
 	}
 	
 	/** 
@@ -766,13 +782,12 @@ elefart.display = (function () {
 	 * @param {DOMElement} gamePanel the DOM element we are adding the game to
 	 */
 	function run (gamePanel) {
-		console.log("display-canvas::run");
+		console.log("elefart.display::run() (canvas version)");
 		if(firstRun) {
 			init(gamePanel);
 			
 		}
 		makeDisplay(gamePanel);
-		gridReadout(); //////////////////////////////////////////////////////////////////////////////////
 	}
 	
 	return {
@@ -780,6 +795,8 @@ elefart.display = (function () {
 		init:init,
 		foreground:foreground,
 		makeDisplay:makeDisplay,
+		getFloorCols:getFloorCols,
+		getFloorCount:getFloorCount,
 		gridReadout:gridReadout,
 		run:run
 	};

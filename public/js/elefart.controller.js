@@ -28,7 +28,7 @@ elefart.controller = (function () {
 			init();
 			firstRun = false;
 		}
-		console.log("running elefart controller");
+		console.log("elefart.controller::run()");
 	}
 	
 	

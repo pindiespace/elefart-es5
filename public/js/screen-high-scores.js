@@ -7,7 +7,7 @@ elefart.screens['screen-high-scores'] = (function () {
 	
 	
 	function run () {
-		console.log("running screen-high-scores");
+		console.log("elefart.screens['screen-high-scores']::run()");
 	}
 	
 	return {

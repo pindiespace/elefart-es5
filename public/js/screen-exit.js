@@ -7,7 +7,7 @@ elefart.screens['screen-exit'] = (function () {
 	
 	
 	function run () {
-		console.log("running screen-exit");
+		console.log("elefart.screens['screen-exit']::run()");
 	}
 	
 	return {
