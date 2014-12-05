@@ -602,8 +602,8 @@ elefart.display = (function () {
 		
 		var personType = user.state,
 		frameNum = user.frame+1,
-		floorNum = user.row+1,
-		floorCol = user.col+1;
+		floorNum = user.floor+1,
+		floorCol = user.floorCol+1;
 		
 		floorNum = floorCount - (floorNum - 1); //convert from 1-based to zero-based
 		frameNum--; //convert from 1-based to zero-based

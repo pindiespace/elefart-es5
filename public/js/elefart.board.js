@@ -27,8 +27,8 @@ elefart.board = (function () {
 		MOVING_DOWN:3
 	};
 	
-	//value is power of the fart to destroy
-	var farts = {
+	//value is power of the fart to destroy, times the food type
+	var fartTypes = {
 		NONE: 0,
 		BRIEF: 1,
 		ZEEPER: 3,
@@ -41,7 +41,8 @@ elefart.board = (function () {
 	};
 	
 	//value is power of food to create farts
-	var food = {
+	var foodTypes = {
+        NONE:0,
 		BEANS: 50,
 		BROCCOLI: 40,
 		CABBAGE: 60,
@@ -52,7 +53,8 @@ elefart.board = (function () {
 	};
 	
 	//floral perfume can overcome farts
-	var perfume = {
+	var perfumeTypes = {
+        NONE:0,
 		ROSE:60,
 		DAISY:10,
 		IRIS:10,
@@ -61,7 +63,7 @@ elefart.board = (function () {
 	};
 		
 	//user skill levels
-	var skills = {
+	var skillTypes = {
 		BASIC: "basic",
 		INTERMEDIATE: "intermediate",
 		ADVANCED: "advanced"
@@ -86,10 +88,13 @@ elefart.board = (function () {
 	goodies = [],    //perfume and food
 	cols = 6,        //default
 	rows = 6,        //default
-	numElefartTypes = 10;
-	
-	//types refer to specific fart animations
-	/* -------------------------- UTILITIES ----------------------------- */
+	numElefartTypes = 10; //types refer to specific fart animations
+    
+	/** 
+	 * =========================================
+     * UTILITIES 
+     * =========================================
+     */
 	
 	/** 
 	 * polyfill Date.now
@@ -135,11 +140,40 @@ elefart.board = (function () {
 		return (Math.floor(+new Date()/1000));
 	}
 	
-	
+    
+    /* 
+     * =========================================
+     * initialize the board
+     * =========================================
+     */
 
+	/** 
+	 * @method initialize
+	 * Creates the default building array
+	 * the width and height come from display-canvas.js (View)
+	 * @param {Number} width the number of columns
+	 * @param {Number} height the number of rows
+	 */
+	function init (c, r) {
+		console.log("elefart.board::init(), re-initializing board logic");
+		//create the default building
+		fillBuilding(c, r);
 
-	/* -------------------------- USERS ----------------------------- */	
+		//make the default user, and 2 machine users
+		makeUser("default", userTypes.MALE_STANDING, 0);
+		makeUser("bobo", userTypes.MALE_SQUATTING, 2);
+		makeUser("skanky", userTypes.MALE_RUNNING, 4);
+
+	}
+
+    
+    /* 
+     * =========================================
+     * USERS
+     * =========================================
+     */
 	
+    
 	/** 
 	 * @method randomUserId
 	 * generate a random user number of a specified length
@@ -236,19 +270,19 @@ elefart.board = (function () {
 			local:loc,             //are we the first (local) user?
 			state:type,            //what kind of animated character to show
 			frame:0,               //frame in animation of animated character (zero-based here)
-			row:r,                 //floor of hotel where user is created (zero-based here)
-			col:availCol,          //empty column (elevator shaft) to position user in
+			floor:r,               //floor of hotel where user is created (zero-based here)
+			floorCol:availCol,     //empty column (elevator shaft) to position user in
 			gas:0,                 //amount of gas available to attack
 			gasMask:0,             //amount of protection left in gas mask
-			perfume:0,             //perfume amounts to the score for the quest
+			perfume:perfumeTypes.NONE,             //perfume amounts to the score for the quest
 			health:healthVals.PERFECT, //current user health
 			score:0,               //score for quests
 			path:[],               //last path taken
 			lastWayPoint:{
-				x:0,
-				y:0
+				floor:0,
+				floorCol:0
 			},                     //position at end of last turn
-			skill:skills.BASIC
+			skill:skillTypes.BASIC
 		});
 		
 		//return the new user
@@ -299,10 +333,45 @@ elefart.board = (function () {
 		user.health -= (getSmell(elev) - user.gasMask - user.gas);
 		return user.health;
 	}
-	
-	
-	/* ----------------------- USER PERFUME -------------------------- */		
-	/** 
+
+
+    /** 
+     * @method changeUserPosition
+     * change the position of a user, based on user input, or 
+     * machine Ai. 
+     * NOTE: we don't call user position because requestAnimationFrame() 
+     * in our elefart.display-canvas will read these values during a draw 
+     * cycle.
+     * @param {ID} uid the user id
+     * @param {Number} floor the floor the user will move to
+     * @param {Number} floorCol the elevator shaft the user will be in, or start from
+     */
+    function changeUserPosition(uid, floor, floorCol) {
+        for(var i = 0; i < users.length; i++) {
+            if(users[i].uid === uid) {
+                
+                //users can only move laterally, between elevator columns on a user touch
+                //the elevator must transport the user between floors
+                if(users[i].floor == floor) {
+                    //save last position
+                    users[i].lastWayPoint.floor = users[i].floor;
+                    users[i].lastWayPoint.floorCol = users[i].floorCol;
+                    //new position
+                    users[i].floorCol = floorCol;
+                }
+            }
+        }
+    }
+    
+
+    /* 
+     * =========================================
+     * USER PERFUME
+     * =========================================
+     */
+
+    
+    /** 
 	 * @method addUserPerfume
 	 * perfume is a 'goodie' in the game, amounting to 
 	 * a higher score
@@ -319,12 +388,17 @@ elefart.board = (function () {
 	 * @param {String} id user unique id (not name)
 	 */
 	function clearUserPerfume (id) {
-		getUser(id).perfume = 0;
+		getUser(id).perfume = perfumeTypes.NONE;
 	}
 	
 	
-	/* ----------------------- USER FOOD -------------------------- */		
-	/** 
+    /* 
+     * =========================================
+     * USER FOOD
+     * =========================================
+     */
+
+    /** 
 	 * @method addFood
 	 * add value of food, based on lookup table
 	 * @param {String} id user unique id (not name)
@@ -340,11 +414,19 @@ elefart.board = (function () {
 	 * delete food value value of food
 	 */	
 	function clearUserFood(id) {
-		getUser(id).gas = 0;
+		getUser(id).gas = foodTypes.NONE;
 	}
 	
-	/* ----------------------- USER GAS MASK -------------------------- */		
-	/** 
+
+    
+    /* 
+     * =========================================
+     * USER GAS MASK
+     * =========================================
+     */
+
+    
+    /** 
 	 * @method addUserGasMask
 	 * add more charcoal to the gas mask
 	 * @param {String} id user unique id (not name)
@@ -362,7 +444,15 @@ elefart.board = (function () {
 		var user = getUser(id);
 		user.gasMask = 0;
 	}
-	/* ----------------------- USER FARTS -------------------------- */		
+
+
+    /* 
+     * =========================================
+     * USER FARTS
+     * =========================================
+     */
+    
+
 	/** 
 	 * @method makeFart
 	 * values for each portion of the user's path
@@ -378,7 +468,7 @@ elefart.board = (function () {
 			disperse: function () {
 				var tstamp = getTimeStamp();
 				return smell *= 0.5;
-				if(smell < farts.BRIEF) {
+				if(smell < fartTypes.BRIEF) {
 					smell = 0;
 				}
 				return smell;
@@ -387,52 +477,14 @@ elefart.board = (function () {
 	}
 	
 	
-	/* ----------------------- USER PATHS -------------------------- */		
-	/** 
-	 * @method makePathPoint
-	 * make a coordinate in a user path, stored as the 
-	 * user chooses which path to take.
-	 * @param {String} id user unique id (not name)
-	 * @param {Number} newStep step number in total path
-	 * @param {Number} newElevator the elevator number, read left to right
-	 * @param {Number} newfloor the floor we are on
-	 */
-	function makePathPoint (id, newStep, newElevator, newFloor) {
-		return {
-			uid:id,
-			tstamp:getTimeStamp(),
-			step:newStep, //step in path
-			x:newElevator, //x coord of path
-			y:newFloor  //y coord of path
-		};
-	}
-	
-	/** 
-	 * @method addPathPoint
-	 * add a pathpoint to a path dictated by the user
-	 * @param {String} id user unique id (not name)
-	 * @param {Number} newStep step number in total path
-	 * @param newElevator the elevator number, read left to right
-	 * @param newFloor the floor we are on
-	 */
-	function addPathPoint(id, newStep, newElevator, newFloor) {
-		var user = getUser(id);
-		user.path.push(makePathPoint(user.uid, path.length, newElevator, newFloor));
-	}
-	
-	/** 
-	 * @method clearPathpPoints
-	 * clear a user path (we can only have one at a time)
-	 * @param {String} id user unique id (not name)
-	 */
-	function clearPathPoints(id) {
-		var user = getUser(id);
-		user.path = [];
-	}
-	
-	
-	/* -------------------------- ELEVATORS --------------------------- */	
-	/** 
+    /* 
+     * =========================================
+     * ELEVATORS
+     * =========================================
+     */
+
+    
+    /** 
 	 * @method makeElevator
 	 * BOOK: Listing 4-7, p. 91
 	 * define an individual elevator and its properties
@@ -446,6 +498,7 @@ elefart.board = (function () {
 			busy:false, //elevator available
 			currFloor:startFloor,
 			col: floorCol,
+            floorList:[],
 			moving:elevatorStates.STATIONARY,
 			deposits:[]    //list of users recently at elevator (and what they left behind)
 		};
@@ -460,7 +513,18 @@ elefart.board = (function () {
 	function clearElevator (elev) {
 		elev = makeElevator();
 	}
-		
+
+	/** 
+	 * @method getElevator
+	 * BOOK: Listing 4-9, p. 92
+	 */
+	function getElevator (y, x) {
+		if(y < rows && x < cols) {
+			return elevators[x][y];
+		}
+		return false;
+	}
+    
 	/** 
 	 * @method getElevatorFarts
 	 * check an elevator to see if we are safe, or sorry
@@ -476,7 +540,31 @@ elefart.board = (function () {
 		}
 		return stink;
 	}
-	/* -------------------------- BUILDING --------------------------- */	
+    
+    
+    /** 
+     * @method addElevatorFloorDest
+     * add a floor the elevator needs to go to
+     * the elevator logic figures out which is the 
+     * closest floor to go to next
+     */
+    function addElevatorFloorDest(floor, floorCol) {
+       for(var i = 0; i < elevators.length; i++) {
+            if(elevators[i].floor === floor) {
+                elevators[i].floorList.push(floorCol);
+            }
+        }        
+    }
+    
+    
+    
+    /* 
+     * =========================================
+     * BUILDING
+     * =========================================
+     */
+
+
 	/** 
 	 * @method fillBuilding
 	 * reset the building
@@ -506,25 +594,17 @@ elefart.board = (function () {
 		}
 
 	}
-
 	
 
-	
-	
+    /* 
+     * =========================================
+     * PRINT BOARD STATE (DEBUG)
+     * =========================================
+     */
+
+    
 	/** 
-	 * @method getElevator
-	 * BOOK: Listing 4-9, p. 92
-	 */
-	function getElevator (y, x) {
-		if(y < rows && x < cols) {
-			return elevators[x][y];
-		}
-		return false;
-	}
-	
-	
-	/** 
-	 * @mthod print
+	 * @method printBuilding
 	 * BOOK: Listing 4-4, p. 88
 	 * a way of printing out the current game board 
 	 * in string format for debugging
@@ -555,29 +635,12 @@ elefart.board = (function () {
 			u = users[i];
 			console.log("USER("+u.uname+")");
 			console.log(" - uid:" + u.uid + ", skill:" + u.skill);	
-			console.log(" - x:" + u.lastWayPoint.x + ", y:" + u.lastWayPoint.y + ", gas:" + u.gas);
+            console.log(" - floor:" + u.floor + ", elevator:" + u.floorCol);
+			console.log(" - last floor:" + u.lastWayPoint.floorCol + ", last elevator:" + u.lastWayPoint.floor + ", gas:" + u.gas);
 			console.log("--------------------------------");
 		}
 	}
-
-	/** 
-	 * @method initialize
-	 * Creates the default building array
-	 * the width and height come from display-canvas.js (View)
-	 * @param {Number} width the number of columns
-	 * @param {Number} height the number of rows
-	 */
-	function init (c, r) {
-		console.log("elefart.board::init(), re-initializing board logic");
-		//create the default building
-		fillBuilding(c, r);
-
-		//make the default user, and 2 machine users
-		makeUser("default", userTypes.MALE_STANDING, 0);
-		makeUser("bobo", userTypes.MALE_SQUATTING, 2);
-		makeUser("skanky", userTypes.MALE_RUNNING, 4);
-
-	}
+    
 
 	//default board setup
 	init();
@@ -589,17 +652,16 @@ elefart.board = (function () {
 		cols:cols,
 		rows:rows,
 		userTypes:userTypes,
-		farts:farts,
-		food:food,
-		perfume:perfume,
-		skills:skills,
-		makePathPoint:makePathPoint,
-		addPathPoint:addPathPoint,
+		fartTypes:fartTypes,
+		foodTypes:foodTypes,
+		perfumeTypes:perfumeTypes,
+		skillTypes:skillTypes,
 		//users
 		users:users,
 		makeUser:makeUser,
 		getUser:getUser,
 		clearUserByName:clearUserByName,
+        changeUserPosition:changeUserPosition,
 		//elevators
 		elevators:elevators,
 		getElevator:getElevator,
