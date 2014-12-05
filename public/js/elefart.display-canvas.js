@@ -124,8 +124,8 @@ elefart.display = (function () {
 
         displayPanel = panel;
         
-        //calculations before standar initialization
-		var rect = displayPanel.getBoundingClientRect();
+        //calculations before standard initialization
+	var rect = displayPanel.getBoundingClientRect();
 		
 		//width and height of entire game
 		width = rect.width;
@@ -134,7 +134,14 @@ elefart.display = (function () {
         //number of visible floors and elevator shafts
         getFloorCount();
         getFloorCols();
-
+	
+	//initialize canvas for foreground
+	foreground = document.createElement('canvas');
+	fctx = foreground.getContext("2d");
+	
+	//initialize canvas for background
+	bkgnd = document.createElement('canvas');
+	bctx = bkgnd.getContext("2d");
     }
 	
 	
@@ -158,18 +165,14 @@ elefart.display = (function () {
 		personTopMargin = elevatorHeight - personHeight;
 	
 		//make the background layer
-		bkgnd = document.createElement('canvas');
-		bkgnd.id = 'game-background';
-		bctx = bkgnd.getContext("2d");
 		bkgnd.width = width;
 		bkgnd.height = height;
+		bkgnd.id = 'game-background';
 		
 		//make the foreground layer
-		foreground = document.createElement('canvas');
-		foreground.id = 'game-foreground';
-		fctx = foreground.getContext("2d");
 		foreground.width = width;
-		foreground.height = height;	
+		foreground.height = height;
+		foreground.id = 'game-foreground';	
 		
 		//set initialization flag
 		firstRun = false;
@@ -825,7 +828,7 @@ elefart.display = (function () {
 			init();
 			
 		}
-		drawDisplay();
+		drawDisplay();		
 	}
 	
 	return {

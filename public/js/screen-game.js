@@ -34,17 +34,15 @@ elefart.screens['screen-game'] = (function () {
 		console.log(".game::init(), running display.run()");
         
 		//ask the display for the final row and column count
-        console.log("PANEL:" + panel);
-        display.preInit(panel);
+        	display.preInit(panel);
         
+		//initialize the board. Ask the "view" for the number of rows and colums to present
 		board.init(display.getFloorCols(), display.getFloorCount());
 
-		//create the display
-		display.run();
-        
-        //start up the event listners
-        controller.run(elefart.display.foreground);
-
+		//create the display screen, and start the display loop
+		display.run(controller);
+		
+		//create users
 		if(elefart.DEBUG) elefart.board.printUsers();
 		if(elefart.DEBUG) elefart.board.printBuilding();
 		if(elefart.DEBUG) elefart.display.gridReadout();

@@ -205,7 +205,7 @@ elefart.board = (function () {
 		.join((Math.random()
 		.toString(36)+'00000000000000000')
 		.slice(2, 18)).slice(0, N);
-		for(var i in users) {
+		for(var i = 0; i < users.length; i++) {
 			if(users[i].uid === id) {
 				users[i].uid = randomId(N);
 			}
@@ -236,7 +236,7 @@ elefart.board = (function () {
 		
 		//flag user name invalid
 		//occupied spaces
-		for(var i in users) {
+		for(var i = 0; i < users.length; i++) {
 			if(users[i].uname === uName) {
 				console.log("user name " + uName + " already taken at position:" + i);
 				return false;
@@ -333,7 +333,7 @@ elefart.board = (function () {
 	 * delete a user
 	 */
 	function clearUserByName (uName) {
-		for(var i in users) {
+		for(var i = 0; i < users.length; i++) {
 			if(uName === users[i].uid) {
 				return users.splice(i, 1)[0];		
 			}
@@ -566,7 +566,7 @@ elefart.board = (function () {
 	function getElevatorFarts (y, x) {
 		var elev = getElevator(y, x);
 		var stink = 0;
-		for(var i in elev.farts) {
+		for(var i = 0; i < elev.farts.length; i++) {
 			stink += elev.farts[i].smell;
 		}
 		return stink;
@@ -601,15 +601,14 @@ elefart.board = (function () {
      * elevator shafts
 	 */
 	function fillBuilding () {
+		
 		elevators = [];
         
-        //x is florCols
-        for(var x = 0; x < cols; x++) {
-            var p = getRandomInt(0, rows-1);
-            elevators[x] = makeElevator(x, p);
-        }
-        
-        window.elevators = elevators;
+        	//x is florCols
+        	for(var x = 0; x < cols; x++) {
+            		var p = getRandomInt(0, rows-1);
+            		elevators[x] = makeElevator(x, p);
+        	}
 	}
 	
 
@@ -649,7 +648,7 @@ elefart.board = (function () {
 	function printUsers () {
 		console.log("--------------------------------");
 		console.log("USERS:");		
-		for(var i in users) {
+		for(var i = 0; i < users.length; i++) {
 			u = users[i];
 			console.log("USER("+u.uname+")");
 			console.log(" - uid:" + u.uid + ", skill:" + u.skill);	
