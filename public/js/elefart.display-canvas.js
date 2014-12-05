@@ -98,7 +98,7 @@ elefart.display = (function () {
 	 * @method getFloorCount
 	 */
 	function getFloorCount () {
-        floorCount = Math.ceil((height - floorOffsetHeight - gameUiHeight)/floorHeight);
+        	floorCount = Math.ceil((height - floorOffsetHeight - gameUiHeight)/floorHeight);
 		return floorCount;
 	}
 
@@ -108,7 +108,7 @@ elefart.display = (function () {
 	 * for the given screen
 	 */
 	function getFloorCols () {
-        floorCols = Math.floor((width - floorOffsetWidth)/floorColWidth);        
+        	floorCols = Math.floor((width - floorOffsetWidth)/floorColWidth);        
 		return floorCols;
 	}
 	
@@ -119,7 +119,13 @@ elefart.display = (function () {
 	 * @returns {Number|-1} is found, return true, else -1 (floor might be zero)
 	 */
 	function getFloor(pt) {
-		
+		var f = floorCount - Math.ceil(pt.y/(height - floorOffsetHeight - gameUiHeight));
+		if(f >= 0 && f <= floorCount) {
+			return f;
+		}
+		else {
+			console.log("ERROR: elefart.display::getFloor(), floor:" + f);
+		}
 	}
 	
 	/** 
@@ -128,7 +134,13 @@ elefart.display = (function () {
 	 * was in a legal region of the elevator shaft
 	 */
 	function getShaft(pt) {
-		
+		var s = floorCols - Math.floor(pt.x/(width - floorOffsetWidth)); 
+		if(s >= 0 && f <= floorCols) {
+			return s;
+		}
+		else {
+			console.log("ERROR: elefart.display::getShaft(), shaft:" + s);
+		}
 	}
     
     /** 
