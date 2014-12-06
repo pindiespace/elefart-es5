@@ -163,10 +163,6 @@ elefart.controller = (function () {
 		
 		console.log("USER floor:" + defaultUser.floor + " shaft:" + defaultUser.floorCol);
 
-
-		
-		//determine if a player, elevator, floor was selected
-		
 	}
 	
 	/** 

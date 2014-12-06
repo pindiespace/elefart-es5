@@ -5,8 +5,18 @@ var elefart = (function() {
 		dom,              //link to .dom
 		$,                //link to .dom querySelector
 		activeScreen,     // DOM refence to currently visible screen
+		gameStates = {
+			LOAD:1,
+			INTRO:2,
+			RUN:3,
+			HIGH_SCORES:4,
+			HELP:5,
+			EXIT:6
+		},
+		state = gameStates.LOAD; //set a default state
+
 		DEBUG = false;     // debug line
-		
+
 	/** 
 	 * @method errorScreen
 	 * display error message to user
@@ -176,6 +186,8 @@ var elefart = (function() {
        isStandalone:isStandalone, //BOOK: p. 64 
        showScreen:showScreen, //BOOK: p. 34
        screens:screens, //BOOK: p 52
+       gameStates:gameStates, //Game states (loading, running)
+       state:state, //current game states
        DEBUG:DEBUG
     };
     

@@ -9,16 +9,17 @@
 elefart.display = (function () {
 	var dom = elefart.dom,
 		$ = dom.$,
-		board = elefart.board,
-		game = elefart.game,
-			displayPanel,  //display panel = gamePanel
-		foreground,    //game foreground
-		fctx,          //context
-		bkgnd,         //game underlying background
-		bctx,          //context
-		walls,         //image with background pattern (hotel walls)
-		hotelSign,     //image with hotel sign
-		dimBldg,       //building dimensions
+		board = elefart.board, //so view (this) can communicate with model (.board)
+		displayPanel,          //display panel = gamePanel
+		foreground,            //game foreground
+		fctx,                  //context
+		bkgnd,                 //game underlying background
+		bctx,                  //context
+		DIMMED = 0.5,          //opacity of dimmed objects
+		DOUBLE_DIMMED = 0.2,   //opacity of elevator
+		walls,                 //image with background pattern (hotel walls)
+		hotelSign,             //image with hotel sign
+		dimBldg,               //building dimensions
 		width,
 		height,
 		elevatorWidth,
@@ -149,7 +150,7 @@ elefart.display = (function () {
 	
 		console.log("elefart.display::preload(), floors and floorCol calculations, panel:" + panel);
 
-		displayPanel = panel;
+		displayPanel = panel; //DOM element with <canvas> inside
 		
 		//calculations before standard initialization
 		var rect = displayPanel.getBoundingClientRect();
@@ -284,7 +285,7 @@ elefart.display = (function () {
 	function spriteFrame (ctx, img, captRect, destRect, opacity) {
 
 		ctx.save();
-		ctx.globalAlpha = opacity;	
+		ctx.globalAlpha = opacity;
 		ctx.drawImage(
 			img, 
 			captRect.left, 
@@ -503,7 +504,10 @@ elefart.display = (function () {
 			bctx.fillStyle = 'rgba(96, 56, 19, 0.8)';
 			bctx.fillRect(0, y+floorDivHeight, width, floorDivHeight/3);
 		}
-		
+
+		//draw the shaft end at the top floor
+		drawShaftTop(floorCols - 1);
+
 		bctx.restore(); //reset to original
 		
 	}
@@ -563,14 +567,49 @@ elefart.display = (function () {
 	 * @param {Number} column which column to position the top shaft above
 	 */
 	function drawShaftTop (column) {
-		bctx.lineWidth = 6;
+
+		//draw the top elevator exit
+		bctx.lineWidth = 5;
+		var s = column * floorColWidth;
+
+		bctx.save();
+
+		var grd = bctx.createLinearGradient(
+			0, 
+			0, 
+			0, 
+			2 + floorHeight/1.5 //floorHeight
+			);
+
+		grd.addColorStop(0, 'rgb(60, 40, 0)');
+		grd.addColorStop(0.3, 'rgb(129,107,0)')
+		grd.addColorStop(1, 'rgb(218, 207, 89)');
+
+		//elevator top
 		roundedRect(bctx, 
-		(column * floorColWidth), 
-		10, 
-		floorColWidth, 
-		floorHeight * 0.9, 3, 
-		'rgba(96, 56, 19, 1.0)', 
-		'rgba(0, 0, 0, 1.0)');		
+			s, 
+			10, 
+			floorColWidth, 
+			floorHeight * 0.9, 3, 
+			grd, //'rgba(218, 207, 59, 1.0)', //fill
+			'rgba(0, 0, 0, 1.0)');     //stroke
+
+		//wipe out bottom stroke
+		bctx.fillStyle = "rgba(218, 207, 89, 1.0)";
+		bctx.fillRect(s+3, 
+			floorHeight,
+			floorColWidth-6,
+			14);
+
+		//repaint bottom stroke
+		bctx.fillStyle = 'rgba(64, 64, 64, 0.5)';
+		bctx.fillRect(s, 
+			floorHeight,
+			floorColWidth,
+			10)
+
+		bctx.restore();
+
 	}
 	
 	
@@ -583,31 +622,43 @@ elefart.display = (function () {
 	
 	/** 
 	 * @method drawElevatorBand
+	 * draw the shaft for the elevator
+	 * @param {Number} column column for shaft on display
+	 * @param {Boolean} dimFlag if true, reduce opacity
 	 */	
-	function drawElevatorBand(column) {
-		fctx.fillStyle = 'rgba(190, 30, 45, 0.2)';
-		var bandMargin = 13;
+	function drawElevatorBand(column, dimFlag) {
+		var bandMargin = 13,
+		opaque;
+		if(dimFlag) {
+			opaque = DOUBLE_DIMMED;
+		}
+		fctx.save();
+		fctx.fillStyle = 'rgba(190, 30, 45, '+ opaque +')';
 		fctx.fillRect(
 			(column * floorColWidth) + bandMargin - 1, 
 			floorOffsetHeight, 
 			1 + floorColWidth - bandMargin * 2, 
 			(floorCount * floorHeight)
-			);		
-		
+			);
+		fctx.restore();
 	}
 	
 	/** 
 	 * @method drawElevator
 	 * make elevator
+	 * @param {Number} startFloor current floor (true until it reaches the next floor)
+	 * @param {Number} column current elevator shaft
+	 * @param {Boolean} dimFlag if true, reduce opacity
 	 */
 	function drawElevator (startFloor, column, dimFlag) {
-		startFloor = floorCount - startFloor + 2;
+		var opaque;
 		if(dimFlag) {
-			opaque = '0.5';
+			opaque = DOUBLE_DIMMED;
 		}
 		else {
 			opaque = '1.0';
 		}
+		startFloor = floorCount - startFloor + 2,
 		column--;  //convert from 1-based to zero-based
 		startFloor--; //convert from 1-based to zero-based
 		fctx.lineWidth = 6;
@@ -621,17 +672,26 @@ elefart.display = (function () {
 			'rgba(0, 0, 0, ' + opaque + ')'
 			);
 	}
-	
-	
+
 	/** 
 	 * @method drawElevatorDoors
+	 * Draw the elevator doors (overlay actual elevator)
+	 * @param {Number} startFloor the floor the doors are on
+	 * @param {Number} column the elevator shaft serviced by doors
+	 * @param {Boolean} dimFlag if true, reduce opacity
 	 */
-	function drawElevatorDoors (startFloor, column) {
+	function drawElevatorDoors (startFloor, column, dimFlag) {
+		var opaque;
+		if(dimFlag) {
+			opaque = DOUBLE_DIMMED;
+		}
+		else {
+			opaque = 1.0;
+		}
+		fctx.lineWidth = 2;
 		startFloor = floorCount - startFloor + 2;
 		column--;  //convert from 1-based to zero-based
 		startFloor--; //convert from 1-based to zero-based
-		fctx.lineWidth = 2;
-		var opaque = 0.2;
 		var startx = (column * floorColWidth) + elevatorLeftMargin;
 		var starty = (startFloor * floorHeight) + elevatorTopMargin; 
 		roundedRect(fctx, 
@@ -640,11 +700,11 @@ elefart.display = (function () {
 			elevatorWidth, 
 			elevatorHeight, 
 			2, 
-			//'rgba(0, 0, 0, '+ opaque +')', 
 			'rgba(218, 207, 59, 1.0)',
 			'rgba(128, 128, 128, ' + opaque + ')'
 			);
 			
+		//draw door lines
 		var midx = startx + elevatorWidth/2;
 		fctx.beginPath();
 			fctx.moveTo(midx, starty);
@@ -669,6 +729,8 @@ elefart.display = (function () {
 	 */
 	function drawPerson (user) {
 		
+		if(elefart.DEBUG) console.log("drawing user:" + board.users[i].uname);
+
 		var personType = user.state,
 		frameNum = user.frame+1,
 		floorNum = user.floor+1,
@@ -738,46 +800,31 @@ elefart.display = (function () {
 	 */
 	function drawForeground () {
 
-		console.log("in display::drawForeground()");
-		
-		//fill in the elevators
+		if(elefart.DEBUG) console.log("in display::drawForeground()");
+
+		//clear the foreground
+		fctx.clearRect(0, 0, foreground.width, foreground.height)
+
+		//fill in the elevator, then elevator doors
 		for(var y = 0; y < floorCount; y++) {
 			for(var x = 0; x < floorCols; x++) {
 				if(board.getElevator(y, x)) { //elevator on floor y is in shaft x
 					drawElevator(y+1, x+2, false);
 				}
 				else if(y < floorCount) {
-					drawElevatorDoors(y+1, x+2);
+					drawElevatorDoors(y+1, x+2, true);
 				}
 			}
 		}
-		
-		var noShaftTop = true;
-		
-		//draw in the bands and shaft top
+
+		//draw in the elevator bands and shaft top
 		for(var x = 0; x < floorCols; x++) {
-			drawElevatorBand(x+1);			
-			for(var y = 0; y <= floorCount; y++) {
-				//check if there is an elevator below us
-				if(board.getElevator(y, x-1) && board.getElevator(y, x-1)) {
-					//draw in the shaft top
-					if(noShaftTop && y == floorCount-1) {
-						drawShaftTop(x-1);
-						noShaftTop = false;
-					}
-				}
-			}
-		}
-		
-		//if shaftTop wasn't drawn (no nearby elevators) put it in (so it doesn't obscure the sign)
-		if(noShaftTop) {
-			drawShaftTop(floorCols - 3);	
+			drawElevatorBand(x+1, true);
 		}
 		
 		//draw in the default user
 		//drawPerson(board.users[0]);
 		for (var i = 0; i < board.users.length; i++) {
-			console.log("drawing user:" + board.users[i].uname);
 			drawPerson(board.users[i]);	
 		}
 
@@ -791,60 +838,38 @@ elefart.display = (function () {
 	 * =========================================
 	 */
 	
-	/** 
-	 * @method drawDisplay
-	 * make the foreground and background of the game display
-	 * Grid Dimensions
-	 * - Width: 320
-	 * - Height: 480
-	 * - Rows:
-	 * 		* Topmost:40
-	 * 		* 6 more rows of 60 = 360
-	 * - Columns:
-	 * 		* Leftmost: 30
-	 * 		* 6 more rows of 50 = 300
-	 */
-	function drawDisplay () {
-		console.log("in display.drawDisplay()");
-		
-		//background to game
-		drawBackground();
-		
-		//game foreground objects
-		drawForeground();
-				
-		//add to display
-		if(foreground && bkgnd) {
-			displayPanel.appendChild(bkgnd);
-			displayPanel.appendChild(foreground);		
-		}
-		else {
-			console.log("ERROR: failed to make canvas objects");
-		}
-	}
 
 	/** 
-	 * @method gameLoop
+	 * @method drawDisplay
 	 * NOTE: uses requestAnimationFrame()
 	 * run the gameloop. the loop runs constantly, but 
 	 * pauses and resumes based on state. User input is 
 	 * handled separately
 	 */
-	function gameDraw () {
-		
+	function drawDisplay () {
+
+		if(elefart.DEBUG) console.log("gameState:" + game.state);
+
+		var gameState = elefart.gameStates;
 		//branch on game state
-		switch(state) {
-			case LOAD:break;
-			case INTRO:break;
-			case SET_PATH:break;
-			case RUN_PATH:break;
-			case CALC_SCORE:break;
-			case INFO:break;
-			case EXIT:break;
+		switch(elefart.state) {
+			case gameState.LOAD:
+				break;
+			case gameState.INTRO:
+				break;
+			case gameState.RUN:
+				drawForeground();
+				break;
+			case gameState.HIGH_SCORES:
+				break;
+			case gameState.HELP:
+				break;
+			case gameState.EXIT:
+				break;
 			default:
 				break;
 		}
-		requestAnimationFrame(gameLoop);
+		requestAnimationFrame(drawDisplay);
 	}
 	
 	/** 
@@ -879,7 +904,25 @@ elefart.display = (function () {
 			init();
 			
 		}
-		drawDisplay();	
+		
+		//background to game
+		drawBackground();
+		
+		//game foreground objects
+		//drawForeground();
+
+		console.log("game:" +game);
+				
+		//add to display
+		if(foreground && bkgnd) {
+			displayPanel.appendChild(bkgnd);
+			displayPanel.appendChild(foreground);
+			drawDisplay();
+		}
+		else {
+			console.log("ERROR: failed to make canvas objects");
+		}
+
 	}
 	
 	return {
@@ -887,7 +930,7 @@ elefart.display = (function () {
 		preInit:preInit,
 		init:init,
 		foreground:foreground,
-		drawDisplay:drawDisplay,
+		//drawDisplay:drawDisplay,
 		getFloorCols:getFloorCols,
 		getFloorCount:getFloorCount,
 		getFloor:getFloor,

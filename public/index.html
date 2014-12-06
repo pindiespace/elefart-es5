@@ -245,14 +245,14 @@
 						if(elefart.DEBUG) console.log("elefart::load(), loaded dom");
 						//conditionally load either 'splash'or 'install' screen
 						if(elefart.isStandalone()) {
-							indicator.style.width = "40%";
+							indicator.style.width = "20%";
 							elefart.load([
 								"js/screen-splash.js",
 								"js/screen-main-menu.js"
 								],
 								function () {
 									elefart.setup();
-									indicator.style.width = "60%";
+									indicator.style.width = "40%";
 									elefart.load([
 										"js/elefart.display-canvas.js",
 										"js/elefart.controller.js",
@@ -260,7 +260,7 @@
 										], 
 										function () {
 											elefart.display.preload(); //preload HTML5 canvas images
-											indicator.style.width = "80%";
+											indicator.style.width = "60%";
 											elefart.load([
 												"js/screen-about.js",
 												"js/screen-exit.js",
