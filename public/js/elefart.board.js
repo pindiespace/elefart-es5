@@ -42,7 +42,7 @@ elefart.board = (function () {
 	
 	//value is power of food to create farts
 	var foodTypes = {
-        NONE:0,
+		NONE:0,
 		BEANS: 50,
 		BROCCOLI: 40,
 		CABBAGE: 60,
@@ -54,7 +54,7 @@ elefart.board = (function () {
 	
 	//floral perfume can overcome farts
 	var perfumeTypes = {
-        NONE:0,
+		NONE:0,
 		ROSE:60,
 		DAISY:10,
 		IRIS:10,
@@ -89,12 +89,12 @@ elefart.board = (function () {
 	cols = 6,        //default
 	rows = 6,        //default
 	numElefartTypes = 10; //types refer to specific fart animations
-    
+	
 	/** 
 	 * =========================================
-     * UTILITIES 
-     * =========================================
-     */
+	 * UTILITIES 
+	 * =========================================
+	 */
 	
 	/** 
 	 * polyfill Date.now
@@ -130,24 +130,24 @@ elefart.board = (function () {
 		if(rnd < 0.5) return true; else return false;
 	}
 
-    /** 
-     * polyfill Array.prototype with a shuffle algorithm
-     * shuffle and array
-     * @link http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_modern_algorithm
-     * @link http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
-     */
-    Array.prototype.shuffle = function() {
-        var i = this.length, j, temp;
-        if ( i == 0 ) return this;
-        while ( --i ) {
-            j = Math.floor( Math.random() * ( i + 1 ) );
-            temp = this[i];
-            this[i] = this[j];
-            this[j] = temp;
-        }
-        return this;
-    }
-    
+	/** 
+	 * polyfill Array.prototype with a shuffle algorithm
+	 * shuffle and array
+	 * @link http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_modern_algorithm
+	 * @link http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+	 */
+	Array.prototype.shuffle = function() {
+		var i = this.length, j, temp;
+		if ( i == 0 ) return this;
+		while ( --i ) {
+			j = Math.floor( Math.random() * ( i + 1 ) );
+			temp = this[i];
+			this[i] = this[j];
+			this[j] = temp;
+		}
+		return this;
+	}
+	
 	/** 
 	 * @method makeTimestamp
 	 * return a Unix-style timestamp
@@ -158,12 +158,12 @@ elefart.board = (function () {
 		return (Math.floor(+new Date()/1000));
 	}
 	
-    
-    /* 
-     * =========================================
-     * initialize the board
-     * =========================================
-     */
+	
+	/* 
+	 * =========================================
+	 * initialize the board
+	 * =========================================
+	 */
 
 	/** 
 	 * @method initialize
@@ -175,25 +175,22 @@ elefart.board = (function () {
 	function init (c, f) {
 		console.log("elefart.board::init(), re-initializing board logic with rows:" + f + ", cols:" + c);
 		//create the default building
-        rows = f;
-        cols = c;
+		rows = f;
+		cols = c;
 		fillBuilding();
 
 		//make the default user, and 2 machine users
 		makeUser("default", userTypes.MALE_STANDING, 0);
-		makeUser("bobo", userTypes.MALE_SQUATTING, 2);
-		makeUser("skanky", userTypes.MALE_RUNNING, 4);
-
 	}
 
-    
-    /* 
-     * =========================================
-     * USERS
-     * =========================================
-     */
 	
-    
+	/* 
+	 * =========================================
+	 * USERS
+	 * =========================================
+	 */
+	
+	
 	/** 
 	 * @method randomUserId
 	 * generate a random user number of a specified length
@@ -219,10 +216,11 @@ elefart.board = (function () {
 	 * @param {String} uName the user name
 	 * @param {userTypes} type what kind of user to show
 	 * @param {Number} r OPTIONAL user row (floor) predefined
+	 * @param {Boolean} machine OPTIONAL if true, operate user using game Ai
 	 * @return {false|String} if user created, return the new user, else false
 	 */
-	function makeUser (uName, type, r) {
-		
+	function makeUser (uName, type, r, machine) {
+
 		console.log("elefart.board::makeUser(), username:" + uName);
 		var availCols = [];
 		for(var i = 0; i < cols; i++) {
@@ -230,9 +228,10 @@ elefart.board = (function () {
 		}
 		
 		//default row
-		if(!r) {
-			r = 0;
-		}
+		if(!r) r = 0;
+
+		//default user state
+		if(!machine) machine = "false";
 		
 		//flag user name invalid
 		//occupied spaces
@@ -288,6 +287,7 @@ elefart.board = (function () {
 			uname:uName,           //public user name
 			uid:id,                //unique identifier (independent of name)
 			local:loc,             //are we the first (local) user?
+			machine:machine,       //human, or machine player?
 			state:type,            //what kind of animated character to show
 			frame:0,               //frame in animation of animated character (zero-based here)
 			floor:r,               //floor of hotel where user is created (zero-based here)
@@ -355,43 +355,43 @@ elefart.board = (function () {
 	}
 
 
-    /** 
-     * @method changeUserPosition
-     * change the position of a user, based on user input, or 
-     * machine Ai. 
-     * NOTE: we don't call user position because requestAnimationFrame() 
-     * in our elefart.display-canvas will read these values during a draw 
-     * cycle.
-     * @param {ID} uid the user id
-     * @param {Number} floor the floor the user will move to
-     * @param {Number} floorCol the elevator shaft the user will be in, or start from
-     */
-    function changeUserPosition(uid, floor, floorCol) {
-        for(var i = 0; i < users.length; i++) {
-            if(users[i].uid === uid) {
-                
-                //users can only move laterally, between elevator columns on a user touch
-                //the elevator must transport the user between floors
-                if(users[i].floor == floor) {
-                    //save last position
-                    users[i].lastWayPoint.floor = users[i].floor;
-                    users[i].lastWayPoint.floorCol = users[i].floorCol;
-                    //new position
-                    users[i].floorCol = floorCol;
-                }
-            }
-        }
-    }
-    
+	/** 
+	 * @method changeUserPosition
+	 * change the position of a user, based on user input, or 
+	 * machine Ai. 
+	 * NOTE: we don't call user position because requestAnimationFrame() 
+	 * in our elefart.display-canvas will read these values during a draw 
+	 * cycle.
+	 * @param {ID} uid the user id
+	 * @param {Number} floor the floor the user will move to
+	 * @param {Number} floorCol the elevator shaft the user will be in, or start from
+	 */
+	function changeUserPosition(uid, floor, floorCol) {
+		for(var i = 0; i < users.length; i++) {
+			if(users[i].uid === uid) {
+				
+				//users can only move laterally, between elevator columns on a user touch
+				//the elevator must transport the user between floors
+				if(users[i].floor == floor) {
+					//save last position
+					users[i].lastWayPoint.floor = users[i].floor;
+					users[i].lastWayPoint.floorCol = users[i].floorCol;
+					//new position
+					users[i].floorCol = floorCol;
+				}
+			}
+		}
+	}
+	
 
-    /* 
-     * =========================================
-     * USER PERFUME
-     * =========================================
-     */
+	/* 
+	 * =========================================
+	 * USER PERFUME
+	 * =========================================
+	 */
 
-    
-    /** 
+	
+	/** 
 	 * @method addUserPerfume
 	 * perfume is a 'goodie' in the game, amounting to 
 	 * a higher score
@@ -412,13 +412,13 @@ elefart.board = (function () {
 	}
 	
 	
-    /* 
-     * =========================================
-     * USER FOOD
-     * =========================================
-     */
+	/* 
+	 * =========================================
+	 * USER FOOD
+	 * =========================================
+	 */
 
-    /** 
+	/** 
 	 * @method addFood
 	 * add value of food, based on lookup table
 	 * @param {String} id user unique id (not name)
@@ -438,15 +438,15 @@ elefart.board = (function () {
 	}
 	
 
-    
-    /* 
-     * =========================================
-     * USER GAS MASK
-     * =========================================
-     */
+	
+	/* 
+	 * =========================================
+	 * USER GAS MASK
+	 * =========================================
+	 */
 
-    
-    /** 
+	
+	/** 
 	 * @method addUserGasMask
 	 * add more charcoal to the gas mask
 	 * @param {String} id user unique id (not name)
@@ -466,12 +466,12 @@ elefart.board = (function () {
 	}
 
 
-    /* 
-     * =========================================
-     * USER FARTS
-     * =========================================
-     */
-    
+	/* 
+	 * =========================================
+	 * USER FARTS
+	 * =========================================
+	 */
+	
 
 	/** 
 	 * @method makeFart
@@ -497,14 +497,14 @@ elefart.board = (function () {
 	}
 	
 	
-    /* 
-     * =========================================
-     * ELEVATORS
-     * =========================================
-     */
+	/* 
+	 * =========================================
+	 * ELEVATORS
+	 * =========================================
+	 */
 
-    
-    /** 
+	
+	/** 
 	 * @method makeElevator
 	 * BOOK: Listing 4-7, p. 91
 	 * define an individual elevator and its properties
@@ -541,22 +541,22 @@ elefart.board = (function () {
 	/** 
 	 * @method getElevator
 	 * BOOK: Listing 4-9, p. 92
-     * @param {Number} floor the elevator floor (y)
-     * @param {Number} floorCol the elevator shaft
+	 * @param {Number} floor the elevator floor (y)
+	 * @param {Number} floorCol the elevator shaft
 	 */
 	function getElevator (floor, floorCol) {
-        if(floor >= 0 && floorCol >= 0) {
-            if(elevators[floorCol].floor == floor) {
-                    return elevators[floorCol];
-                }
-        } 
-        else {
-            if(elefart.DEBUG) 
-	    	console.log("ERROR: elefart.board::getElevator(), floor:" + floor + " floorCol:" + floorCol);
-        }
+		if(floor >= 0 && floorCol >= 0) {
+			if(elevators[floorCol].floor == floor) {
+					return elevators[floorCol];
+				}
+		} 
+		else {
+			if(elefart.DEBUG) 
+			console.log("ERROR: elefart.board::getElevator(), floor:" + floor + " floorCol:" + floorCol);
+		}
 		return false;
 	}
-    
+	
 	/** 
 	 * @method getElevatorFarts
 	 * check an elevator to see if we are safe, or sorry
@@ -572,54 +572,54 @@ elefart.board = (function () {
 		}
 		return stink;
 	}
-    
-    
-    /** 
-     * @method addElevatorFloorDest
-     * add a floor the elevator needs to go to
-     * the elevator logic figures out which is the 
-     * closest floor to go to next
-     */
-    function addElevatorFloorDest(floor, floorCol) {
-       for(var i = 0; i < elevators.length; i++) {
-            if(elevators[i].floor === floor) {
-                elevators[i].floorList.push(floorCol);
-            }
-        }        
-    }
-    
-    
-    
-    /* 
-     * =========================================
-     * BUILDING
-     * =========================================
-     */
+	
+	
+	/** 
+	 * @method addElevatorFloorDest
+	 * add a floor the elevator needs to go to
+	 * the elevator logic figures out which is the 
+	 * closest floor to go to next
+	 */
+	function addElevatorFloorDest(floor, floorCol) {
+	   for(var i = 0; i < elevators.length; i++) {
+			if(elevators[i].floor === floor) {
+				elevators[i].floorList.push(floorCol);
+			}
+		}
+	}
+	
+	
+	
+	/* 
+	 * =========================================
+	 * BUILDING
+	 * =========================================
+	 */
 
 	/** 
 	 * @method fillBuilding
 	 * reset the building. Elevators are attached to a list of 
-     * elevator shafts
+	 * elevator shafts
 	 */
 	function fillBuilding () {
 		
 		elevators = [];
-        
-        	//x is florCols
-        	for(var x = 0; x < cols; x++) {
-            		var p = getRandomInt(0, rows-1);
-            		elevators[x] = makeElevator(x, p);
-        	}
+		
+			//x is florCols
+			for(var x = 0; x < cols; x++) {
+					var p = getRandomInt(0, rows-1);
+					elevators[x] = makeElevator(x, p);
+			}
 	}
 	
 
-    /* 
-     * =========================================
-     * PRINT BOARD STATE (DEBUG)
-     * =========================================
-     */
+	/* 
+	 * =========================================
+	 * PRINT BOARD STATE (DEBUG)
+	 * =========================================
+	 */
 
-    
+	
 	/** 
 	 * @method printBuilding
 	 * BOOK: Listing 4-4, p. 88
@@ -642,7 +642,7 @@ elefart.board = (function () {
 		console.log("--------------------------------");		
 	}
 	
-    
+	
 	/** 
 	 * @method printUsers
 	 */
@@ -653,12 +653,12 @@ elefart.board = (function () {
 			u = users[i];
 			console.log("USER("+u.uname+")");
 			console.log(" - uid:" + u.uid + ", skill:" + u.skill);	
-            console.log(" - floor:" + u.floor + ", elevator:" + u.floorCol);
+			console.log(" - floor:" + u.floor + ", elevator:" + u.floorCol);
 			console.log(" - last floor:" + u.lastWayPoint.floorCol + ", last elevator:" + u.lastWayPoint.floor + ", gas:" + u.gas);
 			console.log("--------------------------------");
 		}
 	}
-    
+	
 	//return public methods
 	return {
 		init:init,
@@ -675,7 +675,7 @@ elefart.board = (function () {
 		makeUser:makeUser,
 		getUser:getUser,
 		clearUserByName:clearUserByName,
-        changeUserPosition:changeUserPosition,
+		changeUserPosition:changeUserPosition,
 		//elevators
 		elevators:elevators,
 		getElevator:getElevator,

@@ -11,7 +11,7 @@ elefart.display = (function () {
 		$ = dom.$,
 		board = elefart.board,
 		game = elefart.game,
-        	displayPanel,  //display panel = gamePanel
+			displayPanel,  //display panel = gamePanel
 		foreground,    //game foreground
 		fctx,          //context
 		bkgnd,         //game underlying background
@@ -46,29 +46,29 @@ elefart.display = (function () {
 		spriteBoard,   //image with sprites
 		firstRun = true;
 
-    
+	
 	/** 
 	 * =========================================
 	 * IMAGE PRELOADER
 	 * =========================================
 	 */
 
-    
+	
 	/** 
 	 * @method preload
 	 * start game images loading before game screen appears
 	 * in index.html after head.load(), called before other
-     * game modules load
+	 * game modules load
 	 */
 	function preload () {
-        
+		
 		console.log("elefart.display::preload(), image loading");
 		//hotel wallpaper
 		walls = new Image();
 		walls.onload = function() {
 			console.log("display::preload(), loaded background patterns");
-      		};
-      		walls.src = 'img/bkgnd/wallpaper.png';
+			};
+			walls.src = 'img/bkgnd/wallpaper.png';
 		
 		//hotel sign
 		hotelSign = new Image();
@@ -84,13 +84,13 @@ elefart.display = (function () {
 		}
 		spriteBoard.src = 'img/game/spriteboard.png';
 	}
-    
+	
 
 	/** 
 	 * =========================================
 	 * PRELIMINARY DISPLAY CALCULATIONS
-     * DONE BEFORE DISPLAY INITIALIZATION SO 
-     * THEY CAN BE USED BY elefart.board
+	 * DONE BEFORE DISPLAY INITIALIZATION SO 
+	 * THEY CAN BE USED BY elefart.board
 	 * =========================================
 	 */
 
@@ -98,7 +98,7 @@ elefart.display = (function () {
 	 * @method getFloorCount
 	 */
 	function getFloorCount () {
-        	floorCount = Math.ceil((height - floorOffsetHeight - gameUiHeight)/floorHeight);
+			floorCount = Math.ceil((height - floorOffsetHeight - gameUiHeight)/floorHeight);
 		return floorCount;
 	}
 
@@ -108,7 +108,7 @@ elefart.display = (function () {
 	 * for the given screen
 	 */
 	function getFloorCols () {
-        	floorCols = Math.floor((width - floorOffsetWidth)/floorColWidth);        
+		floorCols = Math.floor((width - floorOffsetWidth)/floorColWidth);        
 		return floorCols;
 	}
 	
@@ -116,64 +116,60 @@ elefart.display = (function () {
 	 * @method getFloor
 	 * for a given {x, y} return the floor
 	 * @param {Point} pt the {x, y}
-	 * @returns {Number|-1} is found, return true, else -1 (floor might be zero)
+	 * @returns {Number|-1} ZERO-BASED. If the floor is 
+	 * found, return true, else -1 (first floor is 0, but 1 in the display)
 	 */
 	function getFloor(pt) {
-		var f = floorCount - Math.ceil(pt.y/(height - floorOffsetHeight - gameUiHeight));
-		if(f >= 0 && f <= floorCount) {
-			return f;
-		}
-		else {
-			console.log("ERROR: elefart.display::getFloor(), floor:" + f);
-		}
+		var f = floorCount - 1 - Math.ceil(0.5 + (pt.y - floorOffsetHeight - gameUiHeight)/floorHeight);
+		if(f >= floorCount || f < 0) return -1;
+		else return f;
 	}
 	
 	/** 
 	 * @method getShaft
 	 * for a given {x, y} return the elevator shaft, if selection
 	 * was in a legal region of the elevator shaft
+	 * @param {Point} pt the {x, y}
+	 * @returns {Number|-1} ZERO-BASED. If the shaft is found, return 
+	 * true, else -1 (first shaft is 0, but 1 in the display)
 	 */
 	function getShaft(pt) {
-		var s = floorCols - Math.floor(pt.x/(width - floorOffsetWidth)); 
-		if(s >= 0 && f <= floorCols) {
-			return s;
-		}
-		else {
-			console.log("ERROR: elefart.display::getShaft(), shaft:" + s);
-		}
+		var s = Math.floor(0.5 + (pt.x - floorOffsetWidth)/floorColWidth) - 1;  
+		if(s >= floorCols || s < 0) return -1;
+		else return s;
 	}
-    
-    /** 
-     * @method preInit
-     * called by elefart.game to pre-initialize and determine the number of floors 
-     * and elevators needed to compute board logic
-     * @param {HTMLDOMObject} panel the game screen
-     */
-    function preInit (panel) {
-    
-        console.log("elefart.display::preload(), floors and floorCol calculations, panel:" + panel);
+	
+	/** 
+	 * @method preInit
+	 * called by elefart.game to pre-initialize and determine the number of floors 
+	 * and elevators needed to compute board logic
+	 * @param {HTMLDOMObject} panel the game screen
+	 */
+	function preInit (panel) {
+	
+		console.log("elefart.display::preload(), floors and floorCol calculations, panel:" + panel);
 
-        displayPanel = panel;
-        
-        //calculations before standard initialization
-	var rect = displayPanel.getBoundingClientRect();
+		displayPanel = panel;
 		
-	//width and height of entire game
-	width = rect.width;
-	height = rect.height;
-        
-        //number of visible floors and elevator shafts
-        getFloorCount();
-        getFloorCols();
+		//calculations before standard initialization
+		var rect = displayPanel.getBoundingClientRect();
+		
+		//width and height of entire game
+		width = rect.width;
+		height = rect.height;
+		
+		//number of visible floors and elevator shafts
+		getFloorCount();
+		getFloorCols();
 	
-	//initialize canvas for foreground
-	foreground = document.createElement('canvas');
-	fctx = foreground.getContext("2d");
+		//initialize canvas for foreground
+		foreground = document.createElement('canvas');
+		fctx = foreground.getContext("2d");
 	
-	//initialize canvas for background
-	bkgnd = document.createElement('canvas');
-	bctx = bkgnd.getContext("2d");
-    }
+		//initialize canvas for background
+		bkgnd = document.createElement('canvas');
+		bctx = bkgnd.getContext("2d");
+	}
 	
 	
 	/** 
@@ -183,7 +179,7 @@ elefart.display = (function () {
 	function init () {
 		
 		console.log("in display::init()");
-        
+		
 		//scale elevator to floor
 		elevatorWidth =  floorColWidth * 0.75; //floorColWidth - 12;
 		elevatorLeftMargin = Math.floor((floorColWidth - elevatorWidth)/2);
@@ -320,7 +316,7 @@ elefart.display = (function () {
 	function getPixels (img, c) {
 		c.width = img.width;
 		c.height = img.height;
-  		var ctx = c.getContext('2d');
+		var ctx = c.getContext('2d');
 		ctx.drawImage(img);
 		return ctx.getImageData(0, 0, c.width, c.height);
 	}
@@ -399,7 +395,7 @@ elefart.display = (function () {
 			if(d[i+2] + adjustment > 255) d[i+2] = 255;
 			else d[i+2] += adjustment;
 		}
-  		return pixels;
+		return pixels;
 	};
 	
 	/** 
@@ -651,9 +647,9 @@ elefart.display = (function () {
 			
 		var midx = startx + elevatorWidth/2;
 		fctx.beginPath();
-      		fctx.moveTo(midx, starty);
-      		fctx.lineTo(midx, starty + elevatorHeight);
-      		fctx.stroke();
+			fctx.moveTo(midx, starty);
+			fctx.lineTo(midx, starty + elevatorHeight);
+			fctx.stroke();
 		
 		fctx.beginPath();
 		fctx.moveTo(startx, starty + fctx.lineWidth);
@@ -816,7 +812,7 @@ elefart.display = (function () {
 		
 		//game foreground objects
 		drawForeground();
-        		
+				
 		//add to display
 		if(foreground && bkgnd) {
 			displayPanel.appendChild(bkgnd);
@@ -825,6 +821,30 @@ elefart.display = (function () {
 		else {
 			console.log("ERROR: failed to make canvas objects");
 		}
+	}
+
+	/** 
+	 * @method gameLoop
+	 * NOTE: uses requestAnimationFrame()
+	 * run the gameloop. the loop runs constantly, but 
+	 * pauses and resumes based on state. User input is 
+	 * handled separately
+	 */
+	function gameDraw () {
+		
+		//branch on game state
+		switch(state) {
+			case LOAD:break;
+			case INTRO:break;
+			case SET_PATH:break;
+			case RUN_PATH:break;
+			case CALC_SCORE:break;
+			case INFO:break;
+			case EXIT:break;
+			default:
+				break;
+		}
+		requestAnimationFrame(gameLoop);
 	}
 	
 	/** 
@@ -864,7 +884,7 @@ elefart.display = (function () {
 	
 	return {
 		preload:preload,
-        preInit:preInit,
+		preInit:preInit,
 		init:init,
 		foreground:foreground,
 		drawDisplay:drawDisplay,

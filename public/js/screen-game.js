@@ -10,7 +10,7 @@ elefart.screens['screen-game'] = (function () {
 		$ = dom.$,
 		board = elefart.board,
 		display = elefart.display,
-        controller = elefart.controller,
+		controller = elefart.controller,
 		panel = document.getElementById('screen-game'),
 		elevatorWidth,
 		floorHeight,
@@ -31,13 +31,20 @@ elefart.screens['screen-game'] = (function () {
 	 * initialize the game
 	 */
 	function init () {
+
 		console.log(".game::init(), running display.run()");
-        
+		
 		//ask the display for the final row and column count
-        	display.preInit(panel);
-        
+			display.preInit(panel);
+		
 		//initialize the board. Ask the "view" for the number of rows and colums to present
+		//also creates a default user
 		board.init(display.getFloorCols(), display.getFloorCount());
+
+		//create additional users
+		board.makeUser("bobo", board.userTypes.MALE_SQUATTING, 2, true);
+		board.makeUser("skanky", board.userTypes.MALE_RUNNING, 4, true);
+
 
 		//create the display screen, and start the display loop
 		display.run();
