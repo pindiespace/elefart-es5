@@ -735,11 +735,11 @@ elefart.display = (function () {
 		frameNum = user.frame+1,
 		floorNum = user.floor+1,
 		floorCol = user.floorCol+1;
-		
+
 		floorNum = floorCount - (floorNum - 1); //convert from 1-based to zero-based
 		frameNum--; //convert from 1-based to zero-based
 		//floorCol--; //convert from 1-based to zero-based
-				
+
 		//set up grab rectangle from spriteboard
 		var cRect = {
 			top: personType * spriteHeight,
@@ -845,6 +845,8 @@ elefart.display = (function () {
 	 * run the gameloop. the loop runs constantly, but 
 	 * pauses and resumes based on state. User input is 
 	 * handled separately
+	 * the Model (elefart.controller) runs a separate 
+	 * update loop for animation increments
 	 */
 	function drawDisplay () {
 
@@ -869,7 +871,6 @@ elefart.display = (function () {
 			default:
 				break;
 		}
-		requestAnimationFrame(drawDisplay);
 	}
 	
 	/** 
@@ -917,7 +918,7 @@ elefart.display = (function () {
 		if(foreground && bkgnd) {
 			displayPanel.appendChild(bkgnd);
 			displayPanel.appendChild(foreground);
-			drawDisplay();
+			drawDisplay(); //NOTE: redundant, make sure drawn before possible requestAnimationFrame lags
 		}
 		else {
 			console.log("ERROR: failed to make canvas objects");
@@ -935,6 +936,7 @@ elefart.display = (function () {
 		getFloorCount:getFloorCount,
 		getFloor:getFloor,
 		getShaft:getShaft,
+		drawDisplay:drawDisplay,
 		gridReadout:gridReadout,
 		run:run
 	};

@@ -299,8 +299,8 @@ elefart.board = (function () {
 			score:0,               //score for quests
 			path:[],               //last path taken
 			lastWayPoint:{
-				floor:0,
-				floorCol:0
+				floor:r,
+				floorCol:availCol
 			},                     //position at end of last turn
 			skill:skillTypes.BASIC
 		});
@@ -335,7 +335,7 @@ elefart.board = (function () {
 	function clearUserByName (uName) {
 		for(var i = 0; i < users.length; i++) {
 			if(uName === users[i].uid) {
-				return users.splice(i, 1)[0];		
+				return users.splice(i, 1)[0];
 			}
 		}
 		return false;
@@ -518,7 +518,7 @@ elefart.board = (function () {
 			busy:false, //elevator available
 			floor:floor,
 			floorCol: floorCol,
-			floorList:[],
+			destinations:[],
 			deposits:[],    //list of users recently at elevator (and what they left behind)
 			moving:elevatorStates.STATIONARY
 		};
@@ -575,19 +575,37 @@ elefart.board = (function () {
 	
 	
 	/** 
-	 * @method addElevatorFloorDest
+	 * @method addElevatorDest
 	 * add a floor the elevator needs to go to
 	 * the elevator logic figures out which is the 
 	 * closest floor to go to next
 	 */
-	function addElevatorFloorDest(floor, floorCol) {
-	   for(var i = 0; i < elevators.length; i++) {
-			if(elevators[i].floor === floor) {
-				elevators[i].floorList.push(floorCol);
+	function addElevatorDest(floor, floorCol) {
+		if(elevators[floorCol] && elevators[floorCol].floor) {
+			//check the queue
+			var dests = elevators[floorCol].destinations;
+			for(var i = 0; i < dests.length; i++) {
+				if(dests[i] == floor) return;
 			}
+			dests.push(floor);
 		}
 	}
 	
+	/** 
+	 * @method clearElevatorDest
+	 * clear a destination (e.g. when the elevator reaches that floor)
+	 */
+	function clearElevatorDest(floor, floorCol) {
+		if(elevators[floorCol] && elevators[floorCol].floor) {
+			//check the queue
+			var dests = elevators[floorCol].destinations;
+			for(var i = 0; i < dests.length; i++) {
+				if(dests[i] == floor) {
+					dests.splice(i, 1)[0]; //delete
+				}
+			}
+		}
+	}
 	
 	
 	/* 
@@ -680,6 +698,8 @@ elefart.board = (function () {
 		elevators:elevators,
 		getElevator:getElevator,
 		clearElevator:clearElevator,
+		addElevatorDest:addElevatorDest,
+		clearElevatorDest:clearElevatorDest,
 		//floors
 		//building
 		fillBuilding:fillBuilding,

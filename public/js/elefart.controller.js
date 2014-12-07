@@ -16,8 +16,9 @@ elefart.controller = (function () {
 	display = elefart.display,
 	foreground, //reference to HTML5 canvas foreground
 	background,
+	loopCount = 0,               //count requestAnimationFrame loops
+	updateInterval = 10, //how many animation loops to wait before drawing model
 	firstRun = true;
-	
 
 	/** 
 	 * @method init
@@ -155,8 +156,13 @@ elefart.controller = (function () {
 
 			if(defaultUser.floor == clickFloor) {
 				if(defaultUser.floorCols !== clickShaft) {
-					//move the user
-					defaultUser.floorCols = clickShaft;
+					//move the user, storing previous position
+					//TODO: Make this a board (Model) method
+					defaultUser.lastWayPoint.floorCol = defaultUser.floorCol;
+					defaultUser.floorCol = clickShaft;
+
+					//update the elevator queue at the new position - it needs to visit the user at said floor
+
 				}
 			}
 		}
@@ -174,7 +180,30 @@ elefart.controller = (function () {
 	function handleTouchRect(rt) {
 		console.log("elefart.controller::handleTouchRect(), top:" + rt.top + " left:" + rt.left + " width:" + rt.width + " height:" + rt.height);
 	}
+
+	/** 
+	 * @method update
+	 * update the model
+	 */
+	function update () {
+		loopCount++;
+		if(loopCount > updateInterval) {
+			loopCount = 0;
+			//begin Model updates
+		}
+	}
 	
+	function gameLoop () {
+
+		//update the Model
+		update();
+
+		//update the View
+		display.drawDisplay();
+
+		//call the loop
+		requestAnimationFrame(gameLoop);
+	}
 		
 	function run (panel) {
 		if(firstRun) {
@@ -182,6 +211,8 @@ elefart.controller = (function () {
 			firstRun = false;
 		}
 		console.log("elefart.controller::run()");
+		gameLoop();
+
 	}
 	
 	
