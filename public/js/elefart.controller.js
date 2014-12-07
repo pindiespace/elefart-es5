@@ -145,29 +145,36 @@ elefart.controller = (function () {
 
 		//get the row and column of the selection (or none if outside)
 
-		
+		//TODO:
+		//TODO: abstract this so any user can do this!
+
 		//if floor is the same floor as default (local, human) user, allow move to proceed
 		var defaultUser = board.users[0];
 		if(defaultUser) {
 
 			var clickFloor = display.getFloor(pt);
 			var clickShaft = display.getShaft(pt);
-			console.log("CLICK floor:" + clickFloor + " shaft:" + clickShaft);
+			console.log("elefart.controller.handleTouchPoint(), CLICK floor:" + clickFloor + " shaft:" + clickShaft + " user:" + defaultUser);
 
 			if(defaultUser.floor == clickFloor) {
-				if(defaultUser.floorCols !== clickShaft) {
-					//move the user, storing previous position
-					//TODO: Make this a board (Model) method
-					defaultUser.lastWayPoint.floorCol = defaultUser.floorCol;
-					defaultUser.floorCol = clickShaft;
 
-					//update the elevator queue at the new position - it needs to visit the user at said floor
+				if(defaultUser.shaft !== clickShaft) { //move to new elevator
 
-				}
+					console.log("elefart.controller::handleTouchPoint(), move to new shaft");
+					board.userChangeElevator(clickFloor, clickShaft, defaultUser);
+
+				} //end of user moving to new shaft
 			}
-		}
+			else { //move to new floor
+				//user has specified a destination floor while in an idle elevator
+				//user can only specify one dest before the elevator
+				//starts moving
+					console.log("elefart.controller::handleTouchPoint(), specified new floor");
+					board.userChangeFloor(clickFloor, clickShaft, defaultUser);
+			}
+		} //end of valid default user
 		
-		console.log("USER floor:" + defaultUser.floor + " shaft:" + defaultUser.floorCol);
+		console.log("elefart.controller::handleTouchPoint(), USER SELECTED floor:" + defaultUser.floor + " shaft:" + defaultUser.shaft);
 
 	}
 	
@@ -190,6 +197,9 @@ elefart.controller = (function () {
 		if(loopCount > updateInterval) {
 			loopCount = 0;
 			//begin Model updates
+
+			//check elevator positions, and update based on their queue
+
 		}
 	}
 	

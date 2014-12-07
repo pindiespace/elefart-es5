@@ -136,7 +136,7 @@ elefart.board = (function () {
 	 * @link http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_modern_algorithm
 	 * @link http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
 	 */
-	Array.prototype.shuffle = function() {
+	Array.prototype.shuffle = function () {
 		var i = this.length, j, temp;
 		if ( i == 0 ) return this;
 		while ( --i ) {
@@ -147,6 +147,7 @@ elefart.board = (function () {
 		}
 		return this;
 	}
+
 	
 	/** 
 	 * @method makeTimestamp
@@ -219,16 +220,12 @@ elefart.board = (function () {
 	 * @param {Boolean} machine OPTIONAL if true, operate user using game Ai
 	 * @return {false|String} if user created, return the new user, else false
 	 */
-	function makeUser (uName, type, r, machine) {
+	function makeUser (uName, type, floor, machine) {
 
 		console.log("elefart.board::makeUser(), username:" + uName);
-		var availCols = [];
-		for(var i = 0; i < cols; i++) {
-			availCols[i] = true;	
-		}
-		
+
 		//default row
-		if(!r) r = 0;
+		if(!floor) floor = 0;
 
 		//default user state
 		if(!machine) machine = "false";
@@ -240,36 +237,8 @@ elefart.board = (function () {
 				console.log("user name " + uName + " already taken at position:" + i);
 				return false;
 			}
-			if(users[i].row == r) {
-				availCols[users[i].col] = false;
-			}
 		}
-		
-		//randomize secondary user position
-		var availCol = -1;
-		for(var i = 0; i < cols; i++) {
-			if(availCols[i] == true) {
-				if(coinFlip()) {
-					availCol = i;
-					break;
-				}
-			}
-		}
-		//if the user wasn't assigned, force-assign them
-		if(availCol < 0) {
-			for(var i = 0; i < cols; i++) {
-				if(availCols[i] == true) {
-					availCol = i;
-					break;
-				}
-			}
-		}
-		
-		if(availCol < 0) {
-			console.log("ERROR: too many users created on same floor");
-			return false;
-		}
-		
+
 		//if we are the first user, we are the default (local) user
 		//otherwise, we are a remote user, or a machine-generated user
 		var loc = true;
@@ -277,21 +246,19 @@ elefart.board = (function () {
 			//console.log("setting loc to false for user:" + uName + ", users.length:" + users.length);
 			loc = false;
 		}
-		else {
-			//console.log("loc is true for user:" + uName);
-		}
-				
+		var shaft = getRandomInt(0, elevators.length -1);
+
 		//create a new user
 		var id = randomUserId(settings.uidLength);
-		users.push( {
+		var u = {
 			uname:uName,           //public user name
 			uid:id,                //unique identifier (independent of name)
 			local:loc,             //are we the first (local) user?
 			machine:machine,       //human, or machine player?
 			state:type,            //what kind of animated character to show
 			frame:0,               //frame in animation of animated character (zero-based here)
-			floor:r,               //floor of hotel where user is created (zero-based here)
-			floorCol:availCol,     //empty column (elevator shaft) to position user in
+			floor:floor,           //floor of hotel where user is created (zero-based here)
+			shaft:shaft,
 			gas:0,                 //amount of gas available to attack
 			gasMask:0,             //amount of protection left in gas mask
 			perfume:perfumeTypes.NONE,             //perfume amounts to the score for the quest
@@ -299,14 +266,19 @@ elefart.board = (function () {
 			score:0,               //score for quests
 			path:[],               //last path taken
 			lastWayPoint:{
-				floor:r,
-				floorCol:availCol
+				floor:floor,
+				shaft:shaft
 			},                     //position at end of last turn
 			skill:skillTypes.BASIC
-		});
+		};
+
+		//see if we need to be assigned to an idle elevator on the floor
+		if(getElevatorOnFloor(floor, shaft)) {
+			addUserToElevator(floor, shaft, u);
+		}
+
+		users.push(u);
 		
-		//return the new user
-		//return users[id];
 	}
 	
 	/** 
@@ -331,11 +303,14 @@ elefart.board = (function () {
 	/** 
 	 * @method clearUserByName
 	 * delete a user
+	 * @param {String} uName the user's screen name
+	 * @returns {Boolean} if found and cleared, return true, else false
 	 */
 	function clearUserByName (uName) {
 		for(var i = 0; i < users.length; i++) {
 			if(uName === users[i].uid) {
-				return users.splice(i, 1)[0];
+				users.splice(i, 1)[0];
+				return true;
 			}
 		}
 		return false;
@@ -364,9 +339,9 @@ elefart.board = (function () {
 	 * cycle.
 	 * @param {ID} uid the user id
 	 * @param {Number} floor the floor the user will move to
-	 * @param {Number} floorCol the elevator shaft the user will be in, or start from
+	 * @param {Number} shaft the elevator shaft the user will be in, or start from
 	 */
-	function changeUserPosition(uid, floor, floorCol) {
+	function changeUserPosition(uid, floor, shaft) {
 		for(var i = 0; i < users.length; i++) {
 			if(users[i].uid === uid) {
 				
@@ -375,9 +350,9 @@ elefart.board = (function () {
 				if(users[i].floor == floor) {
 					//save last position
 					users[i].lastWayPoint.floor = users[i].floor;
-					users[i].lastWayPoint.floorCol = users[i].floorCol;
+					users[i].lastWayPoint.shaft = users[i].shaft;
 					//new position
-					users[i].floorCol = floorCol;
+					users[i].shaft = shaft;
 				}
 			}
 		}
@@ -399,7 +374,12 @@ elefart.board = (function () {
 	 * @param {String} perfumeType the type of perfume added to user
 	 */
 	function addUserPerfume (id, perfumeType) {
-		getUser(id).perfume += perfume[perfumeType];
+		var u = getUser(id);
+		if(u) {
+			u.perfume += perfume[perfumeType];
+			return true;
+		}
+		return false;
 	}
 		
 	/** 
@@ -408,7 +388,12 @@ elefart.board = (function () {
 	 * @param {String} id user unique id (not name)
 	 */
 	function clearUserPerfume (id) {
-		getUser(id).perfume = perfumeTypes.NONE;
+		var u = getUser(id);
+		if(u) {
+			u.perfume = perfumeTypes.NONE;
+			return true;
+		}
+		return false;
 	}
 	
 	
@@ -425,7 +410,12 @@ elefart.board = (function () {
 	 * @param {String} foodType type of food user ate
 	 */
 	function addUserFood (id, foodType) {
-		getUser(id).gas += food[foodType];
+		var u = getUser(id);
+		if(u) {
+			u.gas += food[foodType];
+			return true;
+		}
+		return false;
 	}
 	
 	/** 
@@ -434,7 +424,12 @@ elefart.board = (function () {
 	 * delete food value value of food
 	 */	
 	function clearUserFood(id) {
-		getUser(id).gas = foodTypes.NONE;
+		var u = getUser(id);
+		if(u) {
+			u.gas = foodTypes.NONE;
+			return true;
+		}
+		return false;
 	}
 	
 
@@ -452,8 +447,12 @@ elefart.board = (function () {
 	 * @param {String} id user unique id (not name)
 	 */
 	function addUserGasMask (id, charcoal) {
-		var user = getUser(id);
-		user.gasMask += charcoal;
+		var u = getUser(id);
+		if(u) {
+			u.gasMask += charcoal;
+			return true;
+		}
+		return false;
 	}
 	
 	/** 
@@ -461,8 +460,12 @@ elefart.board = (function () {
 	 * @param {String} id user unique id (not name)
 	 */
 	function clearUserGasMask (id) {
-		var user = getUser(id);
-		user.gasMask = 0;
+		var u = getUser(id);
+		if(u) {
+			u.gasMask = 0;
+			return true;
+		}
+		return false;
 	}
 
 
@@ -481,19 +484,22 @@ elefart.board = (function () {
 	 */
 	function makeUserFart (id, fartType) {
 		var user = getUser(id);
-		return {
-			uid:id,
-			tstamp:getTimeStamp(),
-			smell: farts[fartType],
-			disperse: function () {
-				var tstamp = getTimeStamp();
-				return smell *= 0.5;
-				if(smell < fartTypes.BRIEF) {
-					smell = 0;
+		if(u) {
+			return {
+				uid:id,
+				tstamp:getTimeStamp(),
+				smell: farts[fartType],
+				disperse: function () {
+					var tstamp = getTimeStamp();
+					return smell *= 0.5;
+					if(smell < fartTypes.BRIEF) {
+						smell = 0;
+					}
+					return smell;
 				}
-				return smell;
-			}
-		};
+			};
+		}
+		return false;
 	}
 	
 	
@@ -509,50 +515,69 @@ elefart.board = (function () {
 	 * BOOK: Listing 4-7, p. 91
 	 * define an individual elevator and its properties
 	 * @param {Number} floor the y coordinate of the elevator (floor)
-	 * @param {Number} floorCol the x coordinate of the floor (shaft number)
+	 * @param {Number} shaft the x coordinate of the floor (shaft number)
 	 * @returns {Object} object with fart type and an 
 	 */
-	function makeElevator (floorCol, floor) {
+	function makeElevator (shaft, floor) {
 		//randomly choose one of the defined fart types
 		return {
 			busy:false, //elevator available
 			floor:floor,
-			floorCol: floorCol,
-			destinations:[],
-			deposits:[],    //list of users recently at elevator (and what they left behind)
-			moving:elevatorStates.STATIONARY
+			shaft: shaft,
+			destinations:[],  //queue for floors to go to
+			users:[],         //users currently in the elevator
+			deposits:[],      //farts left behing in the elevator
 		};
 	}
 	
 	/** 
 	 * @method clearElevator
-	 * clear contents of an elevator
+	 * delete an elevator
 	 * @param {Object} elev an existing elevator 
 	 * (cleared by reference to original)
 	 */
-	function clearElevator (elev) {
-		for(var i = 0; i < elevators.length; i++) {
-			if(elev === elevators[i]) {
-				return elevators.splice(i, 1)[0];		
-			}
+	function clearElevator (shaft) {
+		if(elevators[shaft]) {
+			elevators.splice(shaft, 1)[0];
+			return true;
 		}
+		return false;
 	}
 
 	/** 
 	 * @method getElevator
+	 * get the elevator, regardless of what floor it is on
+	 * @param {Number} shaft the elevator shaft
+	 * @returns {Elevator|false} if shaft is valid, return elevator, else false
+	 */
+	function getElevator (shaft) {
+		if(elevators[shaft]) {
+			return elevators[shaft];
+		}
+		else {
+			console.log("ERROR: elefart.board::getElevator(), invalid shaft:" + shaft);
+		}
+		return false;
+	}
+
+	/** 
+	 * @method getElevatorOnFloor
+	 * gets the elevator only if it is on the specified floor
 	 * BOOK: Listing 4-9, p. 92
 	 * @param {Number} floor the elevator floor (y)
-	 * @param {Number} floorCol the elevator shaft
+	 * @param {Number} shaft the elevator shaft
+	 * @returns {Elevator|false} if on floor, return elevator, else false
 	 */
-	function getElevator (floor, floorCol) {
-		if(floor >= 0 && floorCol >= 0) {
-			if(elevators[floorCol].floor == floor) {
-					return elevators[floorCol];
-				}
+	function getElevatorOnFloor (floor, shaft) {
+		if(elevators[shaft]) {
+			if(elevators[shaft].floor == floor) {
+					return elevators[shaft]; //elevator in shaft is on floor
+			}
+			//NOTE: normal to elevator NOT to be on a floor, not an error
 		} 
 		else {
 			if(elefart.DEBUG) 
-			console.log("ERROR: elefart.board::getElevator(), floor:" + floor + " floorCol:" + floorCol);
+			console.log("ERROR: elefart.board::getElevatorOnFloor(), floor:" + floor + " shaft:" + shaft);
 		}
 		return false;
 	}
@@ -564,26 +589,39 @@ elefart.board = (function () {
 	 * this should be called with a time delay corresponding to moving from one floor 
 	 * to the other with an elevator
 	 */
-	function getElevatorFarts (y, x) {
-		var elev = getElevator(y, x);
+	function getElevatorFarts (floor, shaft) {
+		var elev = getElevator(shaft);
 		var stink = 0;
 		for(var i = 0; i < elev.farts.length; i++) {
 			stink += elev.farts[i].smell;
 		}
 		return stink;
 	}
-	
-	
+
+	/** 
+	 * @move getBusy
+	 * indicate if the elevator is in an idle state
+	 */
+	function elevatorBusy(shaft) {
+		var elev = getElevator(shaft);
+		if(elev) {
+			return elev.busy;
+		}
+		else {
+			console.log("ERROR:elefart.board::getBusy() invalid elevator for shaft:" + shaft);
+		}
+	}
+
 	/** 
 	 * @method addElevatorDest
 	 * add a floor the elevator needs to go to
 	 * the elevator logic figures out which is the 
 	 * closest floor to go to next
 	 */
-	function addElevatorDest(floor, floorCol) {
-		if(elevators[floorCol] && elevators[floorCol].floor) {
+	function addElevatorDest(floor, shaft) {
+		if(elevators[shaft] && elevators[shaft].floor) {
 			//check the queue
-			var dests = elevators[floorCol].destinations;
+			var dests = elevators[shaft].destinations;
 			for(var i = 0; i < dests.length; i++) {
 				if(dests[i] == floor) return;
 			}
@@ -595,16 +633,106 @@ elefart.board = (function () {
 	 * @method clearElevatorDest
 	 * clear a destination (e.g. when the elevator reaches that floor)
 	 */
-	function clearElevatorDest(floor, floorCol) {
-		if(elevators[floorCol] && elevators[floorCol].floor) {
+	function clearElevatorDest(floor, shaft) {
+		//elevator is at the specified floor
+		if(elevators[shaft] && elevators[shaft].floor) {
 			//check the queue
-			var dests = elevators[floorCol].destinations;
-			for(var i = 0; i < dests.length; i++) {
-				if(dests[i] == floor) {
-					dests.splice(i, 1)[0]; //delete
+			if(elevators[shaft].destinations[floor]) {
+				elevators[shaft].destinations.splice(floor, 1)[0];
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** 
+	 * @method addUserToElevator
+	 * add a user to an elevator 
+	 * (can only happen when it is idle at a floor)
+	 */
+	function addUserToElevator (floor, shaft, user) {
+
+		if(elevators[shaft] && !elevatorBusy(shaft)) { //elevator exists and is idle
+			if(elevators[shaft].floor == floor) { //elevator on user's floor
+				clearUserFromElevator(user);
+				var elev = elevators[shaft];
+				console.log("elefart.board.addUserToElevator(), adding user to elevator:" + shaft);
+				elev.users.push(user); //add user to elevator
+			}
+			else {
+				console.log("elefart.board.addUserToElevator(), elevator not busy, but on wrong floor to add user, floor:" + floor + " shaft:" + shaft);
+			}
+		}
+		else {
+			console.log("elefart.board.addUserToElevator(), elevator busy, shaft:" + shaft);
+		}
+	}
+
+	/** 
+	 * @method clearUserFromElevator
+	 * remove a user from an elevator 
+	 * @param {Number} floor the floor of the elevator (only can remove is)
+	 */
+	function clearUserFromElevator (user) {
+		for(var i = 0; i < elevators.length; i++) {
+			for(var j = 0; j < elevators[i].users.length; j++) {
+				if(elevators[i].users[j] === user) {
+					elevators[i].users.splice(i, 1)[0];
+					return true;
 				}
 			}
 		}
+		console.log("elefart.board.clearUserFromElevator(), couldn't find user:" + user);
+		return false;
+	}
+
+	/** 
+	 * @method changeElevator
+	 * user changes the elevator they are in to new elevator
+	 */
+	function userChangeElevator (floor, shaft, user) {
+
+		//user is in an idle elevator shaft, and moves to a new shaft
+
+		console.log("elefart.board::changeElevator(), floor:" + floor + " shaft:" + shaft + " user:" + user + " user.shaft:" + user.shaft);
+		if(!elevatorBusy(shaft) && !elevatorBusy(user.shaft)) {
+
+			//update which shaft the user is in (floor unchanged)
+			user.lastWayPoint.shaft = user.shaft;
+			user.shaft = shaft;
+
+			//update the elevators
+			addUserToElevator(floor, shaft, user);
+		}
+	}
+
+	/** 
+	 * @method changeFloor
+	 * user requests a new floor in an elevator
+	 */
+	function userChangeFloor(floor, shaft, user) {
+
+	}
+
+	/** 
+	 * @method moveElevator
+	 * movement is abstract - represented as progress between 
+	 * a floor.
+	 * - elevator checks queue, determines next move
+	 * - if the queue is empty, do nothing about move
+	 * - determine if a user is at the shaft. If so, add to elevator
+	 * - elevator advances position to move
+	 * - elevator checks again - did it reach its dest?
+	 * - if so, 
+	 * 		* remove the dest from the queue
+	 		* open the doors
+			* determine if a user is at the shaft. If so, add them 
+			* to the elevator
+	 		* go into short wait
+	 * - after wait done, begin moving again
+	 */
+	function moveElevator(elev) {
+
 	}
 	
 	
@@ -650,7 +778,7 @@ elefart.board = (function () {
 		for(var y = 0; y < rows; y++) {
 			var str = "";
 			for(var x = 0; x < cols; x++) {
-				var elv = getElevator(y, x);
+				var elv = getElevator(y);
 				str += "("+y+","+x+")";
 				if(elv.busy) str += " busy:"; else str += "open";
 				str += "  ";
@@ -671,8 +799,8 @@ elefart.board = (function () {
 			u = users[i];
 			console.log("USER("+u.uname+")");
 			console.log(" - uid:" + u.uid + ", skill:" + u.skill);	
-			console.log(" - floor:" + u.floor + ", elevator:" + u.floorCol);
-			console.log(" - last floor:" + u.lastWayPoint.floorCol + ", last elevator:" + u.lastWayPoint.floor + ", gas:" + u.gas);
+			console.log(" - floor:" + u.floor + ", elevator:" + u.shaft);
+			console.log(" - last floor:" + u.lastWayPoint.shaft + ", last elevator:" + u.lastWayPoint.floor + ", gas:" + u.gas);
 			console.log("--------------------------------");
 		}
 	}
@@ -697,9 +825,15 @@ elefart.board = (function () {
 		//elevators
 		elevators:elevators,
 		getElevator:getElevator,
+		getElevatorOnFloor:getElevatorOnFloor,
 		clearElevator:clearElevator,
+		elevatorBusy:elevatorBusy,
 		addElevatorDest:addElevatorDest,
 		clearElevatorDest:clearElevatorDest,
+		addUserToElevator:addUserToElevator,
+		clearUserFromElevator:clearUserFromElevator,
+		userChangeElevator:userChangeElevator,
+		userChangeFloor:userChangeFloor,
 		//floors
 		//building
 		fillBuilding:fillBuilding,

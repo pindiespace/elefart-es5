@@ -734,7 +734,7 @@ elefart.display = (function () {
 		var personType = user.state,
 		frameNum = user.frame+1,
 		floorNum = user.floor+1,
-		floorCol = user.floorCol+1;
+		floorCol = user.shaft+1;
 
 		floorNum = floorCount - (floorNum - 1); //convert from 1-based to zero-based
 		frameNum--; //convert from 1-based to zero-based
@@ -803,12 +803,12 @@ elefart.display = (function () {
 		if(elefart.DEBUG) console.log("in display::drawForeground()");
 
 		//clear the foreground
-		fctx.clearRect(0, 0, foreground.width, foreground.height)
+		fctx.clearRect(0, 0, foreground.width, foreground.height);
 
 		//fill in the elevator, then elevator doors
 		for(var y = 0; y < floorCount; y++) {
 			for(var x = 0; x < floorCols; x++) {
-				if(board.getElevator(y, x)) { //elevator on floor y is in shaft x
+				if(board.getElevatorOnFloor(y, x)) { //elevator on floor y is in shaft x
 					drawElevator(y+1, x+2, false);
 				}
 				else if(y < floorCount) {

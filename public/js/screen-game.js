@@ -46,14 +46,14 @@ elefart.screens['screen-game'] = (function () {
 		//start trapping user events
 		controller.run(panel);
 		
-		//create users
+		//print debug output
 		if(elefart.DEBUG) elefart.board.printUsers();
 		if(elefart.DEBUG) elefart.board.printBuilding();
 		if(elefart.DEBUG) elefart.display.gridReadout();
 
 		firstRun = false;
 	}
-	
+
 	/** 
 	 * @method run
 	 * runs every time sreen becomes visible
