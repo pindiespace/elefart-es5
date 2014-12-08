@@ -22,14 +22,19 @@ elefart.display = (function () {
 		dimBldg,               //building dimensions
 		width,
 		height,
+
 		elevatorWidth,
 		elevatorHeight,
 		elevatorTopMargin,
 		elevatorLeftMargin,
+		elevatorMoveInterval = 2, //how many pixels to increment an elevator
+
 		personWidth,
 		personHeight,
 		personTopMargin,
 		personLeftMargin,
+		personMoveInterval = 4, //how many pixels to increment a person
+
 		floorHeight,
 		//offsets for numbers (left) and roof (top)
 		floorOffsetWidth = 30,
@@ -661,6 +666,10 @@ elefart.display = (function () {
 		startFloor = floorCount - startFloor + 2,
 		column--;  //convert from 1-based to zero-based
 		startFloor--; //convert from 1-based to zero-based
+
+		//TODO: READ ELEVATOR STATE BETWEEN STARTFLOOR AND DEST
+		//TODO: AND ANIMATE
+
 		fctx.lineWidth = 6;
 		roundedRect(fctx, 
 			(column * floorColWidth) + elevatorLeftMargin, 

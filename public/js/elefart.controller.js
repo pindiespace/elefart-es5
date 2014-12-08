@@ -158,19 +158,18 @@ elefart.controller = (function () {
 
 			if(defaultUser.floor == clickFloor) {
 
-				if(defaultUser.shaft !== clickShaft) { //move to new elevator
+				if(defaultUser.shaft !== clickShaft) { //move to new elevator shaft (elevator may not be there)
 
 					console.log("elefart.controller::handleTouchPoint(), move to new shaft");
-					board.userChangeElevator(clickFloor, clickShaft, defaultUser);
+					board.userChangeShaft(clickShaft, defaultUser);
 
 				} //end of user moving to new shaft
 			}
-			else { //move to new floor
-				//user has specified a destination floor while in an idle elevator
-				//user can only specify one dest before the elevator
-				//starts moving
+			else {  //in a shaft, elevator differen shaft, send message to elevator to move to new floor
+					//user doesn't move
+					//elevator queues visit
 					console.log("elefart.controller::handleTouchPoint(), specified new floor");
-					board.userChangeFloor(clickFloor, clickShaft, defaultUser);
+					board.userRequestElevator(clickFloor, clickShaft, defaultUser);
 			}
 		} //end of valid default user
 		
@@ -189,6 +188,140 @@ elefart.controller = (function () {
 	}
 
 	/** 
+	 * =========================================
+	 * GAME LOOP
+	 * =========================================
+	 */
+
+	/** 
+	 * @method updateElevators
+	 * update elevators in gameloop
+	 */
+	function updateElevators () {
+		//console.log('in updateElevators');
+		for(var i = 0; i < board.elevators.length; i++) {
+			var elev = board.elevators[i];
+			switch(elev.state) {
+				case board.elevatorStates.IDLE:
+					if(elev.destinations.length) {
+						elev.maxIncrements = 50;
+						elev.increments = 0;
+						elev.state = board.elevatorStates.DOOR_CLOSING;
+					}
+					else {
+						//no destinations, just hang
+					}
+					break;
+				case board.elevatorStates.DOOR_CLOSING:
+					if(elev.increments >= elev.maxIncrements) { //new state
+						elev.increments = 0;
+						elev.maxIncrements = 75;
+						elev.state = board.elevatorStates.DOOR_CLOSED_IDLE;
+					}
+					else {
+						elev.increments++;
+					}
+					break;
+				case board.elevatorStates.DOOR_CLOSED_IDLE:
+					if(elev.increments >= elev.MaxIncrements) {
+						elev.increments = 0
+						elev.maxIncrements = 25;
+						elev.state = board.elevatorStates.DOORS_CLOSED_IDLEDONE;
+					}
+					else {
+						elev.increments++;
+					}
+					break;
+				case board.elevatorStates.DOORS_CLOSED_IDLEDONE:
+					if(elev.destinations.length) {
+						elev.maxIncrements = 100 * Math.abs(elev.destinations[0] - elev.floor); //compute length of task
+						elev.increments = 0;
+						elev.state = board.elevatorStates.MOVING; //switch to moving state
+					}
+					else {
+						//no destinations. Revert to idle
+						//TODO:
+						//TODO:
+					}
+					break;
+				case board.elevatorStates.MOVING:
+					if(elev.increments >= elev.maxIncrements) { //we're done, jump immediately
+						elev.increments = 0;
+						elev.maxIncrements = 0;
+						elev.state = board.elevatorStates.ARRIVED_FLOOR; //change state to arrival
+					}
+					else { //keep moving
+						elev.increments++; //increment task completion
+					}
+					break;
+				case board.elevatorStates.ARRIVED_FLOOR:
+					elev.floor = elev.destinations[0]; //assign arrived floor as current floor
+					board.clearElevatorDest(elev.destinations[0], elev.shaft); //clear arrived destination
+					var waiting = getUsersAtShaft(elev.floor, elev.shaft); //see if users waiting
+					if(waiting) {
+						elev.increments = 0;
+						elev.maxIncrements = 50;
+						elev.state = board.elevatorStates.DOORS_OPENING; //open doors
+					}
+					else {
+						elev.state = board.elevatorStates.MOVING; //keep going
+					}
+					break;
+				case board.elevatorStates.DOORS_OPENING:
+					if(elev.increments >= elev.maxIncrements) {
+						elev.increments = 0;
+						elev.maxIncrements = 0;
+						elev.state = board.elevatorStates.DOORS_OPEN;
+					}
+					else {
+						elev.increments++;
+					}
+					break;
+				case board.elevatorStates.DOORS_OPEN:
+					var waiting = getUsersAtShaft(elev.floor, elev.shaft); //see if users waiting
+					elev.increment = 0;
+					elev.maxIncrement = 50;
+					if(waiting) {
+						for(var i = 0; i < waiting.length; i++) {
+							addUserToElevator(elev.floor, elev.shaft, waiting[i]);
+						}
+					}
+					else {
+						//nothing to do
+					}
+					elev.state = board.elevatorStates.DOORS_OPEN_IDLE;
+					break;
+				case board.elevatorStates.DOORS_OPEN_IDLE:
+					if(elev.increment >= elev.maxIncrement) {
+						if(elev.users.length) {
+							elev.maxIncrements = 50;
+							elev.increments = 0;
+							elev.state = board.elevatorStates.DOORS_CLOSING;
+						}
+						else {
+							elev.state = board.elevatorStates.IDLE;
+						}
+					}
+					else {
+						elev.increment++;
+					}
+					break;
+				default:
+					console.log("ERROR: elevart.controller::updateElevators(), unknown state");
+					break;
+			} //end of switch
+		}
+	}
+
+	/** 
+	 * @method updateUsers
+	 * update users in gameloop
+	 */
+	function updateUsers () {
+
+	}
+
+	/** 
 	 * @method update
 	 * update the model
 	 */
@@ -197,6 +330,8 @@ elefart.controller = (function () {
 		if(loopCount > updateInterval) {
 			loopCount = 0;
 			//begin Model updates
+			updateElevators();
+			updateUsers();
 
 			//check elevator positions, and update based on their queue
 

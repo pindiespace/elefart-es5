@@ -22,9 +22,19 @@ elefart.board = (function () {
 	};
 	
 	var elevatorStates = {
-		STATIONARY:1,
-		MOVING_UP:2,
-		MOVING_DOWN:3
+		IDLE:1,             //on floor, doors open
+		CALLED_BY_USER:2,   //user just clicked a request button
+		ARRIVED_FLOOR:3,
+		USER_OPEN_DOOR:4,   //user at an elevator requested doors to be opened
+		USER_CLOSE_DOOR:5,  //user inside elevator requested doors to be closed
+		DOORS_OPEN_IDLE:6,  //doors open with users, wait, then close
+		DOORS_OPENING:7,    //elevator doors are opening
+		DOORS_OPENED:8,     //elevator doors just opened on floor
+		DOORS_CLOSING:9,    //elevator doors are closing
+		DOORS_CLOSED_IDLE:10,
+		DOORS_CLOSED_IDLEDONE:11,
+		DOORS_CLOSED:12,    //elevator doors just closed
+		MOVING:13           //doors closed, moving
 	};
 	
 	//value is power of the fart to destroy, times the food type
@@ -37,7 +47,7 @@ elefart.board = (function () {
 		TRILLBLOW: 7,
 		SHUTTERBLAST: 5,
 		SPUTTERBLAST: 15,
-		ELONGATED_SPUTTERBLAST: 25	
+		ELONGATED_SPUTTERBLAST: 25
 	};
 	
 	//value is power of food to create farts
@@ -82,13 +92,14 @@ elefart.board = (function () {
 		DEAD: 0	         //dead
 	};
 	
-	var users = [],  //array of users
-	elevators = [],  //array grid of elevators for each floor
-	floors = [],     //floors with elevators
-	goodies = [],    //perfume and food
-	cols = 6,        //default
-	rows = 6,        //default
-	numElefartTypes = 10; //types refer to specific fart animations
+	var users = [],        //array of users
+	elevators = [],        //array grid of elevators for each floor
+	floors = [],           //floors with elevators
+	goodies = [],          //perfume and food
+	cols = 6,              //default
+	rows = 6,              //default
+	UPDATE_INCREMENT = 1,  //use to calculate progress to goal. each object has different total
+	numElefartTypes = 10;  //types refer to specific fart animations
 	
 	/** 
 	 * =========================================
@@ -341,23 +352,46 @@ elefart.board = (function () {
 	 * @param {Number} floor the floor the user will move to
 	 * @param {Number} shaft the elevator shaft the user will be in, or start from
 	 */
-	function changeUserPosition(uid, floor, shaft) {
+	function userChangePosition(floor, shaft, user) {
+	
+		if(shaft >= elevators.length || shaft < 0) {
+			console.log("ERROR: elefart.board::userChangePosition(), invalid shaft:" + shaft);
+			return;
+		}
+		if(floor >= cols || floor < 0) {
+			console.log("ERROR: elefart.board::userChangePosition(), invalid floor:" + floor);
+			//return;
+		}
+
+		//save last position
+		user.lastWayPoint.floor = user.floor;
+		user.lastWayPoint.shaft = user.shaft;
+		//new position
+		user.shaft = shaft;
+		user.floor = floor;
+	}
+
+	/** 
+	 * @method getUsersAtShaft
+	 * given a shaft and floor, find if users are waiting
+	 * @param {Number} floor floor to check
+	 * @param {Number} shaft shaft to check
+	 * @returns {Array|false} if users, return array of them else false
+	 */
+	function getUsersAtShaft (floor, shaft) {
+		var shaftUsers = [];
 		for(var i = 0; i < users.length; i++) {
-			if(users[i].uid === uid) {
-				
-				//users can only move laterally, between elevator columns on a user touch
-				//the elevator must transport the user between floors
-				if(users[i].floor == floor) {
-					//save last position
-					users[i].lastWayPoint.floor = users[i].floor;
-					users[i].lastWayPoint.shaft = users[i].shaft;
-					//new position
-					users[i].shaft = shaft;
-				}
+			if(users[i].floor === floor && 
+				users[i].shaft === shaft) {
+				shaftUsers.push(users[i]);
 			}
 		}
+		if(shaftUsers.length) {
+			return shaftUsers;
+		}
+		return false;
 	}
-	
+
 
 	/* 
 	 * =========================================
@@ -521,7 +555,11 @@ elefart.board = (function () {
 	function makeElevator (shaft, floor) {
 		//randomly choose one of the defined fart types
 		return {
-			busy:false, //elevator available
+			busy:false,     //elevator available
+			doorsOpen:true, //elevator doors open
+			state:elevatorStates.IDLE,
+			increments:0,     //number of steps currently in state
+			maxIncrements:0,  //number of steps needed to complete current state
 			floor:floor,
 			shaft: shaft,
 			destinations:[],  //queue for floors to go to
@@ -573,7 +611,7 @@ elefart.board = (function () {
 			if(elevators[shaft].floor == floor) {
 					return elevators[shaft]; //elevator in shaft is on floor
 			}
-			//NOTE: normal to elevator NOT to be on a floor, not an error
+			//NOTE: normal for an elevator NOT to be on the requested floor, not an error
 		} 
 		else {
 			if(elefart.DEBUG) 
@@ -613,6 +651,32 @@ elefart.board = (function () {
 	}
 
 	/** 
+	 * @method openElevatorDoor
+	 * open closed or closing door
+	 */
+	function openElevatorDoor(shaft) {
+		var elev = elevators[shaft];
+		if(elev) {
+			if(elev.state !== elevatorStates.DOOR_OPEN) {
+				elev.state = elevatorStates.DOORS_OPENING;
+			}
+		}
+	}
+
+	/** 
+	 * @method closeElevatorDoor
+	 * close open or opening elevator door
+	 */
+	function closeElevatorDoor(shaft) {
+		var elev = elevators[shaft];
+		if(elev) {
+			if(elev.state !== elevatorStates.DOORS_CLOSED) {
+				elev.state = elevatorStates.DOORS_CLOSING;
+			}
+		}
+	}
+
+	/** 
 	 * @method addElevatorDest
 	 * add a floor the elevator needs to go to
 	 * the elevator logic figures out which is the 
@@ -623,7 +687,7 @@ elefart.board = (function () {
 			//check the queue
 			var dests = elevators[shaft].destinations;
 			for(var i = 0; i < dests.length; i++) {
-				if(dests[i] == floor) return;
+				if(dests[i] === floor) return;
 			}
 			dests.push(floor);
 		}
@@ -635,14 +699,51 @@ elefart.board = (function () {
 	 */
 	function clearElevatorDest(floor, shaft) {
 		//elevator is at the specified floor
-		if(elevators[shaft] && elevators[shaft].floor) {
-			//check the queue
-			if(elevators[shaft].destinations[floor]) {
+		if(elevators[shaft] && elevators[shaft].destinations[floor]) {
 				elevators[shaft].destinations.splice(floor, 1)[0];
 				return true;
-			}
 		}
 		return false;
+	}
+
+
+	/* 
+	 * =========================================
+	 * USER-ELEVATOR INTERACTIONS
+	 * =========================================
+	 */
+
+
+	/** 
+	 * @method userChangeShaft
+	 * user jumps to new shaft position
+	 */
+	function userChangeShaft (shaft, user) {
+		console.log("elefart.board::userChangeShaft(), shaft:" + shaft + " user:" + user);
+		var elev = elevators[shaft];
+		//if the user landed on a non-busy elevator, add it
+		if(elev) {
+			if(elev.floor === user.floor) {
+				switch(elev.state) {
+					case elevatorStates.IDLE:
+					case elevatorStates.DOORS_OPENED:
+						addUserToElevator(user.floor, shaft, user);
+						break;
+					case elevatorStates.DOORS_CLOSING:
+					case elevatorStates.DOORS_CLOSED:
+						openElevatorDoor(shaft);
+						break;
+					default:
+						break;
+				}
+			}
+			else { //elevator not on user floor
+				addElevatorDest(user.floor, shaft);
+			}
+		}
+
+		//user position changes in both cases
+		userChangePosition(user.floor, shaft, user);
 	}
 
 	/** 
@@ -658,9 +759,17 @@ elefart.board = (function () {
 				var elev = elevators[shaft];
 				console.log("elefart.board.addUserToElevator(), adding user to elevator:" + shaft);
 				elev.users.push(user); //add user to elevator
+
+				//change the state if doors are closeing (user can re-open door to get in)
+				if(elev.state === elevatorStates.DOORS_CLOSED_IDLE || 
+					elev.state === elevatorStates.DOORS_CLOSING) {
+					elev.state = elevatorStates.USER_OPEN_DOOR;
+				}
+
 			}
 			else {
 				console.log("elefart.board.addUserToElevator(), elevator not busy, but on wrong floor to add user, floor:" + floor + " shaft:" + shaft);
+			
 			}
 		}
 		else {
@@ -686,56 +795,20 @@ elefart.board = (function () {
 		return false;
 	}
 
+
+
 	/** 
-	 * @method changeElevator
-	 * user changes the elevator they are in to new elevator
+	 * @method userRequestElevator
+	 * user requests a new floor when inside an elevator
 	 */
-	function userChangeElevator (floor, shaft, user) {
-
-		//user is in an idle elevator shaft, and moves to a new shaft
-
-		console.log("elefart.board::changeElevator(), floor:" + floor + " shaft:" + shaft + " user:" + user + " user.shaft:" + user.shaft);
-		if(!elevatorBusy(shaft) && !elevatorBusy(user.shaft)) {
-
-			//update which shaft the user is in (floor unchanged)
-			user.lastWayPoint.shaft = user.shaft;
-			user.shaft = shaft;
-
-			//update the elevators
-			addUserToElevator(floor, shaft, user);
+	function userRequestElevator(floor, shaft, user) {
+		var elev = elevators[shaft]; //elevator in shaft, user superimposed
+		if(user.floor !== elev.floor ) {
+			addElevatorDest(floor, shaft) 
 		}
 	}
 
-	/** 
-	 * @method changeFloor
-	 * user requests a new floor in an elevator
-	 */
-	function userChangeFloor(floor, shaft, user) {
 
-	}
-
-	/** 
-	 * @method moveElevator
-	 * movement is abstract - represented as progress between 
-	 * a floor.
-	 * - elevator checks queue, determines next move
-	 * - if the queue is empty, do nothing about move
-	 * - determine if a user is at the shaft. If so, add to elevator
-	 * - elevator advances position to move
-	 * - elevator checks again - did it reach its dest?
-	 * - if so, 
-	 * 		* remove the dest from the queue
-	 		* open the doors
-			* determine if a user is at the shaft. If so, add them 
-			* to the elevator
-	 		* go into short wait
-	 * - after wait done, begin moving again
-	 */
-	function moveElevator(elev) {
-
-	}
-	
-	
 	/* 
 	 * =========================================
 	 * BUILDING
@@ -820,8 +893,9 @@ elefart.board = (function () {
 		users:users,
 		makeUser:makeUser,
 		getUser:getUser,
+		getUsersAtShaft:getUsersAtShaft,
 		clearUserByName:clearUserByName,
-		changeUserPosition:changeUserPosition,
+		userChangePosition:userChangePosition,
 		//elevators
 		elevators:elevators,
 		getElevator:getElevator,
@@ -832,8 +906,8 @@ elefart.board = (function () {
 		clearElevatorDest:clearElevatorDest,
 		addUserToElevator:addUserToElevator,
 		clearUserFromElevator:clearUserFromElevator,
-		userChangeElevator:userChangeElevator,
-		userChangeFloor:userChangeFloor,
+		userChangeShaft:userChangeShaft,
+		userRequestElevator:userRequestElevator,
 		//floors
 		//building
 		fillBuilding:fillBuilding,
