@@ -558,13 +558,14 @@ elefart.board = (function () {
 			busy:false,     //elevator available
 			doorsOpen:true, //elevator doors open
 			state:elevatorStates.IDLE,
+			stateStack:[], //TODO: ############### REMOVE ###################
 			increments:0,     //number of steps currently in state
 			maxIncrements:0,  //number of steps needed to complete current state
 			floor:floor,
 			shaft: shaft,
 			destinations:[],  //queue for floors to go to
 			users:[],         //users currently in the elevator
-			deposits:[],      //farts left behing in the elevator
+			deposits:[]      //farts left behing in the elevator
 		};
 	}
 	
@@ -753,6 +754,8 @@ elefart.board = (function () {
 	 */
 	function addUserToElevator (floor, shaft, user) {
 
+		window.elevators = elevators;
+
 		if(elevators[shaft] && !elevatorBusy(shaft)) { //elevator exists and is idle
 			if(elevators[shaft].floor == floor) { //elevator on user's floor
 				clearUserFromElevator(user);
@@ -822,13 +825,15 @@ elefart.board = (function () {
 	 */
 	function fillBuilding () {
 		
-		elevators = [];
+		//NOTE: just emptying the elevator creates a new variable(!)
+		if(elevators.length) elevators = [];
 		
-			//x is florCols
-			for(var x = 0; x < cols; x++) {
-					var p = getRandomInt(0, rows-1);
-					elevators[x] = makeElevator(x, p);
-			}
+		for(var shaft = 0; shaft < cols; shaft++) {
+			console.log("adding elevator:" + shaft + " to elevators");
+				var floor = getRandomInt(0, rows-1);
+				elevators[shaft] = makeElevator(shaft, floor);
+		}
+
 	}
 	
 
@@ -848,12 +853,12 @@ elefart.board = (function () {
 	function printBuilding () {
 		console.log("--------------------------------");
 		console.log("BUILDING:");		
-		for(var y = 0; y < rows; y++) {
+		for(var floor = 0; floor < rows; floor++) {
 			var str = "";
-			for(var x = 0; x < cols; x++) {
-				var elv = getElevator(y);
-				str += "("+y+","+x+")";
-				if(elv.busy) str += " busy:"; else str += "open";
+			for(var shaft = 0; shaft < cols; shaft++) {
+				var elev = getElevator(floor);
+				str += "("+floor+","+shaft+")";
+				if(elev.busy) str += " busy:"; else str += "open";
 				str += "  ";
 			}
 			console.log(str);
@@ -884,6 +889,7 @@ elefart.board = (function () {
 		goodies:goodies,
 		cols:cols,
 		rows:rows,
+		elevatorStates:elevatorStates,
 		userTypes:userTypes,
 		fartTypes:fartTypes,
 		foodTypes:foodTypes,

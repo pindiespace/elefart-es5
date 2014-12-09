@@ -198,9 +198,10 @@ elefart.controller = (function () {
 	 * update elevators in gameloop
 	 */
 	function updateElevators () {
-		//console.log('in updateElevators');
+
 		for(var i = 0; i < board.elevators.length; i++) {
 			var elev = board.elevators[i];
+			
 			switch(elev.state) {
 				case board.elevatorStates.IDLE:
 					if(elev.destinations.length) {
@@ -217,6 +218,7 @@ elefart.controller = (function () {
 						elev.increments = 0;
 						elev.maxIncrements = 75;
 						elev.state = board.elevatorStates.DOOR_CLOSED_IDLE;
+						elev.stateStack.push("DOOR_CLOSING"); ///////////////////////
 					}
 					else {
 						elev.increments++;
@@ -227,6 +229,7 @@ elefart.controller = (function () {
 						elev.increments = 0
 						elev.maxIncrements = 25;
 						elev.state = board.elevatorStates.DOORS_CLOSED_IDLEDONE;
+						elev.stateStack.push("DOOR_CLOSED_IDLE"); /////////////////////
 					}
 					else {
 						elev.increments++;
@@ -237,6 +240,7 @@ elefart.controller = (function () {
 						elev.maxIncrements = 100 * Math.abs(elev.destinations[0] - elev.floor); //compute length of task
 						elev.increments = 0;
 						elev.state = board.elevatorStates.MOVING; //switch to moving state
+						elev.stateStack.push("IDLEDONE"); ///////////////////////////
 					}
 					else {
 						//no destinations. Revert to idle
@@ -249,6 +253,7 @@ elefart.controller = (function () {
 						elev.increments = 0;
 						elev.maxIncrements = 0;
 						elev.state = board.elevatorStates.ARRIVED_FLOOR; //change state to arrival
+						elev.stateStack.push("MOVING"); ///////////////////////////
 					}
 					else { //keep moving
 						elev.increments++; //increment task completion
@@ -258,6 +263,7 @@ elefart.controller = (function () {
 					elev.floor = elev.destinations[0]; //assign arrived floor as current floor
 					board.clearElevatorDest(elev.destinations[0], elev.shaft); //clear arrived destination
 					var waiting = getUsersAtShaft(elev.floor, elev.shaft); //see if users waiting
+					elev.stateStack.push("ARRIVED"); ///////////////////////////////
 					if(waiting) {
 						elev.increments = 0;
 						elev.maxIncrements = 50;
@@ -271,6 +277,7 @@ elefart.controller = (function () {
 					if(elev.increments >= elev.maxIncrements) {
 						elev.increments = 0;
 						elev.maxIncrements = 0;
+						elev.stateStack.push("DOORS_OPENING"); ///////////////////////////////
 						elev.state = board.elevatorStates.DOORS_OPEN;
 					}
 					else {
@@ -289,6 +296,7 @@ elefart.controller = (function () {
 					else {
 						//nothing to do
 					}
+					elev.stateStack.push("DOORS_OPEN"); ////////////////////////////
 					elev.state = board.elevatorStates.DOORS_OPEN_IDLE;
 					break;
 				case board.elevatorStates.DOORS_OPEN_IDLE:
@@ -296,6 +304,7 @@ elefart.controller = (function () {
 						if(elev.users.length) {
 							elev.maxIncrements = 50;
 							elev.increments = 0;
+							elev.stateStack.push("DOORS_OPEN_IDLE"); /////////////////////////
 							elev.state = board.elevatorStates.DOORS_CLOSING;
 						}
 						else {
