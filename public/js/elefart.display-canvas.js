@@ -655,6 +655,25 @@ elefart.display = (function () {
 	 * @param {Number} column current elevator shaft
 	 * @param {Boolean} dimFlag if true, reduce opacity
 	 */
+	function drawElevators () {
+		var elevators = board.elevators;
+		fctx.lineWidth = 6;
+		for(var i = 0; i < elevators.length; i++) {
+			var elev = elevators[i];
+			roundedRect(fctx, 
+				((elev.shaft+1) * floorColWidth) + elevatorLeftMargin, 
+				((elev.floor+1) * floorHeight) + elevatorTopMargin, 
+				elevatorWidth, 
+				elevatorHeight, 
+				6, 
+				'rgba(255, 255, 255, '+ elev.opaque +')', 
+				'rgba(0, 0, 0, ' + elev.opaque + ')'
+			);
+
+		}
+
+	}
+
 	function drawElevator (startFloor, column, dimFlag) {
 		var opaque;
 		if(dimFlag) {
@@ -681,6 +700,49 @@ elefart.display = (function () {
 			'rgba(0, 0, 0, ' + opaque + ')'
 			);
 	}
+
+	function drawDoors () {
+		var opaque = 1.0;
+		fctx.lineWidth = 2;
+
+		var elevators = board.elevators;
+		window.elevators = elevators;
+
+		for(var floor = 0; floor < board.rows; floor++) {
+			for(var shaft = 0; shaft < board.cols; shaft++) {
+				if(elevators[shaft].floor === floor) {
+					opaque = 0;
+				}
+				else {
+					opaque = DIMMED;
+				}
+							
+				var startx = (shaft * floorColWidth) + elevatorLeftMargin;
+				var starty = (floor * floorHeight) + elevatorTopMargin; 
+				roundedRect(fctx, 
+					startx, 
+					starty, 
+					elevatorWidth, 
+					elevatorHeight, 
+					2, 
+					'rgba(218, 207, 59, 1.0)',
+					'rgba(128, 128, 128, ' + opaque + ')'
+					);
+			
+				//draw door lines
+				var midx = startx + elevatorWidth/2;
+				fctx.beginPath();
+					fctx.moveTo(midx, starty);
+					fctx.lineTo(midx, starty + elevatorHeight);
+				fctx.stroke();
+		
+				fctx.beginPath();
+					fctx.moveTo(startx, starty + fctx.lineWidth);
+					fctx.lineTo(startx + elevatorWidth, starty + fctx.lineWidth);
+				fctx.stroke();					
+			} //end of shaft
+		} //end of floor
+	} //end of function
 
 	/** 
 	 * @method drawElevatorDoors
@@ -814,17 +876,22 @@ elefart.display = (function () {
 		//clear the foreground
 		fctx.clearRect(0, 0, foreground.width, foreground.height);
 
+		drawDoors();
+		drawElevators();
+
 		//fill in the elevator, then elevator doors
+		/*
 		for(var y = 0; y < floorCount; y++) {
 			for(var x = 0; x < floorCols; x++) {
 				if(board.getElevatorOnFloor(y, x)) { //elevator on floor y is in shaft x
-					drawElevator(y+1, x+2, false);
+					//drawElevator(y+1, x+2, false);
 				}
 				else if(y < floorCount) {
 					drawElevatorDoors(y+1, x+2, true);
 				}
 			}
 		}
+		*/
 
 		//draw in the elevator bands and shaft top
 		for(var x = 0; x < floorCols; x++) {

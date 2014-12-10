@@ -558,6 +558,7 @@ elefart.board = (function () {
 			busy:false,     //elevator available
 			doorsOpen:true, //elevator doors open
 			state:elevatorStates.IDLE,
+			opaque:1.0,
 			stateStack:[], //TODO: ############### REMOVE ###################
 			increments:0,     //number of steps currently in state
 			maxIncrements:0,  //number of steps needed to complete current state
@@ -827,7 +828,7 @@ elefart.board = (function () {
 		
 		//NOTE: just emptying the elevator creates a new variable(!)
 		if(elevators.length) elevators = [];
-		
+
 		for(var shaft = 0; shaft < cols; shaft++) {
 			console.log("adding elevator:" + shaft + " to elevators");
 				var floor = getRandomInt(0, rows-1);
