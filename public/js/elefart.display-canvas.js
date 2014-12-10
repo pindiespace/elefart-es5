@@ -105,7 +105,7 @@ elefart.display = (function () {
 	 * @method getFloorCount
 	 */
 	function getFloorCount () {
-			floorCount = Math.ceil((height - floorOffsetHeight - gameUiHeight)/floorHeight);
+		floorCount = Math.ceil((height - floorOffsetHeight - gameUiHeight)/floorHeight);
 		return floorCount;
 	}
 
@@ -114,7 +114,7 @@ elefart.display = (function () {
 	 * return the number of columns (a.k.a. elevator shafts)
 	 * for the given screen
 	 */
-	function getFloorCols () {
+	function getShaftCount () {
 		floorCols = Math.floor((width - floorOffsetWidth)/floorColWidth);        
 		return floorCols;
 	}
@@ -167,7 +167,7 @@ elefart.display = (function () {
 		
 		//number of visible floors and elevator shafts
 		getFloorCount();
-		getFloorCols();
+		getShaftCount();
 	
 		//initialize canvas for foreground
 		foreground = document.createElement('canvas');
@@ -627,40 +627,45 @@ elefart.display = (function () {
 	 * =========================================
 	 */
 	
-	
 	/** 
-	 * @method drawElevatorBand
-	 * draw the shaft for the elevator
-	 * @param {Number} column column for shaft on display
-	 * @param {Boolean} dimFlag if true, reduce opacity
-	 */	
-	function drawElevatorBand(column, dimFlag) {
+	 * @method drawElevatorBands
+	 * draw bands defining elevator shaft
+	 * @param {Boolean} dimFlag if true, double-dim
+	 */
+	function drawElevatorBands (dimFlag) {
 		var bandMargin = 13,
 		opaque;
 		if(dimFlag) {
 			opaque = DOUBLE_DIMMED;
 		}
 		fctx.save();
+		var halfMargin =  floorColWidth + elevatorLeftMargin + bandMargin/2;
+		var bandWidth = floorColWidth - bandMargin * 2;
+		var bandHeight = floorCount * floorHeight;
 		fctx.fillStyle = 'rgba(190, 30, 45, '+ opaque +')';
-		fctx.fillRect(
-			(column * floorColWidth) + bandMargin - 1, 
-			floorOffsetHeight, 
-			1 + floorColWidth - bandMargin * 2, 
-			(floorCount * floorHeight)
+
+		for(var shaft = 0; shaft < floorCols; shaft++) {
+			fctx.fillRect(
+				(shaft * floorColWidth) + halfMargin, 
+				floorOffsetHeight, 
+				bandWidth, 
+				bandHeight
 			);
+		}
 		fctx.restore();
 	}
-	
+
 	/** 
-	 * @method drawElevator
-	 * make elevator
-	 * @param {Number} startFloor current floor (true until it reaches the next floor)
-	 * @param {Number} column current elevator shaft
+	 * @method drawElevators
+	 * make elevators
 	 * @param {Boolean} dimFlag if true, reduce opacity
 	 */
-	function drawElevators () {
+	function drawElevators (dimFlag) {
 		var elevators = board.elevators;
+		var numFloors = board.dimensions.floors;
 		fctx.lineWidth = 6;
+
+		//draw each elevator
 		for(var shaft = 0; shaft < elevators.length; shaft++) {
 			var elev = elevators[shaft];
 			fctx.lineWidth = 6;
@@ -676,7 +681,8 @@ elefart.display = (function () {
 				'rgba(0, 0, 0, ' + elev.opaque + ')'
 			);
 
-			for(var floor = 0; floor < board.rows; floor++) {
+			//draw a floor
+			for(var floor = 0; floor < numFloors; floor++) {
 				if(floor !== elev.floor) {
 					fctx.lineWidth = 2;
 					starty = ((floor+1) * floorHeight) + elevatorTopMargin;
@@ -710,6 +716,14 @@ elefart.display = (function () {
 				}
 			}
 		}
+	}
+
+	/** 
+	 * @method drawElevatorDoor
+	 * draw an elevator door at various stages of openness
+	 */
+	function drawElevatorDoor () {
+
 	}
 
 
@@ -804,9 +818,12 @@ elefart.display = (function () {
 		drawElevators();
 
 		//draw in the elevator bands and shaft top
+		/*
 		for(var x = 0; x < floorCols; x++) {
 			drawElevatorBand(x+1, true);
 		}
+		*/
+		drawElevatorBands(true);
 		
 		//draw in the default user
 		//drawPerson(board.users[0]);
@@ -918,7 +935,7 @@ elefart.display = (function () {
 		init:init,
 		foreground:foreground,
 		//drawDisplay:drawDisplay,
-		getFloorCols:getFloorCols,
+		getShaftCount:getShaftCount,
 		getFloorCount:getFloorCount,
 		getFloor:getFloor,
 		getShaft:getShaft,

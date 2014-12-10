@@ -96,8 +96,7 @@ elefart.board = (function () {
 	elevators = [],        //array grid of elevators for each floor
 	floors = [],           //floors with elevators
 	goodies = [],          //perfume and food
-	cols = 6,              //default
-	rows = 6,              //default
+	dimensions={shafts:0, floors:0},
 	UPDATE_INCREMENT = 1,  //use to calculate progress to goal. each object has different total
 	numElefartTypes = 10;  //types refer to specific fart animations
 	
@@ -182,13 +181,18 @@ elefart.board = (function () {
 	 * Creates the default building array
 	 * the width and height come from display-canvas.js (View)
 	 * @param {Number} width the number of columns
-	 * @param {Number} height the number of rows
+	 * @param {Number} height the number of numFloors
 	 */
-	function init (c, f) {
-		console.log("elefart.board::init(), re-initializing board logic with rows:" + f + ", cols:" + c);
+	function init (numShafts, numFloors) {
+		console.log("elefart.board::init(), re-initializing board logic with numFloors:" + numFloors + ", shafts:" + numShafts);
 		//create the default building
-		rows = f;
-		cols = c;
+
+		dimensions.shafts = numShafts;
+		dimensions.floors = numFloors;
+
+		console.log("elefart.board::init(), now we have numFloors:" + dimensions.floors + ", shafts:" + dimensions.shafts);
+		console.log("elefart.board::init(), outside we have numFloors:" + elefart.board.dimensions.floors + ", shafts:" + elefart.board.dimensions.shafts);
+
 		fillBuilding();
 
 		//make the default user, and 2 machine users
@@ -358,7 +362,7 @@ elefart.board = (function () {
 			console.log("ERROR: elefart.board::userChangePosition(), invalid shaft:" + shaft);
 			return;
 		}
-		if(floor >= cols || floor < 0) {
+		if(floor >= dimensions.shafts || floor < 0) {
 			console.log("ERROR: elefart.board::userChangePosition(), invalid floor:" + floor);
 			//return;
 		}
@@ -829,9 +833,9 @@ elefart.board = (function () {
 		//NOTE: just emptying the elevator creates a new variable(!)
 		if(elevators.length) elevators = [];
 
-		for(var shaft = 0; shaft < cols; shaft++) {
+		for(var shaft = 0; shaft < dimensions.shafts; shaft++) {
 			console.log("adding elevator:" + shaft + " to elevators");
-				var floor = getRandomInt(0, rows-1);
+				var floor = getRandomInt(0, dimensions.floors-1);
 				elevators[shaft] = makeElevator(shaft, floor);
 		}
 
@@ -854,9 +858,9 @@ elefart.board = (function () {
 	function printBuilding () {
 		console.log("--------------------------------");
 		console.log("BUILDING:");		
-		for(var floor = 0; floor < rows; floor++) {
+		for(var floor = 0; floor < dimensions.floors; floor++) {
 			var str = "";
-			for(var shaft = 0; shaft < cols; shaft++) {
+			for(var shaft = 0; shaft < dimensions.shafts; shaft++) {
 				var elev = getElevator(floor);
 				str += "("+floor+","+shaft+")";
 				if(elev.busy) str += " busy:"; else str += "open";
@@ -888,8 +892,7 @@ elefart.board = (function () {
 	return {
 		init:init,
 		goodies:goodies,
-		cols:cols,
-		rows:rows,
+		dimensions:dimensions,
 		elevatorStates:elevatorStates,
 		userTypes:userTypes,
 		fartTypes:fartTypes,
@@ -924,3 +927,4 @@ elefart.board = (function () {
 		users:users
 	};
 })();
+

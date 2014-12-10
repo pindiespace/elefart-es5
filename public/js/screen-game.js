@@ -32,7 +32,10 @@ elefart.screens['screen-game'] = (function () {
 		
 		//initialize the board. Ask the "view" for the number of rows and colums to present
 		//also creates a default user
-		board.init(display.getFloorCols(), display.getFloorCount());
+		board.init(display.getShaftCount(), display.getFloorCount());
+
+
+console.log("dimensions:" + board.dimensions.x + "," + board.dimensions.y);
 
 		//create additional users
 		board.makeUser("bobo", board.userTypes.MALE_SQUATTING, 2, true);
