@@ -15,8 +15,9 @@ elefart.display = (function () {
 		fctx,                  //context
 		bkgnd,                 //game underlying background
 		bctx,                  //context
-		DIMMED = 0.5,          //opacity of dimmed objects
-		DOUBLE_DIMMED = 0.2,   //opacity of elevator
+		OPAQUE = 1.0,          //opaque objects
+		DIMMED = 0.5,          //opacity of elevator door rect
+		DOUBLE_DIMMED = 0.2,   //opacity of elevator door midline
 		walls,                 //image with background pattern (hotel walls)
 		hotelSign,             //image with hotel sign
 		dimBldg,               //building dimensions
@@ -232,6 +233,7 @@ elefart.display = (function () {
 	 * @param {Canvas Style} strokestyle stle for stroke
 	 */
 	function roundedRect(ctx, x, y, w, h, r, fillstyle, strokestyle) {
+		ctx.save();
 		ctx.beginPath();
 		ctx.fillStyle = fillstyle;
 		ctx.moveTo(x + r, y);
@@ -247,6 +249,7 @@ elefart.display = (function () {
 		ctx.strokeStyle = strokestyle;
 		ctx.stroke();
 		ctx.closePath();
+		ctx.restore();
 	}
 	
 	/** 
@@ -658,11 +661,14 @@ elefart.display = (function () {
 	function drawElevators () {
 		var elevators = board.elevators;
 		fctx.lineWidth = 6;
-		for(var i = 0; i < elevators.length; i++) {
-			var elev = elevators[i];
+		for(var shaft = 0; shaft < elevators.length; shaft++) {
+			var elev = elevators[shaft];
+			fctx.lineWidth = 6;
+			var startx = ((elev.shaft+1) * floorColWidth) + elevatorLeftMargin;
+			var starty = ((elev.floor+1) * floorHeight) + elevatorTopMargin;
 			roundedRect(fctx, 
-				((elev.shaft+1) * floorColWidth) + elevatorLeftMargin, 
-				((elev.floor+1) * floorHeight) + elevatorTopMargin, 
+				startx, 
+				starty, 
 				elevatorWidth, 
 				elevatorHeight, 
 				6, 
@@ -670,124 +676,43 @@ elefart.display = (function () {
 				'rgba(0, 0, 0, ' + elev.opaque + ')'
 			);
 
-		}
-
-	}
-
-	function drawElevator (startFloor, column, dimFlag) {
-		var opaque;
-		if(dimFlag) {
-			opaque = DOUBLE_DIMMED;
-		}
-		else {
-			opaque = '1.0';
-		}
-		startFloor = floorCount - startFloor + 2,
-		column--;  //convert from 1-based to zero-based
-		startFloor--; //convert from 1-based to zero-based
-
-		//TODO: READ ELEVATOR STATE BETWEEN STARTFLOOR AND DEST
-		//TODO: AND ANIMATE
-
-		fctx.lineWidth = 6;
-		roundedRect(fctx, 
-			(column * floorColWidth) + elevatorLeftMargin, 
-			(startFloor * floorHeight) + elevatorTopMargin, 
-			elevatorWidth, 
-			elevatorHeight, 
-			6, 
-			'rgba(255, 255, 255, '+ opaque +')', 
-			'rgba(0, 0, 0, ' + opaque + ')'
-			);
-	}
-
-	function drawDoors () {
-		var opaque = 1.0;
-		fctx.lineWidth = 2;
-
-		var elevators = board.elevators;
-		window.elevators = elevators;
-
-		for(var floor = 0; floor < board.rows; floor++) {
-			for(var shaft = 0; shaft < board.cols; shaft++) {
-				if(elevators[shaft].floor === floor) {
-					opaque = 0;
-				}
-				else {
-					opaque = DIMMED;
-				}
-							
-				var startx = (shaft * floorColWidth) + elevatorLeftMargin;
-				var starty = (floor * floorHeight) + elevatorTopMargin; 
-				roundedRect(fctx, 
-					startx, 
-					starty, 
-					elevatorWidth, 
-					elevatorHeight, 
-					2, 
-					'rgba(218, 207, 59, 1.0)',
-					'rgba(128, 128, 128, ' + opaque + ')'
+			for(var floor = 0; floor < board.rows; floor++) {
+				if(floor !== elev.floor) {
+					fctx.lineWidth = 2;
+					starty = ((floor+1) * floorHeight) + elevatorTopMargin;
+					roundedRect(fctx, 
+						startx, 
+						starty, 
+						elevatorWidth, 
+						elevatorHeight, 
+						2, 
+						'rgba(218, 207, 59, '+DIMMED+')',
+						'rgba(128, 128, 128, ' + DIMMED + ')'
 					);
-			
-				//draw door lines
-				var midx = startx + elevatorWidth/2;
-				fctx.beginPath();
-					fctx.moveTo(midx, starty);
-					fctx.lineTo(midx, starty + elevatorHeight);
-				fctx.stroke();
-		
-				fctx.beginPath();
-					fctx.moveTo(startx, starty + fctx.lineWidth);
-					fctx.lineTo(startx + elevatorWidth, starty + fctx.lineWidth);
-				fctx.stroke();					
-			} //end of shaft
-		} //end of floor
-	} //end of function
 
-	/** 
-	 * @method drawElevatorDoors
-	 * Draw the elevator doors (overlay actual elevator)
-	 * @param {Number} startFloor the floor the doors are on
-	 * @param {Number} column the elevator shaft serviced by doors
-	 * @param {Boolean} dimFlag if true, reduce opacity
-	 */
-	function drawElevatorDoors (startFloor, column, dimFlag) {
-		var opaque;
-		if(dimFlag) {
-			opaque = DOUBLE_DIMMED;
+					//elevator door
+					//TODO: THIS NEEDS TO BE WRITTEN FOR INDIVIDUAL DOOR PANELS
+					//TODO: DOORS NEED TO BE OPEN OR CLOSED
+					//draw horizontal line across top of elevator door
+					fctx.globalAlpha = DOUBLE_DIMMED;
+					fctx.beginPath();
+						fctx.moveTo(startx, starty + fctx.lineWidth);
+						fctx.lineTo(startx + elevatorWidth, starty + fctx.lineWidth);
+					fctx.stroke();
+
+					//draw central door divider
+					var midx = startx + elevatorWidth/2;
+					fctx.beginPath();
+						fctx.moveTo(midx, starty);
+						fctx.lineTo(midx, starty + elevatorHeight);
+					fctx.stroke();
+					fctx.globalAlpha = 1.0;
+				}
+			}
 		}
-		else {
-			opaque = 1.0;
-		}
-		fctx.lineWidth = 2;
-		startFloor = floorCount - startFloor + 2;
-		column--;  //convert from 1-based to zero-based
-		startFloor--; //convert from 1-based to zero-based
-		var startx = (column * floorColWidth) + elevatorLeftMargin;
-		var starty = (startFloor * floorHeight) + elevatorTopMargin; 
-		roundedRect(fctx, 
-			startx, 
-			starty, 
-			elevatorWidth, 
-			elevatorHeight, 
-			2, 
-			'rgba(218, 207, 59, 1.0)',
-			'rgba(128, 128, 128, ' + opaque + ')'
-			);
-			
-		//draw door lines
-		var midx = startx + elevatorWidth/2;
-		fctx.beginPath();
-			fctx.moveTo(midx, starty);
-			fctx.lineTo(midx, starty + elevatorHeight);
-			fctx.stroke();
-		
-		fctx.beginPath();
-		fctx.moveTo(startx, starty + fctx.lineWidth);
-		fctx.lineTo(startx + elevatorWidth, starty + fctx.lineWidth);
-		fctx.stroke();
 	}
-	
+
+
 	/** 
 	 * @method drawPerson
 	 * make an elevator guy (sprite animation)
@@ -826,7 +751,7 @@ elefart.display = (function () {
 			width: personWidth,                           //scaled width in ctx
 			height: personHeight                              //scaled height in ctx
 		};
-				
+		
 		//create a character at a specified position and size. 
 		//Dim if not the default character
 		var opacity = 1.0;
@@ -876,22 +801,7 @@ elefart.display = (function () {
 		//clear the foreground
 		fctx.clearRect(0, 0, foreground.width, foreground.height);
 
-		drawDoors();
 		drawElevators();
-
-		//fill in the elevator, then elevator doors
-		/*
-		for(var y = 0; y < floorCount; y++) {
-			for(var x = 0; x < floorCols; x++) {
-				if(board.getElevatorOnFloor(y, x)) { //elevator on floor y is in shaft x
-					//drawElevator(y+1, x+2, false);
-				}
-				else if(y < floorCount) {
-					drawElevatorDoors(y+1, x+2, true);
-				}
-			}
-		}
-		*/
 
 		//draw in the elevator bands and shaft top
 		for(var x = 0; x < floorCols; x++) {
