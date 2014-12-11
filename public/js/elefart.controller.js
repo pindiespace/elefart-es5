@@ -173,7 +173,7 @@ elefart.controller = (function () {
 			}
 		} //end of valid default user
 		
-		console.log("elefart.controller::handleTouchPoint(), USER SELECTED floor:" + defaultUser.floor + " shaft:" + defaultUser.shaft);
+		console.log("elefart.controller::handleTouchPoint(), USER SELECTED floor:" +clickFloor + " shaft:" + clickShaft);
 
 	}
 	
@@ -205,31 +205,29 @@ elefart.controller = (function () {
 			switch(elev.state) {
 				case board.elevatorStates.IDLE:
 					if(elev.destinations.length) {
-						elev.maxIncrements = 50;
+						elev.maxIncrements = 5;
 						elev.increments = 0;
-						elev.state = board.elevatorStates.DOOR_CLOSING;
+						elev.setState(board.elevatorStates.DOORS_CLOSING);
 					}
 					else {
 						//no destinations, just hang
 					}
 					break;
-				case board.elevatorStates.DOOR_CLOSING:
+				case board.elevatorStates.DOORS_CLOSING:
 					if(elev.increments >= elev.maxIncrements) { //new state
 						elev.increments = 0;
-						elev.maxIncrements = 75;
-						elev.state = board.elevatorStates.DOOR_CLOSED_IDLE;
-						elev.stateStack.push("DOOR_CLOSING"); ///////////////////////
+						elev.maxIncrements = 7;
+						elev.setState(board.elevatorStates.DOORS_CLOSED_IDLE);
 					}
 					else {
 						elev.increments++;
 					}
 					break;
-				case board.elevatorStates.DOOR_CLOSED_IDLE:
-					if(elev.increments >= elev.MaxIncrements) {
+				case board.elevatorStates.DOORS_CLOSED_IDLE:
+					if(elev.increments >= elev.maxIncrements) {
 						elev.increments = 0
-						elev.maxIncrements = 25;
-						elev.state = board.elevatorStates.DOORS_CLOSED_IDLEDONE;
-						elev.stateStack.push("DOOR_CLOSED_IDLE"); /////////////////////
+						elev.maxIncrements = 2;
+						elev.setState(board.elevatorStates.DOORS_CLOSED_IDLEDONE);
 					}
 					else {
 						elev.increments++;
@@ -237,10 +235,9 @@ elefart.controller = (function () {
 					break;
 				case board.elevatorStates.DOORS_CLOSED_IDLEDONE:
 					if(elev.destinations.length) {
-						elev.maxIncrements = 100 * Math.abs(elev.destinations[0] - elev.floor); //compute length of task
+						elev.maxIncrements = 10 * Math.abs(elev.destinations[0] - elev.floor); //compute length of task
 						elev.increments = 0;
-						elev.state = board.elevatorStates.MOVING; //switch to moving state
-						elev.stateStack.push("IDLEDONE"); ///////////////////////////
+						elev.setState(board.elevatorStates.MOVING); //switch to moving state
 					}
 					else {
 						//no destinations. Revert to idle
@@ -252,8 +249,7 @@ elefart.controller = (function () {
 					if(elev.increments >= elev.maxIncrements) { //we're done, jump immediately
 						elev.increments = 0;
 						elev.maxIncrements = 0;
-						elev.state = board.elevatorStates.ARRIVED_FLOOR; //change state to arrival
-						elev.stateStack.push("MOVING"); ///////////////////////////
+						elev.setState(board.elevatorStates.ARRIVED_FLOOR); //change state to arrival
 					}
 					else { //keep moving
 						elev.increments++; //increment task completion
@@ -262,53 +258,49 @@ elefart.controller = (function () {
 				case board.elevatorStates.ARRIVED_FLOOR:
 					elev.floor = elev.destinations[0]; //assign arrived floor as current floor
 					board.clearElevatorDest(elev.destinations[0], elev.shaft); //clear arrived destination
-					var waiting = getUsersAtShaft(elev.floor, elev.shaft); //see if users waiting
-					elev.stateStack.push("ARRIVED"); ///////////////////////////////
+					var waiting = board.getUsersAtShaft(elev.floor, elev.shaft); //see if users waiting
 					if(waiting) {
 						elev.increments = 0;
-						elev.maxIncrements = 50;
-						elev.state = board.elevatorStates.DOORS_OPENING; //open doors
+						elev.maxIncrements = 5;
+						elev.setState(board.elevatorStates.DOORS_OPENING); //open doors
 					}
 					else {
-						elev.state = board.elevatorStates.MOVING; //keep going
+						elev.setState(board.elevatorStates.MOVING); //keep going
 					}
 					break;
 				case board.elevatorStates.DOORS_OPENING:
 					if(elev.increments >= elev.maxIncrements) {
 						elev.increments = 0;
 						elev.maxIncrements = 0;
-						elev.stateStack.push("DOORS_OPENING"); ///////////////////////////////
-						elev.state = board.elevatorStates.DOORS_OPEN;
+						elev.setState(board.elevatorStates.DOORS_OPEN);
 					}
 					else {
 						elev.increments++;
 					}
 					break;
 				case board.elevatorStates.DOORS_OPEN:
-					var waiting = getUsersAtShaft(elev.floor, elev.shaft); //see if users waiting
+					var waiting = board.getUsersAtShaft(elev.floor, elev.shaft); //see if users waiting
 					elev.increment = 0;
-					elev.maxIncrement = 50;
+					elev.maxIncrement = 5;
 					if(waiting) {
 						for(var i = 0; i < waiting.length; i++) {
-							addUserToElevator(elev.floor, elev.shaft, waiting[i]);
+							board.addUserToElevator(elev.floor, elev.shaft, waiting[i]);
 						}
 					}
 					else {
 						//nothing to do
 					}
-					elev.stateStack.push("DOORS_OPEN"); ////////////////////////////
-					elev.state = board.elevatorStates.DOORS_OPEN_IDLE;
+					elev.setState(board.elevatorStates.DOORS_OPEN_IDLE);
 					break;
 				case board.elevatorStates.DOORS_OPEN_IDLE:
 					if(elev.increment >= elev.maxIncrement) {
 						if(elev.users.length) {
-							elev.maxIncrements = 50;
+							elev.maxIncrements = 5;
 							elev.increments = 0;
-							elev.stateStack.push("DOORS_OPEN_IDLE"); /////////////////////////
-							elev.state = board.elevatorStates.DOORS_CLOSING;
+							elev.setState(board.elevatorStates.DOORS_CLOSING);
 						}
 						else {
-							elev.state = board.elevatorStates.IDLE;
+							elev.setState(board.elevatorStates.IDLE);
 						}
 					}
 					else {

@@ -667,8 +667,6 @@ elefart.display = (function () {
 
 		//draw each elevator
 		for(var shaft = 0; shaft < elevators.length; shaft++) {
-		//for(var shaft = elevators.length-1; shaft >= 0; shaft--) {
-			console.log("shaft:" + shaft)
 			var elev = elevators[shaft];
 			fctx.lineWidth = 6;
 			var startx = ((elev.shaft+1) * floorColWidth) + elevatorLeftMargin;

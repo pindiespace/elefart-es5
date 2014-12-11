@@ -562,8 +562,11 @@ elefart.board = (function () {
 			busy:false,     //elevator available
 			doorsOpen:true, //elevator doors open
 			state:elevatorStates.IDLE,
+			setState:function (state) {
+				this.state = state;
+				console.log("ELEVATOR STATE CHANGE: floor:"+ this.floor + ","+ this.shaft + " state:" + this.state);
+			},
 			opaque:1.0,
-			stateStack:[], //TODO: ############### REMOVE ###################
 			increments:0,     //number of steps currently in state
 			maxIncrements:0,  //number of steps needed to complete current state
 			floor:floor,
