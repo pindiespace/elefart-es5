@@ -667,10 +667,13 @@ elefart.display = (function () {
 
 		//draw each elevator
 		for(var shaft = 0; shaft < elevators.length; shaft++) {
+		//for(var shaft = elevators.length-1; shaft >= 0; shaft--) {
+			console.log("shaft:" + shaft)
 			var elev = elevators[shaft];
 			fctx.lineWidth = 6;
 			var startx = ((elev.shaft+1) * floorColWidth) + elevatorLeftMargin;
-			var starty = ((elev.floor+1) * floorHeight) + elevatorTopMargin;
+			//var starty = ((elev.floor+1) * floorHeight) + elevatorTopMargin;
+			var starty = ((numFloors - elev.floor) * floorHeight) + elevatorTopMargin;
 			roundedRect(fctx, 
 				startx, 
 				starty, 
@@ -681,11 +684,11 @@ elefart.display = (function () {
 				'rgba(0, 0, 0, ' + elev.opaque + ')'
 			);
 
-			//draw a floor
+			//draw an elevator door
 			for(var floor = 0; floor < numFloors; floor++) {
 				if(floor !== elev.floor) {
 					fctx.lineWidth = 2;
-					starty = ((floor+1) * floorHeight) + elevatorTopMargin;
+					starty = ((numFloors - floor) * floorHeight) + elevatorTopMargin;
 					roundedRect(fctx, 
 						startx, 
 						starty, 
@@ -708,11 +711,16 @@ elefart.display = (function () {
 
 					//draw central door divider
 					var midx = startx + elevatorWidth/2;
+					var midy = starty + elevatorHeight/2;
 					fctx.beginPath();
 						fctx.moveTo(midx, starty);
 						fctx.lineTo(midx, starty + elevatorHeight);
 					fctx.stroke();
 					fctx.globalAlpha = 1.0;
+
+					//DEBUG draw row, col
+					fctx.font = '9pt Calibri';
+					fctx.fillText(shaft + "," + floor, midx-9, midy);
 				}
 			}
 		}

@@ -759,8 +759,6 @@ elefart.board = (function () {
 	 */
 	function addUserToElevator (floor, shaft, user) {
 
-		window.elevators = elevators;
-
 		if(elevators[shaft] && !elevatorBusy(shaft)) { //elevator exists and is idle
 			if(elevators[shaft].floor == floor) { //elevator on user's floor
 				clearUserFromElevator(user);
