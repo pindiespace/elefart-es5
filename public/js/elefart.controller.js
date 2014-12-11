@@ -215,6 +215,7 @@ elefart.controller = (function () {
 					break;
 				case board.elevatorStates.DOORS_CLOSING:
 					if(elev.increments >= elev.maxIncrements) { //new state
+						elev.busy = true;
 						elev.increments = 0;
 						elev.maxIncrements = 7;
 						elev.setState(board.elevatorStates.DOORS_CLOSED_IDLE);
@@ -272,16 +273,20 @@ elefart.controller = (function () {
 					if(elev.increments >= elev.maxIncrements) {
 						elev.increments = 0;
 						elev.maxIncrements = 0;
+						console.log("SETTING STATE TO DOORS OPEN")
 						elev.setState(board.elevatorStates.DOORS_OPEN);
+						console.log("SET STATE TO DOORS OPEN")
 					}
 					else {
 						elev.increments++;
 					}
 					break;
 				case board.elevatorStates.DOORS_OPEN:
-					var waiting = board.getUsersAtShaft(elev.floor, elev.shaft); //see if users waiting
+					console.log("IN DOORS OPEN")
 					elev.increment = 0;
 					elev.maxIncrement = 5;
+					elev.busy = false;
+					var waiting = board.getUsersAtShaft(elev.floor, elev.shaft); //see if users waiting
 					if(waiting) {
 						for(var i = 0; i < waiting.length; i++) {
 							board.addUserToElevator(elev.floor, elev.shaft, waiting[i]);
@@ -293,14 +298,17 @@ elefart.controller = (function () {
 					elev.setState(board.elevatorStates.DOORS_OPEN_IDLE);
 					break;
 				case board.elevatorStates.DOORS_OPEN_IDLE:
+					///////////////console.log("in " + board.elevatorStates.DOORS_OPEN_IDLE)
 					if(elev.increment >= elev.maxIncrement) {
 						if(elev.users.length) {
 							elev.maxIncrements = 5;
 							elev.increments = 0;
+							/////////////////console.log("setting to:" + board.elevatorStates.DOORS_CLOSING)
 							elev.setState(board.elevatorStates.DOORS_CLOSING);
 						}
 						else {
-							elev.setState(board.elevatorStates.IDLE);
+							console.log("setting to:" + board.elevatorStates.IDLE)
+							///////////////elev.setState(board.elevatorStates.IDLE);
 						}
 					}
 					else {

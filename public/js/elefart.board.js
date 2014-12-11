@@ -768,7 +768,7 @@ elefart.board = (function () {
 				var elev = elevators[shaft];
 				console.log("elefart.board.addUserToElevator(), adding user to elevator:" + shaft);
 				elev.users.push(user); //add user to elevator
-
+				console.log("IN ADDUSERtoELEVATOR")
 				//change the state if doors are closeing (user can re-open door to get in)
 				if(elev.state === elevatorStates.DOORS_CLOSED_IDLE || 
 					elev.state === elevatorStates.DOORS_CLOSING) {
