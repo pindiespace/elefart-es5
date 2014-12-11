@@ -38,8 +38,8 @@ elefart.screens['screen-game'] = (function () {
 console.log("dimensions:" + board.dimensions.x + "," + board.dimensions.y);
 
 		//create additional users
-		board.makeUser("bobo", board.userTypes.MALE_SQUATTING, 2, true);
-		board.makeUser("skanky", board.userTypes.MALE_RUNNING, 4, true);
+		board.makeUser("bobo", board.userStates.MALE_SQUATTING, 2, true);
+		board.makeUser("skanky", board.userStates.MALE_RUNNING, 4, true);
 
 		elefart.state = elefart.gameStates.RUN;
 

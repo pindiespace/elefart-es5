@@ -17,7 +17,7 @@ elefart.controller = (function () {
 	foreground, //reference to HTML5 canvas foreground
 	background,
 	loopCount = 0,               //count requestAnimationFrame loops
-	updateInterval = 10, //how many animation loops to wait before drawing model
+	updateInterval = 5, //how many animation loops to wait before drawing model
 	firstRun = true;
 
 	/** 
@@ -156,7 +156,7 @@ elefart.controller = (function () {
 			var clickShaft = display.getShaft(pt);
 			console.log("elefart.controller.handleTouchPoint(), CLICK floor:" + clickFloor + " shaft:" + clickShaft + " user:" + defaultUser);
 
-			if(defaultUser.floor == clickFloor) {
+			if(defaultUser.floor == clickFloor) { //click is on same floor as user
 
 				if(defaultUser.shaft !== clickShaft) { //move to new elevator shaft (elevator may not be there)
 
@@ -164,16 +164,32 @@ elefart.controller = (function () {
 					board.userChangeShaft(clickShaft, defaultUser);
 
 				} //end of user moving to new shaft
+				else { //user is on same floor, AND same shaft. Set to waiting, and elevator will grab them
+					defaultUser.waiting = true; //user wants in elevator they are at
+				}
 			}
-			else {  //in a shaft, elevator differen shaft, send message to elevator to move to new floor
+			else {  //user is in a shaft, same shaft, different floor, send message to elevator to move to new floor
 					//user doesn't move
 					//elevator queues visit
-					console.log("elefart.controller::handleTouchPoint(), specified new floor");
-					board.userRequestElevator(clickFloor, clickShaft, defaultUser);
+					if(!defaultUser.waiting) {
+						console.log("elefart.controller::handleTouchPoint(), user " + defaultUser.uname + " added elevator destination");
+						if(board.elevators[clickShaft].busy) console.log("elev "+clickShaft+"busy")
+						if(!board.userInElevator(clickShaft)) {
+							board.addUserToElevator(defaultUser.floor, defaultUser.shaft, defaultUser);
+						}
+						board.addElevatorDest(clickFloor, clickShaft);
+						var elev = board.elevators[clickShaft];
+						elev.setState(board.elevatorStates.IDLE); //should trigger a move
+					}
+					else {
+						console.log("elefart.controller::handleTouchPoint(), user " + defaultUser.uname + " specified new floor, elevator on other floor");
+						board.userRequestElevator(clickFloor, clickShaft, defaultUser);
+					}
+
 			}
 		} //end of valid default user
 		
-		console.log("elefart.controller::handleTouchPoint(), USER SELECTED floor:" +clickFloor + " shaft:" + clickShaft);
+		//console.log("elefart.controller::handleTouchPoint(), USER SELECTED floor:" +clickFloor + " shaft:" + clickShaft);
 
 	}
 	
@@ -204,6 +220,7 @@ elefart.controller = (function () {
 			
 			switch(elev.state) {
 				case board.elevatorStates.IDLE:
+					elev.busy = false;
 					if(elev.destinations.length) {
 						elev.maxIncrements = 5;
 						elev.increments = 0;
@@ -225,6 +242,7 @@ elefart.controller = (function () {
 					}
 					break;
 				case board.elevatorStates.DOORS_CLOSED_IDLE:
+					elev.busy = false;
 					if(elev.increments >= elev.maxIncrements) {
 						elev.increments = 0
 						elev.maxIncrements = 2;
@@ -235,18 +253,19 @@ elefart.controller = (function () {
 					}
 					break;
 				case board.elevatorStates.DOORS_CLOSED_IDLEDONE:
+					elev.busy = false;
 					if(elev.destinations.length) {
+						console.log("At DOORS_CLOSED_IDLEDONE, have " + elev.destinations.length + " destinations")
 						elev.maxIncrements = 10 * Math.abs(elev.destinations[0] - elev.floor); //compute length of task
 						elev.increments = 0;
 						elev.setState(board.elevatorStates.MOVING); //switch to moving state
 					}
 					else {
-						//no destinations. Revert to idle
-						//TODO:
-						//TODO:
+						elev.setState(board.elevatorStates.DOORS_CLOSED_IDLE);
 					}
 					break;
 				case board.elevatorStates.MOVING:
+					elev.busy = true;
 					if(elev.increments >= elev.maxIncrements) { //we're done, jump immediately
 						elev.increments = 0;
 						elev.maxIncrements = 0;
@@ -259,35 +278,43 @@ elefart.controller = (function () {
 				case board.elevatorStates.ARRIVED_FLOOR:
 					elev.floor = elev.destinations[0]; //assign arrived floor as current floor
 					board.clearElevatorDest(elev.destinations[0], elev.shaft); //clear arrived destination
+					board.updateUsersInElevator(elev.shaft);
 					var waiting = board.getUsersAtShaft(elev.floor, elev.shaft); //see if users waiting
 					if(waiting) {
+						console.log("PEOPLE WAITING:" + waiting.length)
 						elev.increments = 0;
 						elev.maxIncrements = 5;
 						elev.setState(board.elevatorStates.DOORS_OPENING); //open doors
 					}
+					else if(elev.destinations.length) {
+						//elev.setState(board.elevatorStates.MOVING); //nobody waiting, have more destinations
+
+					}
 					else {
-						elev.setState(board.elevatorStates.MOVING); //keep going
+						elev.setState(board.elevatorStates.DOORS_OPENING);
 					}
 					break;
 				case board.elevatorStates.DOORS_OPENING:
+					elev.busy = true;
 					if(elev.increments >= elev.maxIncrements) {
 						elev.increments = 0;
 						elev.maxIncrements = 0;
-						console.log("SETTING STATE TO DOORS OPEN")
-						elev.setState(board.elevatorStates.DOORS_OPEN);
-						console.log("SET STATE TO DOORS OPEN")
+						elev.setState(board.elevatorStates.DOORS_OPENED);
 					}
 					else {
 						elev.increments++;
 					}
 					break;
-				case board.elevatorStates.DOORS_OPEN:
+				case board.elevatorStates.DOORS_OPENED:
 					console.log("IN DOORS OPEN")
+					elev.busy = false;
 					elev.increment = 0;
 					elev.maxIncrement = 5;
 					elev.busy = false;
 					var waiting = board.getUsersAtShaft(elev.floor, elev.shaft); //see if users waiting
+					window.waiting = waiting;
 					if(waiting) {
+						console.log("adding " + waiting.length + " users to elevator")
 						for(var i = 0; i < waiting.length; i++) {
 							board.addUserToElevator(elev.floor, elev.shaft, waiting[i]);
 						}
@@ -298,6 +325,7 @@ elefart.controller = (function () {
 					elev.setState(board.elevatorStates.DOORS_OPEN_IDLE);
 					break;
 				case board.elevatorStates.DOORS_OPEN_IDLE:
+					elev.busy = false;
 					///////////////console.log("in " + board.elevatorStates.DOORS_OPEN_IDLE)
 					if(elev.increment >= elev.maxIncrement) {
 						if(elev.users.length) {
