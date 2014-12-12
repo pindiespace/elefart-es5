@@ -1,0 +1,23 @@
+/* HUMANSTXT.ORG */
+
+
+    /* TEAM */
+    Creator: Pete Markiewicz.
+    Site: plyojump.com, pindiespace@gmail.com
+    Twitter: @pindiespace
+    Location: Los Angeles, California, USA.
+						
+
+    /* THANKS */
+    Name: Kepler
+                        
+
+    /* SITE */
+    Last update: 2014/12/04
+    Standards: HTML5, CSS3, Javascript (ECMA 5)
+    Components: Native JavaScript code
+    Software: NodeJS, ExpressJS, Socket.io, 
+    Tools: Sublime Text, Terminal (Mac)
+
+
+                    

@@ -1,0 +1,16 @@
+{
+	"name" : "Elefart",
+	"version" : "1.1.0",
+	"description" : "HTML5 game illustrating dev concepts",
+	"main" : "server.js",
+	 "scripts": {
+    "start": "node server.js"
+	},
+	"dependencies" : {
+		"path" : "latest",
+		"express" : "4.x",
+		"socket.io" : "1.2.x",
+		"serve-favicon" : "~2.x"
+	}
+
+}
