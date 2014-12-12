@@ -2,6 +2,10 @@
 logs
 *.log
 
+# related to other editing tools and OS files (e.g. DreamWeaver, OSX)
+.DS_Store
+Thumbs.db
+
 # Runtime data
 pids
 *.pid
