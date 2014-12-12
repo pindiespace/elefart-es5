@@ -17,7 +17,7 @@ elefart.controller = (function () {
 	foreground, //reference to HTML5 canvas foreground
 	background,
 	loopCount = 0,               //count requestAnimationFrame loops
-	updateInterval = 5, //how many animation loops to wait before drawing model
+	updateInterval = 1, //how many animation loops to wait before drawing model
 	firstRun = true;
 
 	/** 
@@ -154,7 +154,8 @@ elefart.controller = (function () {
 
 			var clickFloor = display.getFloor(pt);
 			var clickShaft = display.getShaft(pt);
-			console.log("elefart.controller.handleTouchPoint(), CLICK floor:" + clickFloor + " shaft:" + clickShaft + " user:" + defaultUser);
+			console.log("elefart.controller.handleTouchPoint(), CLICK floor:" + clickFloor + " shaft:" + clickShaft + " user floor:" + defaultUser.floor + " shaft:" + defaultUser.shaft);
+
 
 			if(defaultUser.floor == clickFloor) { //click is on same floor as user
 
@@ -168,10 +169,8 @@ elefart.controller = (function () {
 					defaultUser.waiting = true; //user wants in elevator they are at
 				}
 			}
-			else {  //user is in a shaft, same shaft, different floor, send message to elevator to move to new floor
-					//user doesn't move
-					//elevator queues visit
-					if(!defaultUser.waiting) {
+			else if(defaultUser.shaft === clickShaft) {  //user is next to elevator, send message to elevator to move to new floor
+					if(!defaultUser.waiting) { //user(s) waiting at elevator door
 						console.log("elefart.controller::handleTouchPoint(), user " + defaultUser.uname + " added elevator destination");
 						if(board.elevators[clickShaft].busy) console.log("elev "+clickShaft+"busy")
 						if(!board.userInElevator(clickShaft)) {
@@ -185,7 +184,16 @@ elefart.controller = (function () {
 						console.log("elefart.controller::handleTouchPoint(), user " + defaultUser.uname + " specified new floor, elevator on other floor");
 						board.userRequestElevator(clickFloor, clickShaft, defaultUser);
 					}
-
+			}
+			else if(defaultUser.floor == clickFloor && defaultUser.shaft === clickShaft) {
+					if(board.elevators[clickShaft].busy) console.log("elev "+clickShaft+"busy")
+						if(!board.userInElevator(clickShaft)) {
+							board.addUserToElevator(defaultUser.floor, defaultUser.shaft, defaultUser);
+						}
+			}
+			else {
+				//user clicked on a floor and shaft outside their realm
+				//no action
 			}
 		} //end of valid default user
 		
@@ -255,7 +263,6 @@ elefart.controller = (function () {
 				case board.elevatorStates.DOORS_CLOSED_IDLEDONE:
 					elev.busy = false;
 					if(elev.destinations.length) {
-						console.log("At DOORS_CLOSED_IDLEDONE, have " + elev.destinations.length + " destinations")
 						elev.maxIncrements = 10 * Math.abs(elev.destinations[0] - elev.floor); //compute length of task
 						elev.increments = 0;
 						elev.setState(board.elevatorStates.MOVING); //switch to moving state

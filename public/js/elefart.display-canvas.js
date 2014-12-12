@@ -670,8 +670,16 @@ elefart.display = (function () {
 			var elev = elevators[shaft];
 			fctx.lineWidth = 6;
 			var startx = ((elev.shaft+1) * floorColWidth) + elevatorLeftMargin;
-			//var starty = ((elev.floor+1) * floorHeight) + elevatorTopMargin;
 			var starty = ((numFloors - elev.floor) * floorHeight) + elevatorTopMargin;
+
+			//animate movement
+			if(elev.getState() === board.elevatorStates.MOVING) {
+				var destFloor = elev.destinations[0];
+				var inc = (elev.floor - destFloor) * floorHeight * (elev.increments/elev.maxIncrements);
+				starty += inc;
+			}
+
+			//draw the elevator
 			roundedRect(fctx, 
 				startx, 
 				starty, 
@@ -771,6 +779,16 @@ elefart.display = (function () {
 			width: personWidth,                           //scaled width in ctx
 			height: personHeight                              //scaled height in ctx
 		};
+
+		var elev = board.getPersonElevator(user)
+		if(elev) {
+				if(elev.state === board.elevatorStates.MOVING) {
+				var destFloor = elev.destinations[0];
+				var inc = (elev.floor - destFloor) * floorHeight * (elev.increments/elev.maxIncrements);
+				dRect.top += inc;
+			}
+
+		}
 		
 		//create a character at a specified position and size. 
 		//Dim if not the default character

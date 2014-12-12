@@ -544,7 +544,10 @@ elefart.board = (function () {
 			state:elevatorStates.IDLE,
 			setState:function (state) {
 				this.state = state;
-				console.log("ELEVATOR STATE CHANGE: floor:"+ this.floor + ","+ this.shaft + " state:" + this.state);
+				//if(elefart.DEBUG) console.log("ELEVATOR STATE CHANGE: floor:"+ this.floor + ","+ this.shaft + " state:" + this.state);
+			},
+			getState:function () {
+				return this.state;
 			},
 			opaque:1.0,
 			increments:0,     //number of steps currently in state
@@ -681,6 +684,19 @@ elefart.board = (function () {
 	 * =========================================
 	 */
 
+	/** 
+	 * @method getPersonElevator
+	 * check if a person is in the elevator
+	 */
+	function getPersonElevator (user) {
+		var shaft = user.shaft;
+		for(var i = 0; i < elevators[shaft].users.length; i++) {
+			if(user === elevators[shaft].users[i]) {
+				return elevators[i];
+			}
+		}
+		return false;
+	}
 
 	/** 
 	 * @method getUsersAtShaft
@@ -916,6 +932,7 @@ elefart.board = (function () {
 		elevators:elevators,
 		getElevator:getElevator,
 		getElevatorOnFloor:getElevatorOnFloor,
+		getPersonElevator:getPersonElevator,
 		clearElevator:clearElevator,
 		elevatorBusy:elevatorBusy,
 		addElevatorDest:addElevatorDest,
