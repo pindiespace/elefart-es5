@@ -1,16 +1,25 @@
 {
-	"name" : "Elefart",
-	"version" : "1.1.0",
-	"description" : "HTML5 game illustrating dev concepts",
-	"main" : "server.js",
-	 "scripts": {
-    "start": "node server.js"
+	"name": "Elefart",
+	"version": "1.1.0",
+	"license" : "MIT",
+	"repository": "https://github.com/pindiespace/Elefart",
+	"description": "HTML5 game illustrating dev concepts",
+	"main": "server.js",
+	"scripts": {
+		"start": "node server.js",
+		"test": "node node_modules/karma/bin/karma start test/karma.conf.js"
 	},
-	"dependencies" : {
-		"path" : "latest",
-		"express" : "4.x",
-		"socket.io" : "1.2.x",
-		"serve-favicon" : "~2.x"
+	"dependencies": {
+		"path": "latest",
+		"express": "4.x",
+		"socket.io": "1.2.x",
+		"serve-favicon": "~2.x",
+		"karma": "latest",
+		"karma-jasmine": "latest",
+		"karma-chrome-launcher": "latest",
+		"karma-firefox-launcher": "latest"
+	},
+	"devDependencies": {
+		"karma": "latest"
 	}
-
 }
