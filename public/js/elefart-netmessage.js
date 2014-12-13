@@ -22,7 +22,6 @@
 	exports.NEWS = "NEWS",
 
 	exports.USER_MESSAGE = {
-		NEWS: "NEWS",
 		USER_JOINED: "USER_JOINED",
 		USER_MOVED: "USER_MOVED",
 		USER_LEFT: "USER_LEFT"

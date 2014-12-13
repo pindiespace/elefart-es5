@@ -6,13 +6,15 @@
 window.elefart.screens['screen-exit'] = (function () {
 
 	var dom = elefart.dom,
+	id = 'screen-exit',
+	panel,
 	firstTime = true;
 
 	/** 
 	 * @method init
 	 */
 	function init () {
-
+		panel = document.getElementById(id);
 	}
 
 	/** 

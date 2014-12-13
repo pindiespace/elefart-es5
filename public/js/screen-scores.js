@@ -6,13 +6,15 @@
 window.elefart.screens['screen-scores'] = (function () {
 
 	var dom = elefart.dom,
+	panel,
+	id = 'screen-scores',
 	firstTime = true;
 
 	/** 
 	 * @method init
 	 */
 	function init () {
-
+		panel = document.getElementById(id);
 	}
 
 	/** 

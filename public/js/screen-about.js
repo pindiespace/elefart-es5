@@ -6,13 +6,15 @@
 window.elefart.screens['screen-about'] = (function () {
 
 	var dom = elefart.dom,
+	id = 'screen-about',
+	panel,
 	firstTime = true;
 
 	/** 
 	 * @method init
 	 */
 	function init () {
-
+		panel = document.getElementById(id);
 	}
 
 	/** 

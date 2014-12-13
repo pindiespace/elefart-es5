@@ -6,13 +6,15 @@
 window.elefart.screens['screen-game'] = (function () {
 
 	var dom = elefart.dom,
+	id ='screen-game',
+	panel,
 	firstTime = true;
 
 	/** 
 	 * @method init
 	 */
 	function init () {
-
+		panel = document.getElementById(id);
 	}
 
 	/** 

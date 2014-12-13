@@ -6,13 +6,15 @@
 window.elefart.screens['screen-join'] = (function () {
 
 	var com = elefart.dom,
+	id = 'screen-join',
+	panel,
 	firstTime = true;
 
 	/** 
 	 * @method init
 	 */
 	function init () {
-
+		panel = document.getElementById(id);
 	}
 
 	/** 

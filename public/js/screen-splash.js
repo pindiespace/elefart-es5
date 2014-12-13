@@ -8,13 +8,15 @@
  window.elefart.screens['screen-splash'] = (function () {
 
 	var dom = elefart.dom,
+	id = 'screen-splash',
+	panel,
 	firstTime = true;
 
 	/** 
 	 * @method init
 	 */
 	function init () {
-
+		panel = document.getElementById('screen-splash');
 	}
 
 	/** 

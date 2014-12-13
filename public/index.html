@@ -60,9 +60,9 @@
 
 <!--splash screens
 	-->
-    <link rel="apple-touch-startup-image" href="img/splash/startup-748x1024.png" media="screen and (min-device-width: 768px) and (orientation:landscape)">
-    <link rel="apple-touch-startup-image" href="img/splash/startup-768x1004.png" media="screen and (min-device-width: 768px) and (orientation:portrait)" >
-    <link rel="apple-touch-startup-image" href="img/splash/startup-320x460.png" media="screen and (max-device-width:320px)">
+	<link rel="apple-touch-startup-image" href="img/splash/startup-748x1024.png" media="screen and (min-device-width: 768px) and (orientation:landscape)">
+	<link rel="apple-touch-startup-image" href="img/splash/startup-768x1004.png" media="screen and (min-device-width: 768px) and (orientation:portrait)" >
+	<link rel="apple-touch-startup-image" href="img/splash/startup-320x460.png" media="screen and (max-device-width:320px)">
 
 <!--apple ios specific meta tags
 	let iOS know we can run as a 'web app'
@@ -87,6 +87,15 @@
 	-->
 	<meta name="msapplication-tap-highlight" content="no">
 
+<!--win8.0 image tile for pinning to tile display
+	the tiles for Win 8.1, IE11 and greater are defined in browserconfig.xml
+	@link http://msdn.microsoft.com/en-us/library/ie/dn455106(v=vs.85).aspx
+	-->
+	<meta name="msapplication-TileImage" content="img/icon/mstile-144x144.png">
+
+<!--background color-->
+	<meta name="msapplication-TileColor" content="#00aba9">
+
 <!--older mobiles	
 	used by older Palm, AvantGo, Blackberry phones
 	-->
@@ -101,6 +110,45 @@
 	<title>Elefart - Freak Out Your Friends</title>
 
 	<meta name="description" content="Elefart lets you try to beat the obnoxious international icons in the elevator at their own gassy games">
+
+<!--help search engines manage sites with query strings
+	NOTE: the '/' is necessary to prevent FB errors
+	@link http://moz.com/blog/canonical-url-tag-the-most-important-advancement-in-seo-practices-since-sitemaps
+	-->
+	<link rel="canonical" href="http://plyojump.com/projects/Elefart">
+
+<!--facebook Open Graph data
+	(under social networks, supported by Facebook and Linkedin)
+	@link https://developers.facebook.com/docs/web/tutorials/scrumptious/open-graph-object
+	@link https://developers.facebook.com/docs/sharing/best-practices
+	validate at
+	@link https://developers.facebook.com/tools/debug/
+	Linkedin
+	@link https://developer.linkedin.com/documents/setting-display-tags-shares
+	-->
+	<meta property="og:url" content="http://plyojump.com/projects/Elefart/">
+	<meta property="og:locale" content="en_US">
+	<meta property="og:title" content="Elefart">
+	<meta property="og:description" content="Elefart lets you battle international characters via elevator flatulence. Can you make it to the top of the GasLight Building before being gassed yourself?">
+	<meta property="og:image" content="http://plyojump.com/projects/Elefart/img/logo612x315.png">
+
+<!--Twitter card data
+	@link https://dev.twitter.com/cards/types/app
+	validate at
+	@link https://cards-dev.twitter.com/validator
+	-->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:site" content="@pindiespace">
+	<meta name="twitter:creator" content="@pindiespace">
+	<meta name="twitter:title" content="Elefart">
+	<meta name="twitter:description" content="Elefart lets you battle international characters via elevator flatulence. Can you make it to the top of the GasLight Building before being gassed yourself?">
+	<meta name="twitter:image:src" content="http://plyojump.com/projects/Elefart/img/logo512x512.png">
+
+<!--Google+ authorship
+	@link https://blog.kissmetrics.com/google-authorship/
+	@link https://www.percussion.com/blog/2014/March/how-to-optimize-your-content-for-social-sharing-with-meta-tags
+	-->
+	<link href="http://google.com/+PeteMarkiewiczPlyojump" rel="author">
 
 <!--CSS loading. We load CSS before JavaScript since most browsers 
 	can download css in parallel, while javascript files are loaded one at a time, 
@@ -122,25 +170,32 @@
 <link rel="stylesheet" type="text/css" href="css/oldie.css">
 <![endif]-->
 
+<!--normalize and css reset
+	-->
+	<link rel="stylesheet" href="css/reset.css">
 <!--main stylesheet
+	relative measurements in most cases
 	-->
 	<link rel="stylesheet" href="css/main.css">
 
 <!--mobile responsive styles 
+	mobile first strategy
 	-->
 	<link rel="stylesheet" href="css/mobile.css">
 
-<!-- addEventListener polyfill
-	old Internet Explorer doesn't understand 
-	how to 'trap' events, so add some JavaScript that teaches it 
-	to do so following W3C standards
+<!--prefixfree fix for vendor extensions
+	@link @link http://leaverou.github.io/prefixfree
+	-->
+	<script src="js/lib/prefixfree.min.js"></script>
+
+<!-- addEventListener polyfill for old Internet Explorer 
 	@link https://github.com/jonathantneal/EventListener
 	@link https://gist.github.com/jonathantneal/2415137
 	-->
 	<script src="js/lib/EventListener.js"></script>
 
 <!--LazyLoad
-	a simple dependency loader
+	a simple script dependency loader
 	@link https://github.com/rgrove/lazyload/
 	-->
 	<script src="js/lib/lazyload.js"></script>
@@ -151,11 +206,11 @@
 
 	<!--NOTE: changed to new HTML5 main tag-->
 	<main id="game">
-		
+	
 		<!--initial splash screen-->
-		<article class="screen" id="screen-splash">
+		<article class="screen pattern" id="screen-splash">
 
-			<h1 class="logo">Elefart</h1>
+			<h1 class="identity">Elefart</h1>
 			<img id="splash-screen-img" src="img/icon/apple-touch-icon-144x144.png" width="144" height="144">
 			<div class="progress">
 				<div class="indicator-wrapper">
@@ -166,26 +221,23 @@
 
 		</article>
 
-		<!--installation screen
-			BOOL: Listing 3-21, p. 66
-			NOTE: we added the inline-block class to fix old IE
-			-->
-		<article class="screen" id="screen-install">
+		<!--installation screen-->
+		<article class="screen pattern" id="screen-install">
 
-			<h1 class="logo">Elefart</h1>
+			<h1 class="identity">Elefart</h1>
 			<span>
 				Click the <img src="img/icon/ios-share-icon.png" alt="Install icon"> button to install the game to your home screen.
 			</span>
-            <p>
-            <a id="dont-install" href="#">Don't Install</a> by clicking here
-            </p>
+			<p>
+				<a id="dont-install" href="#">Don't Install</a> by clicking here
+			</p>
 
 		</article>
 
 		<!--main menu for the game-->
-		<article class="screen" id="screen-menu">
+		<article class="screen pattern" id="screen-menu">
 
-			<h2 class="logo">Elefart</h2>
+			<h2 class="identity">Elefart</h2>
 			<form>
 			<ul id="menu-main" class="menu">
 				<li><button name="game">Play</button>
@@ -197,29 +249,39 @@
 		</article>
 
 		<!--the game canvas-->
-		<article class="screen" id="screen-game">
-        	<!--the actual game in HTML5 canvas will go here-->
+		<article class="screen active" id="screen-game">
+			<h2 class="identity">Elefart</h2>
+			<h3>Game Screen</h3>
+		<!--the actual game in HTML5 canvas will go here-->
 		</article>
-        
-        <!--join the game (login) screen-->
-        <article class="screen" id="screen-join">
-            <!--login form for multiuser version-->
-        </article>
-        
-        <!--about screen-->
-        <article class="screen" id="screen-about">
-            <!--about the game, documentation-->
-        </article>
+
+		<!--join the game (login) screen-->
+		<article class="screen" id="screen-join">
+			<h2 class="identity">Elefart</h2>
+			<h3>Join Elefart</h3>
+			<!--login form for multiuser version-->
+		</article>
+
+		<!--about screen-->
+		<article class="screen pattern" id="screen-about">
+			<h2 class="identity">Elefart</h2>
+			<h3>About Elefart</h3>
+			<!--about the game, documentation-->
+		</article>
 
 		<!--high scores screen-->
-		<article class="screen" id="screen-scores">
-        	<!--screen displaying high scores goes here-->
+		<article class="screen pattern" id="screen-scores">
+			<h2 class="identity">Elefart</h2>
+			<h3>High Scores</h3>
+			<!--screen displaying high scores goes here-->
 		</article>
-        
-        <!--exit screen-->
-        <article class="screen" id="screen-exit">
-            <!--exit dialog goes here-->
-        </article>
+
+		<!--exit screen-->
+		<article class="screen pattern" id="screen-exit">
+			<h2 class="identity">Elefart</h2>
+			<h3>Do You Want to Quit?</h3>
+			<!--exit dialog goes here-->
+		</article>
 
 	</main><!--end of main #game-->
 
@@ -228,19 +290,23 @@
 	//load after static elements of home page are loaded
 	LazyLoad.js(['js/elefart-netmessage.js', 'js/elefart.js', 'js/elefart-dom.js'], function () {
 		console.log("stage 1 load Intro screns");
+			elefart.dom.init();
 		LazyLoad.js(['js/screen-splash.js', 'js/screen-install.js', 'js/screen-menu.js'], function () {
 			console.log("stage 2 load MVC");
 			LazyLoad.js(['js/elefart-dashboard.js', 'js/elefart-building.js','js/elefart-display.js', 'js/elefart-controller.js'], function () {
-				elefart.display.run();
-				elefart.building.run();
-				elefart.dashboard.run();
-				elefart.controller.run();
+				elefart.display.init();
+				elefart.building.init();
+				elefart.dashboard.init();
+				elefart.controller.init();
 				console.log("stage 3 load additional screens");
 				//remaining game screens
 				LazyLoad.js(['js/screen-game.js', 'js/screen-join.js', 'js/screen-about.js', 'js/screen-scores.js', 'js/screen-exit.js'], function () {
-                    console.log("stage 4 loaded");
-                    //run the game
-                    elefart.run();
+					for(var i = 0; i < elefart.screens.length; i++) {
+						elefart.screens[i].init();
+					}
+					console.log("stage 4 loaded");
+					//run the game
+					elefart.run();
 				})
 			})
 		})

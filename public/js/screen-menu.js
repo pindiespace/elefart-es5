@@ -6,13 +6,15 @@
  window.elefart.screens['screen-menu'] = (function () {
 
 	var dom = elefart.dom,
+	id = 'screen-menu',
+	panel,
 	firstTime = true;
 
 	/** 
 	 * @method init
 	 */
 	function init () {
-
+		panel = document.getElementById(id);
 	}
 
 	/** 

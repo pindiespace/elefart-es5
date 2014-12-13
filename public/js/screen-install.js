@@ -6,13 +6,15 @@
 window.elefart.screens['screen-install'] = (function () {
 
 	var dom = elefart.dom,
+	id = 'screen-install',
+	panel,
 	firstTime = true;
 
 	/** 
 	 * @method init
 	 */
 	function init () {
-
+		panel = document.getElementById(id);
 	}
 
 	/** 
