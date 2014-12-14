@@ -118,7 +118,6 @@ window.elefart.dom = (function () {
 
 	/** 
 	 * @method bind
-	 * BOOK: Listing 3-9, p. 53
 	 */
 	function bind(el, evt, callback) {
 		el = $(el)[0];

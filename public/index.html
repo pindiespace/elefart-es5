@@ -21,7 +21,7 @@
 	-->
 	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 
-<!--larger favicons for modern browsers
+<!--larger favicons for modern Android browsers
 	generated using Real Favicon Generator
 	@link http://realfavicongenerator.net/
 	-->
@@ -75,9 +75,14 @@
 	<meta name="apple-mobile-web-app-title" content="Elefart">
 
 <!--Android specific meta tags
-	run in full screen mode on Android
+	run in full screen mode on newer Androids
 	-->
 	<meta name="mobile-web-app-capable" content="yes">
+
+<!--web app manifest for Android
+	defines as web app-capable
+	-->
+	<link rel="manifest" href="manifest.json">
 
 <!--windows 8 specific meta tags 
 	-->
@@ -205,6 +210,14 @@
 	-->
 	<script src="js/lib/Console.js"></script>
 	<script>
+	/** 
+	 * hack for standalone in Android
+	 * @link http://java.dzone.com/articles/home-screen-web-apps-android
+	*/
+	if(/Android/.test(navigator.userAgent)) {
+		navigator.standalone = navigator.standalone || (screen.height-document.documentElement.clientHeight<40);
+	}
+	//addEventListener polyfill
 	if(!document.addEventListener) {
 		toast('js/lib/EventListener.js', function () {
 			console.log("loaded addEventListener polyfill");

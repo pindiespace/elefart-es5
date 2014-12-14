@@ -55,12 +55,12 @@ window.elefart = (function () {
 	 */
 	function isStandalone (type) {
 		if(window.navigator.standalone === undefined) {
-			return true; //we don't want desktop bringing up an install screen!
+			return false; //we don't want desktop bringing up an install screen!
 		}
 		else {
 			if(type) {
 				switch(type) {
-					case 'ios':
+					case 'ios': //also includes android
 						return !!(window.navigator.standalone);
 						break;
 					case 'windows':
@@ -108,6 +108,12 @@ window.elefart = (function () {
  */
 
 	function showScreen (screenId) {
+		if(isStandalone('ios') || isStandalone('windows')) {
+			console.log("standalone mode");
+		}
+		else {
+			console.log("browser mode");
+		}
 		
 	}
 /* 
@@ -120,7 +126,7 @@ window.elefart = (function () {
 	 * @method init
 	 */
 	function init () {
-
+		fixScreen();
 	}
 
 	/** 
@@ -130,6 +136,7 @@ window.elefart = (function () {
 		if(firstTime) {
 			init();
 		}
+		showScreen();
 	}
 
 	//returned object
