@@ -11,11 +11,12 @@ module.exports = function(config){
 	basePath : '../',
 
 	files : [
-    
-    	'test/unit/*.js',
+
+		'test/unit/*.js',
 		'test/unit/**/*.js',
 		{pattern: 'public/js/elefart-netmessage.js', watched: true, included: true, served: true},
 		{pattern: 'public/js/elefart.js', watched: true, included: true, served: true},
+		{pattern: 'public/js/elefart-make.js', watched: true, included: true, server: true},
 		{pattern: 'public/js/elefart-dom.js', watched: true, included: true, served: true},
 		{pattern: 'public/js/screen-splash.js', watched: true, included: true, served: true},
 		{pattern: 'public/js/screen-install.js', watched: true, included: true, served: true},

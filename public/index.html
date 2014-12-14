@@ -188,17 +188,34 @@
 	-->
 	<script src="js/lib/prefixfree.min.js"></script>
 
-<!-- addEventListener polyfill for old Internet Explorer 
-	@link https://github.com/jonathantneal/EventListener
-	@link https://gist.github.com/jonathantneal/2415137
-	-->
-	<script src="js/lib/EventListener.js"></script>
-
 <!--LazyLoad
 	a simple script dependency loader
 	@link https://github.com/rgrove/lazyload/
 	-->
 	<script src="js/lib/lazyload.js"></script>
+
+<!--polyfills
+	addEventListener
+	querySelector, querySelectorAll, getElementsByClassName
+	-->
+	<script src="js/lib/Console.js"></script>
+	<script>
+	if(!document.addEventListener) {
+		LazyLoad.js(['js/lib/EventListener.js'], function () {
+			console.log("loaded addEventListener polyfill");
+		});
+	}
+	if(!document.querySelectorAll) {
+		LazyLoad.js(['js/lib/QuerySelector.js'], function () {
+			console.log("loaded QuerySelector polyfill");
+		})
+	}
+	if(!document.getElementByClassName) {
+		LazyLoad.js(['js/lib/GetElementsByClassName.js'], function () {
+			console.log("loaded GetElementsByClassName polyfill");
+		})
+	}
+	</script>
 
 </head>
 
@@ -288,9 +305,9 @@
 	<!--loader script-->
 	<script>
 	//load after static elements of home page are loaded
-	LazyLoad.js(['js/elefart-netmessage.js', 'js/elefart.js', 'js/elefart-dom.js'], function () {
-		console.log("stage 1 load Intro screns");
-			elefart.dom.init();
+	LazyLoad.js(['js/elefart-netmessage.js', 'js/elefart.js', 'js/elefart-make.js', 'js/elefart-dom.js'], function () {
+		console.log("stage 1 load base app code");
+		elefart.dom.init();
 		LazyLoad.js(['js/screen-splash.js', 'js/screen-install.js', 'js/screen-menu.js'], function () {
 			console.log("stage 2 load MVC");
 			LazyLoad.js(['js/elefart-dashboard.js', 'js/elefart-building.js','js/elefart-display.js', 'js/elefart-controller.js'], function () {
@@ -310,7 +327,7 @@
 				})
 			})
 		})
-	});	
+	});
 	</script>
 
 </body>

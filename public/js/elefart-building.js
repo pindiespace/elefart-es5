@@ -1,7 +1,9 @@
 /** 
- * @namespace
- * elefart.building (Model)
- * game objects (building, shafts, elevators, users, goodies, gas)
+ * @namespace 
+ * @fileoverview elefart.building (Model) game objects (building, shafts, elevators, users, goodies, gas)
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
  */
 window.elefart.building = (function () {
 
@@ -9,6 +11,12 @@ window.elefart.building = (function () {
 	display,
 	controller, 
 	firstTime = true;
+
+/* 
+ * ============================
+ * INIT AND RUN
+ * ============================
+ */
 
 	/** 
 	 * @method init
