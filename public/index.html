@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 
 <html>
 
@@ -158,6 +158,11 @@
 	-->
 	<link rel="stylesheet" href="css/fonts/fonts-local.css">
 
+<!--shim browsers that don't understand HTML5 tags in JS
+	@link: https://github.com/aFarkas/html5shiv
+	-->
+	<script src="js/lib/html5shiv.min.js"></script>
+
 <!--NOTE: special CSS load for old IE
 	fix inline-block problem
 	@link http://blog.mozilla.org/webdev/2009/02/20/cross-browser-inline-block/
@@ -188,11 +193,11 @@
 	-->
 	<script src="js/lib/prefixfree.min.js"></script>
 
-<!--LazyLoad
+<!--Toast
 	a simple script dependency loader
-	@link https://github.com/rgrove/lazyload/
+	@link https://github.com/pyrsmk/toast
 	-->
-	<script src="js/lib/lazyload.js"></script>
+	<script src="js/lib/toast.min.js"></script>
 
 <!--polyfills
 	addEventListener
@@ -201,19 +206,9 @@
 	<script src="js/lib/Console.js"></script>
 	<script>
 	if(!document.addEventListener) {
-		LazyLoad.js(['js/lib/EventListener.js'], function () {
+		toast('js/lib/EventListener.js', function () {
 			console.log("loaded addEventListener polyfill");
 		});
-	}
-	if(!document.querySelectorAll) {
-		LazyLoad.js(['js/lib/QuerySelector.js'], function () {
-			console.log("loaded QuerySelector polyfill");
-		})
-	}
-	if(!document.getElementByClassName) {
-		LazyLoad.js(['js/lib/GetElementsByClassName.js'], function () {
-			console.log("loaded GetElementsByClassName polyfill");
-		})
 	}
 	</script>
 
@@ -228,7 +223,7 @@
 		<article class="screen pattern" id="screen-splash">
 
 			<h1 class="identity">Elefart</h1>
-			<img id="splash-screen-img" src="img/icon/apple-touch-icon-144x144.png" width="144" height="144">
+			<img id="splash-screen-img" src="img/icon/apple-touch-icon-144x144.png" width="144" height="144" alt="Two guys in an elevator, one farting">
 			<div class="progress">
 				<div class="indicator-wrapper">
 					<div class="indicator"></div>
@@ -304,30 +299,52 @@
 
 	<!--loader script-->
 	<script>
-	//load after static elements of home page are loaded
-	LazyLoad.js(['js/elefart-netmessage.js', 'js/elefart.js', 'js/elefart-make.js', 'js/elefart-dom.js'], function () {
-		console.log("stage 1 load base app code");
+
+	//@link https://github.com/pyrsmk/toast
+
+toast(
+	'js/elefart-netmessage.js','js/lib/sizzle.min.js', 
+	['js/elefart.js', function () {return window.elefart;}], 
+	['js/elefart-dom.js', function () {return elefart.dom;}], 
+	['js/elefart-make.js', function () { return elefart.make;}], 
+	function(){
+		console.log('set 1 downloaded, core functions');
 		elefart.dom.init();
-		LazyLoad.js(['js/screen-splash.js', 'js/screen-install.js', 'js/screen-menu.js'], function () {
-			console.log("stage 2 load MVC");
-			LazyLoad.js(['js/elefart-dashboard.js', 'js/elefart-building.js','js/elefart-display.js', 'js/elefart-controller.js'], function () {
-				elefart.display.init();
+		elefart.make.init();
+	},
+	'js/screen-splash.js', 
+	'js/screen-install.js', 
+	'js/screen-menu.js',
+	function(){
+		console.log('set 2 downloaded, initial screens');
+	},
+	'js/elefart-dashboard.js', 
+	'js/elefart-building.js',
+	'js/elefart-display.js', 
+	'js/elefart-controller.js',
+	function () {
+		console.log('set 3 downloaded, MVC');
+		elefart.display.init();
 				elefart.building.init();
 				elefart.dashboard.init();
 				elefart.controller.init();
-				console.log("stage 3 load additional screens");
-				//remaining game screens
-				LazyLoad.js(['js/screen-game.js', 'js/screen-join.js', 'js/screen-about.js', 'js/screen-scores.js', 'js/screen-exit.js'], function () {
-					for(var i = 0; i < elefart.screens.length; i++) {
-						elefart.screens[i].init();
-					}
-					console.log("stage 4 loaded");
-					//run the game
-					elefart.run();
-				})
-			})
-		})
-	});
+	},
+	'js/screen-game.js', 
+	'js/screen-join.js', 
+	'js/screen-about.js', 
+	'js/screen-scores.js', 
+	'js/screen-exit.js',
+	function () {
+		console.log('set 4 downloaded, additional screens')
+		for(var i = 0; i < elefart.screens.length; i++) {
+			elefart.screens[i].init();
+		}
+		console.log("stage 4, ready to run game");
+		//run the game
+		elefart.run();
+	}
+);
+
 	</script>
 
 </body>

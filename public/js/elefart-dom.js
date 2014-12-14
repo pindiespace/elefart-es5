@@ -86,6 +86,7 @@ window.elefart.dom = (function () {
 		}
 	}
 
+	
 	/** 
 	 * @method $
 	 * queryselector wrapper
@@ -101,7 +102,8 @@ window.elefart.dom = (function () {
 		if(typeof path !== "string") {
 			return [path]; //path is a DOM element
 		}
-		return parent.querySelectorAll(path); //path is a CSS selector
+		return Sizzle(path);
+		//return parent.querySelectorAll(path); //path is a CSS selector
 	}
 
 	/** 

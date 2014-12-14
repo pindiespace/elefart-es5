@@ -8,24 +8,24 @@
  * @author Pete Markeiwicz
  * @license MIT
  */
- window.elefart.make = (function () {
+window.elefart.make = (function () {
 
-var firstTime = true;
+	var firstTime = true;
 
-/* 
- * ============================
- * OBJECT SIZE CONSTANTS
- * ============================
- */
-var shaftWidth = 100,
-floorHeight = 100
-walls = 10;
+	/* 
+	 * ============================
+	 * OBJECT SIZE CONSTANTS
+	 * ============================
+	 */
+	var shaftWidth = 100,
+	floorHeight = 100
+	walls = 10;
 
-/* 
- * ============================
- * BASIC SCREEN OBJECT FACTORY FUNCTIONS
- * ============================
- */
+	/* 
+	 * ============================
+	 * BASIC SCREEN OBJECT FACTORY FUNCTIONS
+	 * ============================
+	 */
 
 	/** 
 	 * @method createPoint
@@ -118,6 +118,8 @@ walls = 10;
 
 	//returned object
 	return {
+		init:init,
+		run:run,
 		createPoint:createPoint,
 		createSize:createSize,
 		createRect:createRect
