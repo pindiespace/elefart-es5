@@ -157,10 +157,10 @@ window.elefart = (function () {
 	function canRun () {
 		if(document.createElement) {
 			var c = document.createElement('canvas');
-			if(c) {
+			if(c && c.getContext) {
 				var ctx = c.getContext('2d');
 				if(ctx) {
-					var txt = typeof context.fillText == "function";
+					var txt = typeof ctx.fillText == "function";
 					if(txt) {
 						return true;
 					}
@@ -175,12 +175,8 @@ window.elefart = (function () {
 			else {
 				showError("HTML5 Canvas API not supported");
 			}
-			return false;
 		}
-
-		
-		
-		else return false;
+		return false;
 	}
 
 /* 
@@ -197,7 +193,7 @@ window.elefart = (function () {
 
 		mobileParams(); //is this a mobile
 		screenParams(); //screen features
-		fixScreen();    //fix screens for some mobiles
+
 		/*
 		 * if .classList isn't defined, add polyfill functions 
 		 * to the elements where classList is used
@@ -205,6 +201,17 @@ window.elefart = (function () {
 		if(!document.documentElement.classList) {
 			dom.addClassList(document.getElementsByTagName("article"));
 		}
+
+		if(!canRun()) {
+			//TODO: show error screen 
+			console.log("browser can't support game, showing error screen");
+			dom.showScreenById("screen-cantrun");
+			return;
+		}
+
+
+		fixScreen();    //fix screens for some mobiles
+
 
 		/** 
 		 * Display a startup screen as files loaded, 
@@ -214,7 +221,7 @@ window.elefart = (function () {
 		 */
 		if(mobile.standalone) {
 			console.log("standalone mode");
-			dom.showScreen("screen-install")
+			dom.showScreenById("screen-install")
 		}
 		else {
 			console.log("browser mode");
