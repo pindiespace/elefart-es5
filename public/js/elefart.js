@@ -143,6 +143,46 @@ window.elefart = (function () {
 		
 	} //end of fixScreen
 
+
+	/**
+	 * @method canRun
+	 * determine if the device can run the app
+	 * use feature detection, with device detection on as necessary
+	 * Required features
+	 * - HTML5 Canvas API
+	 * - HTML5 Canvas Text API
+	 * @link http://diveintohtml5.info/detect.html#canvas
+	 * @returns {Boolean} if can run, return true, else false
+	 */
+	function canRun () {
+		if(document.createElement) {
+			var c = document.createElement('canvas');
+			if(c) {
+				var ctx = c.getContext('2d');
+				if(ctx) {
+					var txt = typeof context.fillText == "function";
+					if(txt) {
+						return true;
+					}
+					else {
+						showError("HTML5 Canvas Text not supported");
+					}
+				}
+				else {
+					showError("Could not create HTML5 Canvas context");
+				}
+			}
+			else {
+				showError("HTML5 Canvas API not supported");
+			}
+			return false;
+		}
+
+		
+		
+		else return false;
+	}
+
 /* 
  * ============================
  * INIT AND RUN
@@ -166,7 +206,12 @@ window.elefart = (function () {
 			dom.addClassList(document.getElementsByTagName("article"));
 		}
 
-		//display the startup screen as other files load
+		/** 
+		 * Display a startup screen as files loaded, 
+		 * or an install screen for adding a desktop link on ios 
+		 * and Android mobiles
+		 * 
+		 */
 		if(mobile.standalone) {
 			console.log("standalone mode");
 			dom.showScreen("screen-install")

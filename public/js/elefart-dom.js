@@ -34,24 +34,24 @@ window.elefart.dom = (function () {
 	 * @link https://github.com/toddmotto/apollo
 	 * @link http://toddmotto.com/creating-jquery-style-functions-in-javascript-hasclass-addclass-removeclass-toggleclass/
 	 */
-	function ClassList (elem) {
+	function ClassList (elm) {
 
-		this.el = elem;
+		this.elm = elm;
 
 		/** 
 		 * @method contains
 		 */
 		this.contains = function contains(clsName) {
 			var regex = new RegExp("(^|\\s)" + clsName + "(\\s|$)");
-			return regex.test(this.el.className);
+			return regex.test(this.elm.className);
 		}
 
 		/** 
 		 * @method add
 		 */
 		this.add = function add(clsName) {
-			if (!this.contains(this.el, clsName)) {
-				this.el.className += " " + clsName.trim();
+			if (!this.contains(this.elm, clsName)) {
+				this.elm.className += " " + clsName.trim();
 			}
 		}
 
@@ -60,8 +60,8 @@ window.elefart.dom = (function () {
 		 */
 		this.remove = function remove(clsName) {
 			var regex = new RegExp("(^|\\s)" + clsName + "(\\s|$)");
-			if(this.el.className) {
-				this.el.className = this.el.className.replace(regex, "").trim();
+			if(this.elm.className) {
+				this.elm.className = this.elm.className.replace(regex, "").trim();
 			}
 
 		}
@@ -113,12 +113,11 @@ window.elefart.dom = (function () {
 	/** 
 	 * @method getElement
 	 * return an element, either itself or by its id string
-	 * @param {DOMElement|String} el either a DOM element or an id string
+	 * @param {DOMElement|String} el either a DOM element or an id="xxx" string
 	 * @returns {DOMElement|false} if found, return element, else false
 	 */
 	function getElement(elm) {
 		if(typeof elm == "object") {
-			console.log("returning an object")
 			return elm;
 		}
 		else if(typeof elm == "string") {
@@ -147,8 +146,10 @@ window.elefart.dom = (function () {
 	 * @param {DOMElement} elm the HTML DOM element to bind event to
 	 * @param {EventType} evt the type of event (a String)
 	 * @param {Function} callback the callback function
+	 * @param {Boolean} useCapture (if true, capture in capturing phase (default 
+	 * is false, use bubbling phase)
 	 */
-	function addEvent (elm, evt, callback) {
+	function addEvent (elm, evt, callback, useCapture) {
 		if (elm.addEventListener) { // Modern
 			elm.addEventListener(evt, function (e) {
 				callback(e);
@@ -157,9 +158,10 @@ window.elefart.dom = (function () {
 		else if (document.attachEvent) { // Internet Explorer
 			elm.attachEvent('on' + evt, function(e) {
 				var e = e || win.event;
-				e.target = e.srcElement; //normalize event
-				e.preventDefault = e.preventDefault || function() { e.returnValue = false;}
-				e.stopPropagation = e.stopPropagation || function() { e.cancelBubble = true;}
+				//normalize event object
+				e.target = e.srcElement;
+				e.preventDefault = e.preventDefault || function () { e.returnValue = false;}
+				e.stopPropagation = e.stopPropagation || function () { e.cancelBubble = true;}
 				callback.call(elm, e);
 			});
 		}
@@ -183,8 +185,14 @@ window.elefart.dom = (function () {
 	/** 
 	 * @method removeEvent
 	 * remove an event
+	 * @param {DOMElement} elm the HTML DOM element to remove event from
+	 * @param {EventType} evt the type of event (a String)
+	 * @param {Function} callback the callback function
+	 * @param {Boolean} useCapture (if true, capture in capturing phase (default 
+	 * is false, use bubbling phase)
 	 */
 	function removeEvent (elm, evt, callback, useCapture) {
+		if(useCapture === undefined) useCapture = false;
 		if(doc.removeEventListener) {
 			elm.removeEventListener(evt, callback, !!useCapture);
 			return true;
@@ -194,7 +202,8 @@ window.elefart.dom = (function () {
       		return true;
 		}
 		else {
-			//can't be removed with extra code in addEvent
+			//can't be removed without extra code in addEvent
+			//@link https://gist.github.com/eduardocereto/955642
 		}
 
 	}
@@ -202,7 +211,7 @@ window.elefart.dom = (function () {
 	/** 
 	 * @method bind
 	 * bind an event to a DOM element
-	 * @param {DOMObject|String} el a DOM object, or an id for an element
+	 * @param {DOMElement|Array[DOMElement]|String} elm a DOM object, or an id for an element
 	 * @param {EventType} evt type of event
 	 * @param {Function} callback callback to execute when event raised
 	 */
@@ -214,32 +223,23 @@ window.elefart.dom = (function () {
 		}
 		if(!elm) {
 			elefart.showError("tried to bind invalid element");
+			return;
 		}
+		//elm may be an array of DOMElements in some cases
 		if(elm.length) {
 			for(var i = 0; i < elm.length; i++) {
 				addEvent(elm[i], evt, callback);
-				/*
-				elm[i].addEventListener(evt, function (e) {
-					e.preventDefault();
-					callback(e);
-				}, false);
-				*/
 			}
 		}
 		else {
 			addEvent(elm, evt, callback);
-			/*
-			elm.addEventListener(evt, function (e) {
-				e.preventDefault();
-				callback(e);
-			}, false);
-			*/
 		}
 	}
 
 	/** 
 	 * @method showScreenById()
-	 * show application screens
+	 * show application screens (assumes HTML has a class="screen") defining 
+	 * the main screens of the application.
 	 * @param {DOMElement|String} elm a DOM element, or its id string
 	 * @returns {DOMElement|false} if changed, return the visible screen, else false
 	 */

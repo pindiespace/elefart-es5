@@ -28,9 +28,12 @@
 		var buttonList = panel.getElementsByTagName("ul");
 		dom.bind(buttonList, "click", function (e) {
 			var id;
-			if(e.srcElement) id = "screen-" + e.srcElement.name;
-			else id = "screen-"+ e.target.name;
-			console.log("Id:" + id)
+			if(e.srcElement) {
+				id = "screen-" + e.srcElement.name;
+			} 
+			else {
+				id = "screen-"+ e.target.name;
+			}
 			e.preventDefault();
 			e.stopPropagation();
 			dom.showScreenById(id);
