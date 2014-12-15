@@ -24,6 +24,14 @@
 		if(firstTime) {
 			init();
 		}
+		//TODO: MESSED UP
+		var buttonList = panel.getElementsByTagName("ul");
+		dom.bind(buttonList, "click", function (e) {
+			var id = "screen-"+ e.target.name;
+			console.log("Id:" + id)
+			dom.showScreenById(id);
+			elefart.screens[id].run();
+		});
 	}
 
 	//returned object

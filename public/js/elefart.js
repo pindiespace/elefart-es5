@@ -10,7 +10,9 @@
  */
 window.elefart = (function () {
 
-	var screens = []
+	var screens = {}, //game screens
+	mobile = {},      //mobile params
+	device = {},      //game params
 	TRUE = "true",
 	FALSE = "false",
 	UNKNOWN = -1,
@@ -27,15 +29,15 @@ window.elefart = (function () {
 	 * @method showError
 	 * show the error, try to trace caller function
 	 * @param {String} msg the error message to display
+	 * @param {Boolean} fnFlag if true, display the calling function
 	 * @returns {String} error string, which may have the caller function name attached
 	 */
-	function showError (msg) {
-		if(showError.caller || arguments.callee.caller.name) {
-			var c = (showError.caller || arguments.callee.caller.name);
+	function showError (msg, fnFlag) {
+		if(fnFlag && (arguments.callee.caller.name)) {
+			var c = (arguments.callee.caller.name) + "()";
 		}
-		console.log("ERROR:" + c + "," + msg);
+		console.log("ERROR::" + c + " - " + msg);
 	}
-
 
 /* 
  * ============================
@@ -43,8 +45,10 @@ window.elefart = (function () {
  * ============================
  */
 
+
 	/** 
-	 * @method isStandalone
+	 * @method screenParams
+	 * determine 
 	 * determine if in standalone mode
 	 * HTML5 Games Listing 3-19, p. 65
 	 * IE pinning
@@ -52,27 +56,65 @@ window.elefart = (function () {
 	 * @link http://msdn.microsoft.com/en-us/library/ie/gg491729%28v=vs.85%29.aspx
 	 * @param {Enum} os
 	 * @return {Boolean|UNKNOWN} if true or false, return, else return UNKNOWN (-1)
+
 	 */
-	function isStandalone (type) {
+	function screenParams () {
 		if(window.navigator.standalone === undefined) {
-			return false; //we don't want desktop bringing up an install screen!
+			mobile.standalone = false; //we don"t want desktop bringing up an install screen!
 		}
 		else {
-			if(type) {
-				switch(type) {
-					case 'ios': //also includes android
-						return !!(window.navigator.standalone);
-						break;
-					case 'windows':
-						//TODO: detect if we can pin site
-						break;
-					default:
-						break;
-				}
-			}
-
+			switch(mobile.type) {
+				case "ios": //also includes android
+					mobile.standalone = !!(window.navigator.standalone);
+					break;
+				case "android":
+				case "chromeandroid":
+					//detect standalone state in mobile chrome
+					break;
+				case "windowsphone":
+					//TODO: detect if we can pin site
+					break;
+				case "blackberry":
+					break;
+				default:
+					break;
+				} //end of switch
+			} //end of else
+		//TODO: screen width and height and orientation
+		if(window.devicePixelRatio && window.devicePixelRatio > 1) {
+			device.retina = true;
 		}
-		return UNKNOWN;
+		else {
+			device.retina = false;
+		}
+	}
+
+	/** 
+	 * @method isMobile
+	 */
+	function mobileParams () {
+
+		//general mobile test
+		mobile.test = (typeof window.orientation !== "undefined") || 
+			(navigator.userAgent.indexOf('IEMobile') !== -1);
+
+		//specific mobile types
+		if(navigator.userAgent) {
+			var ua = navigator.userAgent;
+			if((/iphone|ipod|ipad/i).test(ua)) 
+				mobile.type = "ios";
+			else if(ua.indexOf('Android') > -1 ) {
+				mobile.type ="android";
+				if((/Chrome\/[.0-9]*/).test(ua)) 
+					mobile.type = "chromeandroid";
+			}
+			else if(ua.indexOf("blackberry") > -1)
+				mobile.type = 'blackberry';
+			else if(ua.indexOf('Windows Phone') > -1)
+				mobile.type = 'windowsphone';
+			else
+				mobile.type = "undefined"
+		}
 	}
 
 	/** 
@@ -93,7 +135,7 @@ window.elefart = (function () {
 		
 		//hide the address bar on Android devices
 		if(/Android/.test(navigator.userAgent)) {
-			document.getElementsByTagName('html')[0].style.height = "200%";
+			document.getElementsByTagName("html")[0].style.height = "200%";
 			setTimeout(function () {
 				window.scrollTo(0, 1);
 			}, 0);
@@ -101,21 +143,6 @@ window.elefart = (function () {
 		
 	} //end of fixScreen
 
-/* 
- * ============================
- * GAME SCREEN MANAGEMENT
- * ============================
- */
-
-	function showScreen (screenId) {
-		if(isStandalone('ios') || isStandalone('windows')) {
-			console.log("standalone mode");
-		}
-		else {
-			console.log("browser mode");
-		}
-		
-	}
 /* 
  * ============================
  * INIT AND RUN
@@ -126,7 +153,28 @@ window.elefart = (function () {
 	 * @method init
 	 */
 	function init () {
-		fixScreen();
+		dom = elefart.dom;
+
+		mobileParams(); //is this a mobile
+		screenParams(); //screen features
+		fixScreen();    //fix screens for some mobiles
+		/*
+		 * if .classList isn't defined, add polyfill functions 
+		 * to the elements where classList is used
+		 */
+		if(!document.documentElement.classList) {
+			dom.addClassList(document.getElementsByTagName("article"));
+		}
+
+		//display the startup screen as other files load
+		if(mobile.standalone) {
+			console.log("standalone mode");
+			dom.showScreen("screen-install")
+		}
+		else {
+			console.log("browser mode");
+			dom.showScreenById("screen-splash");
+		}
 	}
 
 	/** 
@@ -136,12 +184,16 @@ window.elefart = (function () {
 		if(firstTime) {
 			init();
 		}
-		showScreen();
+		console.log("running elefart, about to run first screen")
+		//TODO: NEED THE ACTIVE SCREEN HERE, NOT SCREEN-SPLASH
+		elefart.screens['screen-splash'].run();
 	}
 
 	//returned object
 	return {
 		screens:screens,
+		mobile:mobile,
+		device:device,
 		TRUE:TRUE,
 		FALSE:FALSE,
 		UNKNOWN:UNKNOWN,

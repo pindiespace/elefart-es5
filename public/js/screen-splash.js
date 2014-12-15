@@ -14,6 +14,7 @@
 
 	/** 
 	 * @method init
+	 * bind mouseclick to this screen
 	 */
 	function init () {
 		panel = document.getElementById('screen-splash');
@@ -26,6 +27,10 @@
 		if(firstTime) {
 			init();
 		}
+		dom.bind(panel, "click", function (e) {
+			dom.showScreenById("screen-menu"); //needs the closure
+			elefart.screens["screen-menu"].run();
+		});
 	}
 
 	//returned object

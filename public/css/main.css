@@ -19,7 +19,6 @@ body {
 main {
 	width:100%;
 	height:100%;
-	background-color: rgb(30, 40, 20);
 }
 
 /* 
@@ -48,6 +47,7 @@ main {
  * @link http://leaverou.github.io/prefixfree
  */
 .pattern {
+	background-color: rgb(30, 30, 30);
 	background-image:
 	linear-gradient(45deg, 
 	transparent 0%, rgb(20,20,20) 25%, 
@@ -107,13 +107,14 @@ main {
 /* progress bar on splash screen */
 .progress .indicator-wrapper {
 	margin:0 auto;
-	width:6em;
+	width:144px; /*same width as loader image*/
 	border-radius:0.1em;
 	border:1px solid rgb(200,200,100);
 }
 
 .progress .indicator {
-	width:20%;
+	width:10%;
+	margin-left:0;
 	background-color:red;
 	height:10px;
 }

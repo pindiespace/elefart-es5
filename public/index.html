@@ -215,7 +215,7 @@
 	 * @link http://java.dzone.com/articles/home-screen-web-apps-android
 	*/
 	if(/Android/.test(navigator.userAgent)) {
-		navigator.standalone = navigator.standalone || (screen.height-document.documentElement.clientHeight<40);
+		navigator.standalone = navigator.standalone || (screen.height-document.documentElement.clientHeight < 40);
 	}
 	//addEventListener polyfill
 	if(!document.addEventListener) {
@@ -237,11 +237,12 @@
 
 			<h1 class="identity">Elefart</h1>
 			<img id="splash-screen-img" src="img/icon/apple-touch-icon-144x144.png" width="144" height="144" alt="Two guys in an elevator, one farting">
+
 			<div class="progress">
 				<div class="indicator-wrapper">
-					<div class="indicator"></div>
+					<div id="progress-splash-indicator" class="indicator"></div>
 				</div>
-				<span class="continue">Loading</span>	
+				<span id="progress-splash-message" class="continue">Loading...</span>
 			</div>
 
 		</article>
@@ -274,7 +275,7 @@
 		</article>
 
 		<!--the game canvas-->
-		<article class="screen active" id="screen-game">
+		<article class="screen" id="screen-game">
 			<h2 class="identity">Elefart</h2>
 			<h3>Game Screen</h3>
 		<!--the actual game in HTML5 canvas will go here-->
@@ -314,21 +315,27 @@
 	<script>
 
 	//@link https://github.com/pyrsmk/toast
-
+	var progress = document.getElementById("progress-splash-indicator");
+	var progressMessage = document.getElementById("progress-splash-message");
+	progressMessage.innerHTML = "Loading...";
+	//toast loader used
 toast(
 	'js/elefart-netmessage.js','js/lib/sizzle.min.js', 
 	['js/elefart.js', function () {return window.elefart;}], 
 	['js/elefart-dom.js', function () {return elefart.dom;}], 
 	['js/elefart-make.js', function () { return elefart.make;}], 
-	function(){
+	function() {
+		progress.style.width = "20%";
 		console.log('set 1 downloaded, core functions');
+		elefart.init();
 		elefart.dom.init();
 		elefart.make.init();
 	},
 	'js/screen-splash.js', 
 	'js/screen-install.js', 
 	'js/screen-menu.js',
-	function(){
+	function() {
+		progress.style.width = "40%";
 		console.log('set 2 downloaded, initial screens');
 	},
 	'js/elefart-dashboard.js', 
@@ -336,6 +343,7 @@ toast(
 	'js/elefart-display.js', 
 	'js/elefart-controller.js',
 	function () {
+		progress.style.width = "60%";
 		console.log('set 3 downloaded, MVC');
 		elefart.display.init();
 				elefart.building.init();
@@ -348,12 +356,19 @@ toast(
 	'js/screen-scores.js', 
 	'js/screen-exit.js',
 	function () {
+		progress.style.width = "80%";
 		console.log('set 4 downloaded, additional screens')
-		for(var i = 0; i < elefart.screens.length; i++) {
+		//for(var i = 0; i < elefart.screens.length; i++) {
+		for(var i in elefart.screens) {
+			console.log("initializing screen " + i)
 			elefart.screens[i].init();
 		}
+
+		//}
 		console.log("stage 4, ready to run game");
 		//run the game
+		progress.style.width = "100%";
+		progressMessage.innerHTML = "Click to Continue..."
 		elefart.run();
 	}
 );

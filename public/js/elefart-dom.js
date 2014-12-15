@@ -36,39 +36,42 @@ window.elefart.dom = (function () {
 	 */
 	function ClassList (elem) {
 
-		var el = elem;
+		this.el = elem;
 
 		/** 
 		 * @method contains
 		 */
-		function contains(el, clsName) {
+		this.contains = function contains(clsName) {
 			var regex = new RegExp("(^|\\s)" + clsName + "(\\s|$)");
-			return regex.test(el.className);
+			return regex.test(this.el.className);
 		}
 
 		/** 
 		 * @method add
 		 */
-		function add(el, clsName) {
-			if (!contains(el, clsName)) {
-				el.className += " " + clsName.trim();
+		this.add = function add(clsName) {
+			if (!this.contains(this.el, clsName)) {
+				this.el.className += " " + clsName.trim();
 			}
 		}
 
 		/** 
 		 * @method remove
 		 */
-		function remove(el, clsName) {
+		this.remove = function remove(clsName) {
 			var regex = new RegExp("(^|\\s)" + clsName + "(\\s|$)");
-			el.className = el.className.replace(regex, "").trim();
+			if(this.el.className) {
+				this.el.className = this.el.className.replace(regex, "").trim();
+			}
+
 		}
 
 		/** 
 		 * @method toggle
 		 * toggle a class as present or absent in the DOM element
 		 */
-		function toggle(el, clsName) {
-			if(contains(clsName)) remove(clsName); else add(clsName);
+		this.toggle = function toggle(clsName) {
+			if(this.contains(clsName)) this.remove(clsName); else this.add(clsName);
 		}
 
 	}; //end of classList constructor function
@@ -86,7 +89,6 @@ window.elefart.dom = (function () {
 		}
 	}
 
-	
 	/** 
 	 * @method $
 	 * queryselector wrapper
@@ -97,36 +99,93 @@ window.elefart.dom = (function () {
 	 * running querySelector(). Otherwise, document.querySelector() is used
 	 * @return {Array} the recovered element
 	 */
-	function $(path, parent) {
+	function $(sel, parent) {
 		parent = parent || document;
-		if(typeof path !== "string") {
-			return [path]; //path is a DOM element
-		}
-		return Sizzle(path);
+		return Sizzle(sel);
 		//return parent.querySelectorAll(path); //path is a CSS selector
+	}
+
+	function getByClassName(sel, parent) {
+		if(sel.charAt(0) !== ".") sel = "." + sel;
+		return Sizzle.matches(sel, parent);
 	}
 
 	/** 
 	 * @method getElement
+	 * return an element, either itself or by its id string
+	 * @param {DOMElement|String} el either a DOM element or an id string
+	 * @returns {DOMElement|false} if found, return element, else false
 	 */
-	function getElement(el) {
-		if(typeof el === "object") {
-			return el;
+	function getElement(elm) {
+		if(typeof elm == "object") {
+			console.log("returning an object")
+			return elm;
 		}
-		return $(el); //use as querySelector
+		else if(typeof elm == "string") {
+			if(elm.charAt(0) == "#") elm = elm.substring(1); //strip "#"
+			return document.getElementById(elm);
+		}
+		else {
+			elefart.showError("invalid element, type:" + typeof elm, true);
+		}
+		return null;
 	}
 
 	/** 
 	 * @method bind
+	 * bind an event to a DOM element
+	 * @param {DOMObject|String} el a DOM object, or an id for an element
+	 * @param {EventType} evt type of event
+	 * @param {Function} callback callback to execute when event raised
 	 */
-	function bind(el, evt, callback) {
-		el = $(el)[0];
-		el.addEventListener(evt, function (e) {
-			e.preventDefault();
-			callback(e);
-		}, false);
+	function bind(elm, evt, callback) {
+
+		//if we get a string, do a query. otherwise, just use the DOM Element
+		if(typeof elm === "string") {
+			elm = $(elm);
+		}
+		if(!elm) {
+			elefart.showError("tried to bind invalid element");
+		}
+		if(elm.length) {
+			for(var i = 0; i < elm.length; i++) {
+				elm[i].addEventListener(evt, function (e) {
+					e.preventDefault();
+					callback(e);
+				}, false);
+			}
+		}
+		else {
+			elm.addEventListener(evt, function (e) {
+				e.preventDefault();
+				callback(e);
+			}, false);
+		}
 	}
 
+	/** 
+	 * @method showScreenById()
+	 * show application screens
+	 * @param {DOMElement|String} elm a DOM element, or its id string
+	 * @returns {DOMElement|false} if changed, return the visible screen, else false
+	 */
+	function showScreenById(elm) {
+		elm = getElement(elm);
+		if(elm) {
+			var screens = $(".screen");
+			for(var i = 0; i < screens.length; i++) {
+				if(screens[i] === elm) {
+					screens[i].classList.add("active");
+				}
+				else {
+					screens[i].classList.remove("active");
+				}
+			}
+		}
+		else {
+			elefart.showError("couldn't find screen:" + elm, true);
+		}
+	}
 
 /* 
  * ============================
@@ -145,8 +204,11 @@ window.elefart.dom = (function () {
 	}
 
 	return {
+		addClassList:addClassList,
 		$:$,
+		getByClassName:getByClassName,
 		bind:bind,
+		showScreenById:showScreenById,
 		init:init,
 		run:run
 	};
