@@ -211,17 +211,11 @@
 	<script src="js/lib/Console.js"></script>
 	<script>
 	/** 
-	 * hack for standalone in Android
+	 * hack for standalone in Android (must be done before window.onload event)
 	 * @link http://java.dzone.com/articles/home-screen-web-apps-android
 	*/
 	if(/Android/.test(navigator.userAgent)) {
 		navigator.standalone = navigator.standalone || (screen.height-document.documentElement.clientHeight < 40);
-	}
-	//addEventListener polyfill
-	if(!document.addEventListener) {
-		toast('js/lib/EventListener.js', function () {
-			console.log("loaded addEventListener polyfill");
-		});
 	}
 	</script>
 

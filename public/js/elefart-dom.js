@@ -131,6 +131,74 @@ window.elefart.dom = (function () {
 		return null;
 	}
 
+
+	/** 
+	 * @method addEvent
+	 * cross-browser addEventListener
+	 * implemented here instead of polyfill 
+	 * @link https://gist.github.com/eduardocereto/955642
+	 *
+	 * NOTE: the link above shows a much better method for traditional 
+	 * browsers, in particular removing events so they don't accumulate 
+	 * in memory. We didn't use it because old browsers won't run this app, 
+	 * just receive a message that they need to suppport HTML5 canvas to run 
+	 * the game. For general web apps, the gist solution is superior to below.
+	 * 
+	 * @param {DOMElement} elm the HTML DOM element to bind event to
+	 * @param {EventType} evt the type of event (a String)
+	 * @param {Function} callback the callback function
+	 */
+	function addEvent (elm, evt, callback) {
+		if (elm.addEventListener) { // Modern
+			elm.addEventListener(evt, function (e) {
+				callback(e);
+			}, false);
+		}
+		else if (document.attachEvent) { // Internet Explorer
+			elm.attachEvent('on' + evt, function(e) {
+				var e = e || win.event;
+				e.target = e.srcElement; //normalize event
+				e.preventDefault = e.preventDefault || function() { e.returnValue = false;}
+				e.stopPropagation = e.stopPropagation || function() { e.cancelBubble = true;}
+				callback.call(elm, e);
+			});
+		}
+		else { // others
+			 var type = 'on' + evt;
+			if(typeof elm[evt] === 'function'){
+				// Object already has a function on traditional
+				// Let's wrap it with our own function inside another function
+				fnc = (function(f1,f2) {
+					return function() {
+						f1.apply(this,arguments);
+						f2.apply(this,arguments);
+					}
+				})(obj[evt], fnc);
+			}
+			obj[evt] = fnc;
+			return true; 
+		}
+	}
+
+	/** 
+	 * @method removeEvent
+	 * remove an event
+	 */
+	function removeEvent (elm, evt, callback, useCapture) {
+		if(doc.removeEventListener) {
+			elm.removeEventListener(evt, callback, !!useCapture);
+			return true;
+		}
+		else if(document.attachEvent) {
+			elm.detachEvent("on" + evt, callback);
+      		return true;
+		}
+		else {
+			//can't be removed with extra code in addEvent
+		}
+
+	}
+
 	/** 
 	 * @method bind
 	 * bind an event to a DOM element
@@ -149,17 +217,23 @@ window.elefart.dom = (function () {
 		}
 		if(elm.length) {
 			for(var i = 0; i < elm.length; i++) {
+				addEvent(elm[i], evt, callback);
+				/*
 				elm[i].addEventListener(evt, function (e) {
 					e.preventDefault();
 					callback(e);
 				}, false);
+				*/
 			}
 		}
 		else {
+			addEvent(elm, evt, callback);
+			/*
 			elm.addEventListener(evt, function (e) {
 				e.preventDefault();
 				callback(e);
 			}, false);
+			*/
 		}
 	}
 

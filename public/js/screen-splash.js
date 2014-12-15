@@ -28,6 +28,8 @@
 			init();
 		}
 		dom.bind(panel, "click", function (e) {
+			e.stopPropagation();
+			e.preventDefault();
 			dom.showScreenById("screen-menu"); //needs the closure
 			elefart.screens["screen-menu"].run();
 		});

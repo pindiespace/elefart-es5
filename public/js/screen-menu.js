@@ -27,8 +27,12 @@
 		//TODO: MESSED UP
 		var buttonList = panel.getElementsByTagName("ul");
 		dom.bind(buttonList, "click", function (e) {
-			var id = "screen-"+ e.target.name;
+			var id;
+			if(e.srcElement) id = "screen-" + e.srcElement.name;
+			else id = "screen-"+ e.target.name;
 			console.log("Id:" + id)
+			e.preventDefault();
+			e.stopPropagation();
 			dom.showScreenById(id);
 			elefart.screens[id].run();
 		});
