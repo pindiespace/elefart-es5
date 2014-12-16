@@ -15,6 +15,7 @@ window.elefart.screens['screen-install'] = (function () {
 	 */
 	function init () {
 		panel = document.getElementById(id);
+		firstTime = false;
 	}
 
 	/** 

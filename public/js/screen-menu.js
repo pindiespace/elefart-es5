@@ -15,6 +15,7 @@
 	 */
 	function init () {
 		panel = document.getElementById(id);
+		firstTime = false;
 	}
 
 	/** 
@@ -37,7 +38,7 @@
 			e.preventDefault();
 			e.stopPropagation();
 			dom.showScreenById(id);
-			elefart.screens[id].run();
+			elefart.screens[id].run(); //run the defined screen object
 		});
 	}
 

@@ -15,6 +15,7 @@ window.elefart.screens['screen-game'] = (function () {
 	 */
 	function init () {
 		panel = document.getElementById(id);
+		firstTime = false;
 	}
 
 	/** 
@@ -24,6 +25,15 @@ window.elefart.screens['screen-game'] = (function () {
 		if(firstTime) {
 			init();
 		}
+
+		if(!panel) elefart.showError("game panel (from elefart.screens['screen-game']) didn't initialize");
+
+		//show the screen
+		dom.showScreenById(id);
+
+		//start the game!
+		elefart.display.run(panel);
+		elefart.controller.run();
 	}
 
 	//returned object

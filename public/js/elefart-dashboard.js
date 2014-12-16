@@ -17,6 +17,7 @@ window.elefart.dashboard = (function () {
 		board = elefart.building,
 		display = elefart.display,
 		controller = elefart.controller;
+		firstTime = false;
 	}
 
 	/** 

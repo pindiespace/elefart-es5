@@ -17,7 +17,8 @@
 	 * bind mouseclick to this screen
 	 */
 	function init () {
-		panel = document.getElementById('screen-splash');
+		panel = document.getElementById(id);
+		firstTime = false;
 	}
 
 	/** 
@@ -27,10 +28,13 @@
 		if(firstTime) {
 			init();
 		}
-		dom.bind(panel, "click", function (e) {
+
+		//a mouseclick takes you to the game menu options
+
+		dom.bind(panel, "click", function (e) { //needs the closure
 			e.stopPropagation();
 			e.preventDefault();
-			dom.showScreenById("screen-menu"); //needs the closure
+			dom.showScreenById("screen-menu");
 			elefart.screens["screen-menu"].run();
 		});
 	}

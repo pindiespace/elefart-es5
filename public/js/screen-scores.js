@@ -15,6 +15,7 @@ window.elefart.screens['screen-scores'] = (function () {
 	 */
 	function init () {
 		panel = document.getElementById(id);
+		firstTime = false;
 	}
 
 	/** 

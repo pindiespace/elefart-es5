@@ -15,6 +15,7 @@ window.elefart.screens['screen-join'] = (function () {
 	 */
 	function init () {
 		panel = document.getElementById(id);
+		firstTime = false;
 	}
 
 	/** 

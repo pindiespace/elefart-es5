@@ -237,6 +237,17 @@ window.elefart.dom = (function () {
 	}
 
 	/** 
+	 * @method remove
+	 * remove event listener(s)
+	 * @param {DOMElement|Array[DOMElement]|String} elm a DOM object, or an id for an element
+	 * @param {EventType} evt type of event
+	 * @param {Function} callback callback to execute when event raised
+	 */
+	function remove(elm, evt, callback) {
+		removeEvent(elm, evt, callback, false);
+	}
+
+	/** 
 	 * @method showScreenById()
 	 * show application screens (assumes HTML has a class="screen") defining 
 	 * the main screens of the application.
@@ -261,6 +272,26 @@ window.elefart.dom = (function () {
 		}
 	}
 
+
+	/** 
+	 * @method isElementVisible
+	 * confirm an element is visible onscreen
+	 * @link http://stackoverflow.com/questions/123999/how-to-tell-if-a-dom-element-is-visible-in-the-current-viewport
+	 * @param {DOMElement} elm the DOM element we are testing
+	 * @returns {Boolean} if visible, return true, else false
+	 */
+	function isElementInViewport (elm) {
+
+		var rect = elm.getBoundingClientRect();
+    	var windowHeight = (window.innerHeight || document.documentElement.clientHeight);
+    	var windowWidth = (window.innerWidth || document.documentElement.clientWidth);
+
+    	return (
+           (rect.left >= 0) && (rect.top >= 0) && 
+           ((rect.left + rect.width) <= windowWidth) && 
+           ((rect.top + rect.height) <= windowHeight));
+	}
+
 /* 
  * ============================
  * INIT AND RUN
@@ -268,7 +299,7 @@ window.elefart.dom = (function () {
  */
 
 	function init () {
-
+		firstTime = false;
 	}
 
 	function run () {
@@ -282,6 +313,7 @@ window.elefart.dom = (function () {
 		$:$,
 		getByClassName:getByClassName,
 		bind:bind,
+		remove:remove,
 		showScreenById:showScreenById,
 		init:init,
 		run:run

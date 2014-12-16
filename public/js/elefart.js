@@ -227,6 +227,8 @@ window.elefart = (function () {
 			console.log("browser mode");
 			dom.showScreenById("screen-splash");
 		}
+
+		firstTime = false;
 	}
 
 	/** 

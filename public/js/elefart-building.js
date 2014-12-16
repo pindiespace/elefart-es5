@@ -25,6 +25,7 @@ window.elefart.building = (function () {
 		dashboard = elefart.dashboard,
 		display = elefart.display,
 		controller = elefart.controller;
+		firstTime = false;
 	}
 
 	/** 
@@ -34,6 +35,8 @@ window.elefart.building = (function () {
 		if(firstTime) {
 			init();
 		}
+
+
 	}
 
 	//returned object

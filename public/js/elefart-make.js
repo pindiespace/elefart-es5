@@ -104,7 +104,7 @@ window.elefart.make = (function () {
 	 * @method init
 	 */
 	function init () {
-
+		firstTime = false;
 	}
 
 	/** 
