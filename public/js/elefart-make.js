@@ -155,6 +155,7 @@ window.elefart.make = (function () {
 		obj.grad  = null; //canvas gradient stops
 		obj.parent = null;
 		obj.children = [];
+		obj.layer = 0; //layers start at 0
 		return obj;
 	}
 
@@ -162,11 +163,10 @@ window.elefart.make = (function () {
 		var r = addGraphicParams(Rect());
 		//add functions
 		r.move = function (x, y) {
-			this.x += x;
-			this.y += y;
+			this.left += x; this.right += x;
+			this.top += y; this.bottom += y;
 			for(var i = 0; i < this.children.length; i++) {
-				obj.children.x += x;
-				obj.children.y += y;
+				obj.children[i]move(x, y);
 			}
 		}
 		r.scale = function () {};
