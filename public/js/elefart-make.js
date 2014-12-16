@@ -14,6 +14,17 @@ window.elefart.make = (function () {
 
 	/* 
 	 * ============================
+	 * OBJECT PRIMITIVES
+	 * ============================
+	 */
+	var POINT = 1,
+	LINE = 2,
+	RECTANGLE = 3,
+	CIRCLE = 4,
+	POLYGON = 5;
+
+	/* 
+	 * ============================
 	 * OBJECT SIZE CONSTANTS
 	 * ============================
 	 */
@@ -27,30 +38,19 @@ window.elefart.make = (function () {
 	 * ============================
 	 */
 
-
 	/** 
-	 * @method pointInRect
-	 * determine if a point is inside or outside rect
+	 * @method clone
+	 * clone a JS object (requires JSON)
+	 * @param {Object} incoming object
+	 * @returns {Object} the copied object
 	 */
-	function pointInRect (pt, rect) {
-
+	function clone(obj) {
+		return (JSON.parse(JSON.stringify(obj)));
 	}
-	 
-
-	/** 
-	 * @method rectInRect
-	 * determine if rect1 is completely inside rect2
-	 */
-	function rectInRect (rect1, rect2) {
-
-	}
-
-
-
 
 	/* 
 	 * ============================
-	 * BASIC SCREEN OBJECT FACTORY FUNCTIONS
+	 * GEOMETRY PRIMITIVES
 	 * ============================
 	 */
 
@@ -100,6 +100,7 @@ window.elefart.make = (function () {
 
 	/** 
 	 * @method DOMQuad
+	 * useful for CSS transformations
 	 * @link http://dev.w3.org/fxtf/geometry/#DOMQuad
 	 */
 	function DOMQuad (rect) {
@@ -107,35 +108,118 @@ window.elefart.make = (function () {
 			pt1:new DOMPoint(x, y, 0, 1),
 			pt2:new DOMPint(x+rect.width, y, 0, 1),
 			pt3:new DOMPoint(x+rect.width, y+rect.height, 0, 1),
-			pt4:new DOMPoint(x, y+rect.height, 0, 1)
+			pt4:new DOMPoint(x, y+rect.height, 0, 1),
+			bounding:rect
+		};
+	}
+
+	/* 
+	 * ============================
+	 * SCREEN OBJECTS
+	 * ============================
+	 */
+
+	/** 
+	 * @constructor ScreenLine
+	 * decorator which maps a DOMRect to a straight line
+	 */
+	function ScreenLine (pt1, pt2, lineThickness, lineColor) {
+		return {
+			pt1:pt1,
+			pt2:pt2,
+			thickness:lineThickness,
+			color:lineColor,
+			grad:null //gradient
+		};
+	}
+
+	/** 
+	 * @constructor ScreenRect
+	 * decorator which converts a DOMRect into form suitable for HTML5 canvas drawing
+	 * of a rectangle or circular object
+	 */
+	function ScreenRect (domRect, borderWidth, borderColor, fillColor, borderRadius) {
+		var d = new ScreenRect(domRect.x, domRect.y);
+		var r = new DOMRect(d, domRect.width, domRect.height);
+		r.borderWidth = 0;
+		r.borderColor = '';
+		r.fillColor = ''
+		r.borderRadius = 0;
+		return r;
+	}
+
+	/** 
+	 * @constructor ScreenPoly
+	 * decorator which converts a DOMRect into a description for drawing a 
+	 * (closed) shape with multiple points
+	 */
+	function ScreenPoly (domPoints, borderWidth, borderColor, fillColor) {
+		var pts = new Array(domPoints.length);
+		for(var i = 0; i < domPoints.length; i++) {
+			pts[i] = domPoints[i];
+		}
+		return {
+			points:pts,
+			borderWidth:borderWidth,
+			borderColor:borderColor,
+			fillColor:fillColor
 		}
 	}
 
 	/** 
-	 * @method createScreenBox
+	 * @constructor createScreenBox
 	 * create a shape with padding. Model is a simplified form of the CSS 'box model' 
 	 * but used for canvas (two overlapping DOMRect objects)
 	 * - define parent
 	 * - read parent padding
 	 * - position based on padding
+	 * @param {ScreenBox} parent the enclosing screenbox
 	 * @param {Rect} boxRect DOMRect
 	 * @param {Rect} paddingRect DOMRect
 	 * @param {Number} layer integer z-position for stacking objects in display list
 	 */
-	function createScreenBox (parent, boxRect, paddingRect, layer) {
+	function ScreenBox (parent, boxRect, paddingRect, layer) {
+		var p, box, padding;
 		if(paddingRect.width > boxRect.width || 
 			paddingRect.height > boxRect.height) {
 			elefart.showError("invalid screenBox dimensions");
 			return;
 		}
+		p = new DOMPoint(boxRect.x, boxRect.y);
+		box = new DOMRect(p, boxRect.width, boxRect.height);
+		p = new DOMPoint(domRect.x + paddingRect.left, domRect.y + paddingRect.top)
+		padding = new DOMRect(p, paddingRect.width - box.right, box.bottom - paddingRect.bottom);
+		var innerBox = new DOMRect();
 		return {
 			parent:parent,
 			children: [],
-			box:boxRect,
-			padding:paddingRect,
-			innerBox:boxRect,
+			box:box,
+			padding:padding,
+			innerBox:innerBox,
 			layer:layer
 		};
+	}
+
+	/* 
+	 * ============================
+	 * GEOMETRY TRANSFORMS
+	 * ============================
+	 */
+
+	/** 
+	 * @method pointInRect
+	 * determine if a point is inside or outside rect
+	 */
+	function pointInRect (pt, rect) {
+
+	}
+	 
+	/** 
+	 * @method rectInRect
+	 * determine if rect1 is completely inside rect2
+	 */
+	function rectInRect (rect1, rect2) {
+
 	}
 
 	function centerChildBox (parentBox, recurse) {
@@ -173,7 +257,10 @@ window.elefart.make = (function () {
 		init:init,
 		run:run,
 		createPoint:DOMPoint,
-		createRect:DOMRect
+		createRect:DOMRect,
+		createScreenRect:ScreenRect,
+		createScreenPoly:ScreenPoly,
+		createScreenBox:ScreenBox
 	};
 
 
