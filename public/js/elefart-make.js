@@ -62,7 +62,7 @@ window.elefart.make = (function () {
 	}
 
 	function Rect (x, y, width, height, borderRadius) {
-		if(!borderRadius) borderRadius = 0;
+		if(!borderRadius === undefined) borderRadius = 0;
 		return {
 			top:x,
 			left:y,
@@ -70,7 +70,7 @@ window.elefart.make = (function () {
 			right: x + height,
 			width:width,
 			height:height,
-			borderRadius:borderRadius
+			borderRadius:borderRadius 
 		};
 	}
 
@@ -159,6 +159,10 @@ window.elefart.make = (function () {
 		return obj;
 	}
 
+	/** 
+	 * @method ScreenRect
+	 * create a ScreenRect object
+	 */
 	function ScreenRect () {
 		var r = addGraphicParams(Rect());
 		//add functions
@@ -166,7 +170,7 @@ window.elefart.make = (function () {
 			this.left += x; this.right += x;
 			this.top += y; this.bottom += y;
 			for(var i = 0; i < this.children.length; i++) {
-				obj.children[i]move(x, y);
+				obj.children[i].move(x, y);
 			}
 		}
 		r.scale = function () {};
@@ -177,6 +181,10 @@ window.elefart.make = (function () {
 		return r;
 	}
 
+	/** 
+	 * @method ScreenCircle
+	 * create a screen circle
+	 */
 	function ScreenCircle () {
 		var r = addGraphicParams(Circle());
 		r.move = function (x, y) {};
@@ -185,11 +193,23 @@ window.elefart.make = (function () {
 		//add functions
 	}
 
-	function ScreenImg () {
-
+	/** 
+	 * @method ScreenImg
+	 * create a screen object from supplied image file
+	 */
+	function ScreenImg (imageRect, src, filter, callback) {
+		var r = addGraphicParams(Img(src, 
+			imageRect.left, imageRect.top, 
+			imageRect.width,imageRect.height));
+		r.filter = filter || null; //filtering function
+		r.callback = callback || function () {} //callback function
 	}
 
-	function ScreenSprite () {
+	/** 
+	 * @method ScreenSprite
+	 * create a sprite table from supplied image file
+	 */
+	function ScreenSprite (spriteRect, src, callback) {
 
 	}
 
