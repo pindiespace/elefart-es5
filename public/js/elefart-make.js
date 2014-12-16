@@ -10,7 +10,8 @@
  */
 window.elefart.make = (function () {
 
-	var firstTime = true;
+	var id = 0, //object Ids
+	firstTime = true;
 
 	/* 
 	 * ============================
@@ -39,6 +40,15 @@ window.elefart.make = (function () {
 	 */
 
 	/** 
+	 * @method getId
+	 * get a unique Id
+	 */
+	function getId() {
+		id++;
+		return id;
+	}
+
+	/** 
 	 * @method clone
 	 * clone a JS object (requires JSON)
 	 * @param {Object} incoming object
@@ -46,6 +56,30 @@ window.elefart.make = (function () {
 	 */
 	function clone(obj) {
 		return (JSON.parse(JSON.stringify(obj)));
+	}
+
+	/*
+	 * @method mergeRecursive
+	 * Recursively merge properties of two objects 
+	 * @link http://stackoverflow.com/questions/171251/how-can-i-merge-properties-of-two-javascript-objects-dynamically
+	 */
+	function mergeRecursive(obj1, obj2) {
+
+		for (var p in obj2) {
+			try {
+				// Property in destination object set; update its value.
+				if (obj2[p].constructor==Object) {
+					obj1[p] = MergeRecursive(obj1[p], obj2[p]);
+				} 
+				else {
+					obj1[p] = obj2[p];
+				}
+			} catch(e) {
+				// Property in destination object not set; create it and set its value.
+				obj1[p] = obj2[p];
+				}
+		}
+		return obj1;
 	}
 
 	/* 
@@ -121,19 +155,71 @@ window.elefart.make = (function () {
 	/** 
 	 * @method rectInRect
 	 * determine if rect1 is completely inside rect2
+	 * @param {Rect} rect1 the inner rect
+	 * @param {Rect} rect2 the outer rect
+	 * @returns {Boolean}  if inside, return true, else false
 	 */
 	function rectInRect (rect1, rect2) {
+		
+	}
+
+	/** 
+	 * @method rectHitTest
+	 * determine if two rects intersect at all
+	 * @returns {Rect} if intersect, return a Rect with the collision sides 
+	 * listed with a 1, non-colliding sides = 0
+	 */
+	function rectHitTest (rect1, rect2) {
 
 	}
 
-	function center (centerPoint, recurse) {
+	function centerRectInRect(rect, centerRect) {
 
 	}
 
-	function move (x, y, recurse) {
+	function centerRectOnPoint (rect, centerPoint, recurse) {
 
 	}
 
+	function moveRect (rect, x, y, recurse) {
+		rect.left += x; rect.right += x;
+		rect.top += y; rect.bottom += y;
+		if(recurse) {
+			for(var i = 0; i < this.children.length; i++) {
+				var child = obj.children[i];
+				child.move(child, x, y, recurse);
+			}
+		}	
+	}
+
+	function scaleRect (rect, scale, recurse) {
+		rect.right *= scale;
+		rect.bottom *= scale;
+		rect.width = rect.right - rect.left;
+		rect.height = rect.bottom - rect.top;
+		if(recurse) {
+			for(var i = 0; i < this.children.length; i++) {
+				var child = obj.children[i];
+				child.scale(child, scale, recurse);
+			}
+		}
+	}
+
+	function removeChild(rect, childId) {
+		for(var i = 0; i < rect.children.length; i++) {
+			var child = rect.children[i];
+			if(child.id === id) {
+				array.splice(i, 1);
+			}
+		}
+	}
+
+	function changePadding (rect, paddingRect) {
+		rect.paddingRect.top = paddingRect.top;
+		rect.paddingRect.left = paddingRect.left;
+		rect.paddingRect.bottom = paddingRect.bottom;
+		rect.paddingRect.right = paddingRect.right;
+	}
 
 	/* 
 	 * ============================
@@ -147,6 +233,7 @@ window.elefart.make = (function () {
 	 * shapes (decorator pattern)
 	 */
 	function addGraphicParams (obj) {
+		obj.id = getId(); //unique
 		obj.padding = Rect(0,0,0,0,0);
 		obj.borderWidth = 0;
 		obj.borderColor = '';
@@ -165,19 +252,21 @@ window.elefart.make = (function () {
 	 */
 	function ScreenRect () {
 		var r = addGraphicParams(Rect());
-		//add functions
-		r.move = function (x, y) {
-			this.left += x; this.right += x;
-			this.top += y; this.bottom += y;
-			for(var i = 0; i < this.children.length; i++) {
-				obj.children[i].move(x, y);
-			}
-		}
-		r.scale = function () {};
-		r.center = function (centerRect) {};
-		r.addChild = function () {};
-		r.removeChild = function () {};
-		r.changePadding = function () {};
+
+		//add functions with wrapper to pass objects
+
+		//tester functions
+		r.pointInRect = function (point) {return pointInRect(r, point)},
+		r.rectInRect = function (outerRect) {return rectInRect(r, outerRect);},
+		r.hitRect = function (outerRect) {return hitRect(r, outerRect);},
+		r.move = function (x, y) { moveRect(r, x, y);},
+		r.scale = function (scale) {scaleRect(r, scale);},
+		r.hitTest = function (collisionRect) {hitTest(r, collisionRect);},
+		r.centerRectInRect = function (centerRect) {centerRectInRect(r, centerRect);},
+		r.centerRectOnPoint = function (centerPoint) {centerRectOnPoint(r, centerPoint)},
+		r.addChild = function (childRect) {r.children.push(childRect)},
+		r.removeChild = function (id) {removeChild(id);},
+		r.changePadding = function (paddingRect) {changePadding(r, paddingRect)};
 		return r;
 	}
 
