@@ -54,155 +54,59 @@ window.elefart.make = (function () {
 	 * ============================
 	 */
 
-	/** 
-	 * Objects are defined using the new Geometry interface
-	 * for conversion with CSS transform utilities
-	 * @link https://hacks-dev.allizom.org/2014/04/coordinate-conversion-made-easy/
-	 */
+	function  Point (x, y) {
+		return {
+			x:x,
+			y:y
+		};
+	}
 
-	/** 
-	 * @method DOMPoint
-	 * make a point object following DOMPoint specification
-	 * @link http://www.w3.org/TR/2014/WD-geometry-1-20140522/#DOMPoint
-	 * @param {Number} x the left coordinate on screen
-	 * @param {Number} y the top coordinate on screen
-	 * @returns {Point} returns object with top and left defined
-	 */
-	function DOMPoint (x, y, z, w) {
+	function Rect (x, y, width, height, borderRadius) {
+		if(!borderRadius) borderRadius = 0;
+		return {
+			top:x,
+			left:y,
+			bottom: y + width,
+			right: x + height,
+			width:width,
+			height:height,
+			borderRadius:borderRadius
+		};
+	}
+
+	function Circle (x, y, radius) {
+		return {
+			top:x,
+			left:y,
+			radius:radius
+		};
+	}
+
+	function Img (src, x, y, width, height) {
+		return {
+			scale:1.0,
+			src:src,
+			img:null
+		};
+	}
+
+
+	function Sprite (x, y, spriteType, img) {
 		return {
 			x:x,
 			y:y,
-			z:z,
-			w:w
-		};
+			type:0,
+			frame:0,
+			boardRect:Rect(0,0,0,0,0),
+			drawRect:Rect(0,0,0,0,0),
+			img:Img()
+		}
 	}
 
-	/** 
-	 * @method DOMRect
-	 * make a point object following DOMRect specification
-	 * @link http://www.w3.org/TR/2014/WD-geometry-1-20140522/#DOMRect
-	 * @param {Number} x the left coordinate on screen
-	 * @param {Number} y the top coordinate on screen
-	 * @returns {Point} returns object with top and left defined
-	 */
-	function DOMRect (point, width, height) {
-		return {
-			x:point.x,
-			y:point.y,
-			top: point.y,
-			left:point.x,
-			bottom:(point.y + height),
-			right:(point.x + width),
-			width:width,
-			height:height,
-		};
-	}
-
-	/** 
-	 * @method DOMQuad
-	 * useful for CSS transformations
-	 * @link http://dev.w3.org/fxtf/geometry/#DOMQuad
-	 */
-	function DOMQuad (rect) {
-		return {
-			pt1:new DOMPoint(x, y, 0, 1),
-			pt2:new DOMPint(x+rect.width, y, 0, 1),
-			pt3:new DOMPoint(x+rect.width, y+rect.height, 0, 1),
-			pt4:new DOMPoint(x, y+rect.height, 0, 1),
-			bounding:rect
-		};
-	}
 
 	/* 
 	 * ============================
-	 * SCREEN OBJECTS
-	 * ============================
-	 */
-
-	/** 
-	 * @constructor ScreenLine
-	 * decorator which maps a DOMRect to a straight line
-	 */
-	function ScreenLine (pt1, pt2, lineThickness, lineColor) {
-		return {
-			pt1:pt1,
-			pt2:pt2,
-			thickness:lineThickness,
-			color:lineColor,
-			grad:null //gradient
-		};
-	}
-
-	/** 
-	 * @constructor ScreenRect
-	 * decorator which converts a DOMRect into form suitable for HTML5 canvas drawing
-	 * of a rectangle or circular object
-	 */
-	function ScreenRect (domRect, borderWidth, borderColor, fillColor, borderRadius) {
-		var d = new ScreenRect(domRect.x, domRect.y);
-		var r = new DOMRect(d, domRect.width, domRect.height);
-		r.borderWidth = 0;
-		r.borderColor = '';
-		r.fillColor = ''
-		r.borderRadius = 0;
-		return r;
-	}
-
-	/** 
-	 * @constructor ScreenPoly
-	 * decorator which converts a DOMRect into a description for drawing a 
-	 * (closed) shape with multiple points
-	 */
-	function ScreenPoly (domPoints, borderWidth, borderColor, fillColor) {
-		var pts = new Array(domPoints.length);
-		for(var i = 0; i < domPoints.length; i++) {
-			pts[i] = domPoints[i];
-		}
-		return {
-			points:pts,
-			borderWidth:borderWidth,
-			borderColor:borderColor,
-			fillColor:fillColor
-		}
-	}
-
-	/** 
-	 * @constructor createScreenBox
-	 * create a shape with padding. Model is a simplified form of the CSS 'box model' 
-	 * but used for canvas (two overlapping DOMRect objects)
-	 * - define parent
-	 * - read parent padding
-	 * - position based on padding
-	 * @param {ScreenBox} parent the enclosing screenbox
-	 * @param {Rect} boxRect DOMRect
-	 * @param {Rect} paddingRect DOMRect
-	 * @param {Number} layer integer z-position for stacking objects in display list
-	 */
-	function ScreenBox (parent, boxRect, paddingRect, layer) {
-		var p, box, padding;
-		if(paddingRect.width > boxRect.width || 
-			paddingRect.height > boxRect.height) {
-			elefart.showError("invalid screenBox dimensions");
-			return;
-		}
-		p = new DOMPoint(boxRect.x, boxRect.y);
-		box = new DOMRect(p, boxRect.width, boxRect.height);
-		p = new DOMPoint(domRect.x + paddingRect.left, domRect.y + paddingRect.top)
-		padding = new DOMRect(p, paddingRect.width - box.right, box.bottom - paddingRect.bottom);
-		var innerBox = new DOMRect();
-		return {
-			parent:parent,
-			children: [],
-			box:box,
-			padding:padding,
-			innerBox:innerBox,
-			layer:layer
-		};
-	}
-
-	/* 
-	 * ============================
-	 * GEOMETRY TRANSFORMS
+	 * BASIC DRAWING FUNCTIONS
 	 * ============================
 	 */
 
@@ -222,11 +126,70 @@ window.elefart.make = (function () {
 
 	}
 
-	function centerChildBox (parentBox, recurse) {
+	function center (centerPoint, recurse) {
 
 	}
 
-	function moveScreenBox (x, y, recurse) {
+	function move (x, y, recurse) {
+
+	}
+
+
+	/* 
+	 * ============================
+	 * CANVAS SHAPES
+	 * ============================
+	 */
+
+	/** 
+	 * @method addGraphicParams
+	 * add additional graphic features to basic graphic 
+	 * shapes (decorator pattern)
+	 */
+	function addGraphicParams (obj) {
+		obj.padding = Rect(0,0,0,0,0);
+		obj.borderWidth = 0;
+		obj.borderColor = '';
+		obj.fillColor = '';
+		obj.opacity = 1.0;
+		obj.grad  = null; //canvas gradient stops
+		obj.parent = null;
+		obj.children = [];
+		return obj;
+	}
+
+	function ScreenRect () {
+		var r = addGraphicParams(Rect());
+		//add functions
+		r.move = function (x, y) {
+			this.x += x;
+			this.y += y;
+			for(var i = 0; i < this.children.length; i++) {
+				obj.children.x += x;
+				obj.children.y += y;
+			}
+		}
+		r.scale = function () {};
+		r.center = function (centerRect) {};
+		r.addChild = function () {};
+		r.removeChild = function () {};
+		r.changePadding = function () {};
+		return r;
+	}
+
+	function ScreenCircle () {
+		var r = addGraphicParams(Circle());
+		r.move = function (x, y) {};
+		r.scale = function (scale) {};
+		r.center = function (centerRect) {};
+		//add functions
+	}
+
+	function ScreenImg () {
+
+	}
+
+	function ScreenSprite () {
 
 	}
 
@@ -254,13 +217,17 @@ window.elefart.make = (function () {
 
 	//returned object
 	return {
+		Point:Point,
+		Rect:Rect,
+		Circle:Circle,
+		Img:Img,
+		Sprite:Sprite,
+		ScreenRect:ScreenRect,
+		ScreenCircle:ScreenCircle,
+		ScreenImg:ScreenImg,
+		ScreenSprite:ScreenSprite,
 		init:init,
-		run:run,
-		createPoint:DOMPoint,
-		createRect:DOMRect,
-		createScreenRect:ScreenRect,
-		createScreenPoly:ScreenPoly,
-		createScreenBox:ScreenBox
+		run:run
 	};
 
 

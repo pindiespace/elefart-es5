@@ -22,10 +22,27 @@ describe("Counter tests", function () {
 
 });
 
+//base object tests
 
 describe('Elefart base', function() {
-	it('should have child objects attached', function() {
+	it('should have child objects attached', function () {
 		expect(typeof elefart.screens['screen-about']).toBe('object');
 	});
 
 });
+
+
+//screen object tests
+
+describe('Elefart Make ScreenRect', function () {
+
+	it('should have consistent params', function () {
+		var sr = new elefart.make.ScreenRect(0, 0, 100, 200);
+		expect(sr.x).toBe(0);
+		expect(sr.y).toBe(0);
+		expect(sr.width).toBe(100);
+		expect(sr.height).toBe(200);
+	});
+
+});
+
