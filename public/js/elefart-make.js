@@ -18,11 +18,15 @@ window.elefart.make = (function () {
 	 * OBJECT PRIMITIVES
 	 * ============================
 	 */
-	var POINT = 1,
-	LINE = 2,
-	RECTANGLE = 3,
-	CIRCLE = 4,
-	POLYGON = 5;
+	var POINT = "POINT",
+	LINE = "LINE",
+	RECT = "RECT",
+	CIRCLE = "CIRCLE",
+	POLYGON = "POLYGON",
+	IMAGE = "IMAGE";
+
+	var BLACK = "rgb(0,0,0)",
+	WHITE = "rgb(255,255,255)";
 
 	/* 
 	 * ============================
@@ -88,15 +92,24 @@ window.elefart.make = (function () {
 	 * ============================
 	 */
 
-	function  Point (x, y) {
+	function Point (x, y) {
 		return {
 			x:x,
-			y:y
+			y:y,
+			type:POINT,
+			id = getId() //unique
+			//points can't have parents or children
 		};
 	}
 
-	function Rect (x, y, width, height, borderRadius) {
-		if(!borderRadius === undefined) borderRadius = 0;
+	function Line (pt1, pt2) {
+		return {
+			type:LINE,
+			id = getId()
+		}
+	}
+
+	function Rect (x, y, width, height) {
 		return {
 			top:x,
 			left:y,
@@ -104,43 +117,42 @@ window.elefart.make = (function () {
 			right: x + height,
 			width:width,
 			height:height,
-			borderRadius:borderRadius 
+			scaleX:1.0,
+			scaleY:1.0,
+			borderRadius:0,
+			picture:null, //IMAGE IN OBJECT
+			parent:null,
+			children:[],
+			type:RECT,
+			id = getId() 
 		};
 	}
 
 	function Circle (x, y, radius) {
+		var d = 2 * radius;
 		return {
 			top:x,
 			left:y,
-			radius:radius
+			radius:radius,
+			scaleR:1.0,
+			borderRadius:r,
+			parent:null,
+			children:[],
+			type:CIRCLE,
+			id = getId()
 		};
 	}
 
-	function Img (src, x, y, width, height) {
+	function Polygon (pts) {
 		return {
-			scale:1.0,
-			src:src,
-			img:null
-		};
-	}
-
-
-	function Sprite (x, y, spriteType, img) {
-		return {
-			x:x,
-			y:y,
-			type:0,
-			frame:0,
-			boardRect:Rect(0,0,0,0,0),
-			drawRect:Rect(0,0,0,0,0),
-			img:Img()
+			type = POLYGON,
+			id = getId()
 		}
 	}
 
-
 	/* 
 	 * ============================
-	 * BASIC DRAWING FUNCTIONS
+	 * OBJECT COLLISION TESTS
 	 * ============================
 	 */
 
@@ -172,6 +184,12 @@ window.elefart.make = (function () {
 	function rectHitTest (rect1, rect2) {
 
 	}
+
+	/* 
+	 * ============================
+	 * OBJECT MOVEMENT AND TRANSFORMS
+	 * ============================
+	 */
 
 	function centerRectInRect(rect, centerRect) {
 
@@ -205,7 +223,18 @@ window.elefart.make = (function () {
 		}
 	}
 
-	function removeChild(rect, childId) {
+	function setRectPadding (rect, paddingRect) {
+		rect.paddingRect.top = paddingRect.top;
+		rect.paddingRect.left = paddingRect.left;
+		rect.paddingRect.bottom = paddingRect.bottom;
+		rect.paddingRect.right = paddingRect.right;
+	}
+
+	function addChild(obj, child) {
+		obj.children.push(child);
+	}
+
+	function removeChild(obj, childId) {
 		for(var i = 0; i < rect.children.length; i++) {
 			var child = rect.children[i];
 			if(child.id === id) {
@@ -214,11 +243,29 @@ window.elefart.make = (function () {
 		}
 	}
 
-	function changePadding (rect, paddingRect) {
-		rect.paddingRect.top = paddingRect.top;
-		rect.paddingRect.left = paddingRect.left;
-		rect.paddingRect.bottom = paddingRect.bottom;
-		rect.paddingRect.right = paddingRect.right;
+	function setFilter (obj, filter) {
+		obj.filter = filter;
+	}
+
+	function setGradient(obj, grad) {
+		obj.gradient = grad;
+	}
+
+	function setOpacity(obj, opacity) {
+		obj.opacity = opacity;
+	}
+
+	function setStroke(obj, width, color) {
+		obj.borderWidth = width;
+		obj.borderColor = color;
+	}
+
+	function setFill(obj, color) {
+		obj.fillColor = color;
+	}
+
+	function setLayer(obj, layer) {
+		obj.layer = layer;
 	}
 
 	/* 
@@ -228,45 +275,16 @@ window.elefart.make = (function () {
 	 */
 
 	/** 
-	 * @method addGraphicParams
-	 * add additional graphic features to basic graphic 
-	 * shapes (decorator pattern)
-	 */
-	function addGraphicParams (obj) {
-		obj.id = getId(); //unique
-		obj.padding = Rect(0,0,0,0,0);
-		obj.borderWidth = 0;
-		obj.borderColor = '';
-		obj.fillColor = '';
-		obj.opacity = 1.0;
-		obj.grad  = null; //canvas gradient stops
-		obj.parent = null;
-		obj.children = [];
-		obj.layer = 0; //layers start at 0
-		return obj;
-	}
-
-	/** 
 	 * @method ScreenRect
 	 * create a ScreenRect object
 	 */
-	function ScreenRect () {
-		var r = addGraphicParams(Rect());
-
-		//add functions with wrapper to pass objects
-
-		//tester functions
-		r.pointInRect = function (point) {return pointInRect(r, point)},
-		r.rectInRect = function (outerRect) {return rectInRect(r, outerRect);},
-		r.hitRect = function (outerRect) {return hitRect(r, outerRect);},
-		r.move = function (x, y) { moveRect(r, x, y);},
-		r.scale = function (scale) {scaleRect(r, scale);},
-		r.hitTest = function (collisionRect) {hitTest(r, collisionRect);},
-		r.centerRectInRect = function (centerRect) {centerRectInRect(r, centerRect);},
-		r.centerRectOnPoint = function (centerPoint) {centerRectOnPoint(r, centerPoint)},
-		r.addChild = function (childRect) {r.children.push(childRect)},
-		r.removeChild = function (id) {removeChild(id);},
-		r.changePadding = function (paddingRect) {changePadding(r, paddingRect)};
+	function ScreenRect (x, y, width, height, strokeWidth, strokeColor, fillColor) {
+		var r = Rect(x, y, width, height);
+		setRectPadding(r, paddingRect);
+		setOpacity(r, 1.0);
+		setStroke(r, strokeWidth, strokeColor);
+		setFill(r, fillColor);
+		setLayer(r, 0);
 		return r;
 	}
 
@@ -274,32 +292,37 @@ window.elefart.make = (function () {
 	 * @method ScreenCircle
 	 * create a screen circle
 	 */
-	function ScreenCircle () {
-		var r = addGraphicParams(Circle());
-		r.move = function (x, y) {};
-		r.scale = function (scale) {};
-		r.center = function (centerRect) {};
-		//add functions
+	function ScreenCircle (x, y, radius, strokeWidth, strokeColor, fillColor) {
+		var r = Circle();
+		setOpacity(r, 1.0);
+		setStroke(r, strokeWidth, strokeColor);
+		setFill(r, strokeWidth, strokeColor);
+		setLayer(r, 0);
+		return r;
 	}
 
 	/** 
 	 * @method ScreenImg
 	 * create a screen object from supplied image file
 	 */
-	function ScreenImg (imageRect, src, filter, callback) {
-		var r = addGraphicParams(Img(src, 
-			imageRect.left, imageRect.top, 
-			imageRect.width,imageRect.height));
-		r.filter = filter || null; //filtering function
-		r.callback = callback || function () {} //callback function
+	function ScreenImage (x, y, width, height, strokeWidth, strokeColor, FillColor) {
+		var r;
+		r = ScreenRect(--------------)
+		return r;
 	}
 
 	/** 
 	 * @method ScreenSprite
 	 * create a sprite table from supplied image file
 	 */
-	function ScreenSprite (spriteRect, src, callback) {
-
+	function ScreenSprite (spriteRect, src, types, frames) {
+		var r = screenImg(spriteRect, src, filter, function () {
+			r.types = types;
+			r.frames = frames;
+			r.spriteRect = Rect(0,0,)
+		});
+		
+		return r;
 	}
 
 /* 
