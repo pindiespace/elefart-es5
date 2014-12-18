@@ -323,13 +323,13 @@ toast(
 	'js/elefart-netmessage.js','js/lib/sizzle.min.js', 
 	['js/elefart.js', function () {return window.elefart;}], 
 	['js/elefart-dom.js', function () {return elefart.dom;}], 
-	['js/elefart-make.js', function () { return elefart.make;}], 
+	['js/elefart-factory.js', function () { return elefart.factory;}], 
 	function() {
 		progress.style.width = "20%";
 		console.log('set 1 downloaded, core functions');
 		elefart.init();
 		elefart.dom.init();
-		elefart.make.init();
+		elefart.factory.init();
 	},
 	'js/screen-splash.js', 
 	'js/screen-install.js', 
