@@ -31,8 +31,14 @@ window.elefart.display = (function () {
 		WALLS:"WALLS", //building walls
 		DOORS:"DOORS", //elevator doors
 		FLOORS:"FLOORS"  //people and objects in the room floors
-	}; //d"isplay list layers. Layers are drawn from 0 outwards
+	}, //d"isplay list layers. Layers are drawn from 0 outwards
+	COLORS = { //flat colors
+		LIGHT_GREY:"rgb(128,128,128)",
+		DARK_GREY:"rgb(40,40,40)"
+	},
+	MATERIALS = { //gradients
 
+	};
 
 	/**
 	 * =========================================
@@ -283,6 +289,9 @@ window.elefart.display = (function () {
 
 		//start images loading
 		preload();
+
+		//initialize our display list
+		initDisplayList();
 
 		//initialize canvas for foreground
 		foreground = document.createElement('canvas');

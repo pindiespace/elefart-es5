@@ -4,6 +4,7 @@
  */
 
 "use strict";
+var r;
 
 describe("Counter tests", function () {
 
@@ -56,7 +57,6 @@ describe('Elefart screens', function () {
 //screen object tests
 
 describe('Make Rect', function () {
-		var r;
 
 		beforeEach(function() {
 			r = new elefart.factory.Rect (10, 20, 100, 200);

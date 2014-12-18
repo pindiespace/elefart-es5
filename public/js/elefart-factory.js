@@ -414,6 +414,12 @@ window.elefart.factory = (function () {
 		setFill(r, fillColor);
 		setRectPadding(r, paddingRect);
 		setLayer(r, layer);
+		r.move = moveRect;
+		r.scale = scaleRect;
+		r.setPadding = setRectPadding;
+		r.setOpacity = setOpacity;
+		r.setStroke = setStroke;
+		r.setFill = setFill;
 		return r;
 	}
 
@@ -477,6 +483,12 @@ window.elefart.factory = (function () {
 		Rect:Rect,
 		Circle:Circle,
 		Polygon:Polygon,
+		setFilter:setFilter,
+		setGradient:setGradient,
+		setOpacity:setOpacity,
+		setStroke:setStroke,
+		setFill:setFill,
+		setLayer:setLayer,
 		ScreenRect:ScreenRect,
 		ScreenCircle:ScreenCircle,
 		ScreenSprite:ScreenSprite,

@@ -7,9 +7,17 @@
  */
 window.elefart.building = (function () {
 
-	var dashboard,
+	var factory,
+	dashboard,
 	display,
 	controller, 
+	parts = {
+		elevators:[],
+		shafts:[],
+		floors:[],
+		goodies:[],
+		people:[]
+	},
 	firstTime = true;
 
 	/* 
@@ -19,7 +27,20 @@ window.elefart.building = (function () {
 	 */
 
 	function Elevator () {
-
+		console.log("FACTORYYYYYYYYYYYY:"+elefart.factory)
+		var elev = {
+			disp:factory.ScreenRect(
+				10, 10, 
+				100, 100, 
+				4, 
+				display.DARK_GREY, display.LIGHT_GREY, 
+				factory.setRectPadding(elev, factory.Rect(0,0,0,0)), 
+				0
+			)
+		};
+		parts.elevators.push(elev);
+		elev.setStroke(rect, 4, 'rgb(25,50,100');
+		elev.setFill(rect,'rgb(200,100,100');
 	}
 
 	/* 
@@ -102,6 +123,7 @@ window.elefart.building = (function () {
 	 * @method init
 	 */
 	function init () {
+		factory = elefart.factory,
 		dashboard = elefart.dashboard,
 		display = elefart.display,
 		controller = elefart.controller;
@@ -117,6 +139,9 @@ window.elefart.building = (function () {
 			init();
 		}
 
+		//test objects
+		console.log('in building, making test objects');
+		Elevator();
 
 	}
 
@@ -129,6 +154,7 @@ window.elefart.building = (function () {
 		Building:Building,
 		Goodie:Goodie,
 		Person:Person,
+		parts:parts,
 		init:init,
 		run:run
 	};

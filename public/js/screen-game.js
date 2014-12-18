@@ -6,6 +6,7 @@
 window.elefart.screens['screen-game'] = (function () {
 
 	var dom = elefart.dom,
+	factory = elefart.factory,
 	id ='screen-game',
 	panel,
 	firstTime = true;
@@ -28,12 +29,16 @@ window.elefart.screens['screen-game'] = (function () {
 
 		if(!panel) elefart.showError("game panel (from elefart.screens['screen-game']) didn't initialize");
 
+		//set up game objects
+		elefart.building.run();
+
 		//show the screen
 		dom.showScreenById(id);
 
 		//start the game!
 		elefart.display.run(panel);
 		elefart.controller.run();
+
 	}
 
 	//returned object
