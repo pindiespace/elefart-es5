@@ -86,25 +86,6 @@ window.elefart.factory = (function () {
 		return obj1;
 	}
 
-	/** 
-	 * @method getEnclosingRect
-	 * find the rect which encloses the set of points
-	 * @param {Array} pts an array of x, y points
-	 * @returns {Rect} 
-	 */
-	function getEnclosingRect (pts) {
-		var r = {top:pts[0].y, left:pts[0].x, bottom:pts[0].y, right:pts[0].x, width:0, height:0};
-		for (var i = 0; i < pts.length; i++) {
-			if(pts[i].x < r.left) r.left = pts[i].x;
-			if(pts[i].y < r.top) r.top = pts[i].y;
-			if(pts[i].x > r.right) r.right = pts[i].x;
-			if(pts[i].y > r.bottom) r.bottom = pts[i].y;
-		}
-		r.width = r.right - r.left;
-		r.height = r.bottom - r.top;
-		return r;
-	}
-
 	/* 
 	 * ============================
 	 * GEOMETRY PRIMITIVES
@@ -112,7 +93,8 @@ window.elefart.factory = (function () {
 	 */
 
 	/**
-	 * @constructor Point
+	 * @constructor Point, similar to DOMPoint, but 
+	 * only containing information for drawing on 2D Canvas
 	 */
 	function Point (x, y) {
 		return {
@@ -138,7 +120,8 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
-	 * @constructor Rect
+	 * @constructor Rect, similar to DOMRect, but only 
+	 * containing information needed to draw on 2D Canvas
 	 */
 	function Rect (x, y, width, height) {
 		return {
@@ -215,6 +198,25 @@ window.elefart.factory = (function () {
 	 */
 
 	/** 
+	 * @method getEnclosingRect
+	 * find the rect which encloses the set of points
+	 * @param {Array} pts an array of x, y points
+	 * @returns {Rect} 
+	 */
+	function getEnclosingRect (pts) {
+		var r = {top:pts[0].y, left:pts[0].x, bottom:pts[0].y, right:pts[0].x, width:0, height:0};
+		for (var i = 0; i < pts.length; i++) {
+			if(pts[i].x < r.left) r.left = pts[i].x;
+			if(pts[i].y < r.top) r.top = pts[i].y;
+			if(pts[i].x > r.right) r.right = pts[i].x;
+			if(pts[i].y > r.bottom) r.bottom = pts[i].y;
+		}
+		r.width = r.right - r.left;
+		r.height = r.bottom - r.top;
+		return r;
+	}
+
+	/** 
 	 * @method pointInRect
 	 * determine if a point is inside or outside Rect
 	 * @param {Point} pt the point to test
@@ -269,7 +271,12 @@ window.elefart.factory = (function () {
 	 * ============================
 	 */
 
-	function rectCenterPoint (rect) {
+	/** 
+	 * @method rectGetCenter
+	 * center a Rect on a Point
+	 * @param {Rect} rect the rect to center
+	 */
+	function rectGetCenter (rect) {
 		//find center x, y for a rect
 		return {
 			x: rect.right - rect.left,
@@ -277,18 +284,41 @@ window.elefart.factory = (function () {
 		}
 	}
 
-	function centerRectInRect (rect, outerRect) {
-		var p = rectCenterPoint(rect);
-
-		return centerRectOnPoint(outerRect, p);
+	/** 
+	 * @method centerRectOnPoint
+	 * center a Rect on a Point
+	 * @param {Rect} rect the rect to center
+	 * @param {Point} centerPt the point to use
+	 * @param {Boolean} recurse if true, center children as well, 
+	 * otherwise just move the chidren with their newly centered parent
+	 */
+	function centerRectOnPoint (rect, centerPt, recurse) {
+		var oldx = rect.left, 
+		oldy = rect.top;
+		rect.left = centerPt.x - min(rect.right - rect.left/2);
+		rect.right = rect.left + rect.width;
+		rect.top = centerPt.y - min(rect.bottom - rect.top/2);
+		rect.bottom = rect.top + rect.height;
+		dx = oldX - rect.left;
+		dy = oldY = rect.top;
+		if(recurse) {
+			for(var i = 0; i < children.length; i++) {
+				moveRect(children[i], dx, dy, recurse);
+			}
+		}
+		return rect;
 	}
 
-	function centerRectOnPoint (rect, centerPoint) {
-		rect.left = centerPoint.x - min(rect.right - rect.left/2);
-		rect.right = rect.left + rect.width;
-		rect.top = centerPoint.y - min(rect.bottom - rect.top/2);
-		rect.bottom = rect.top + rect.height;
-		return rect;
+	/** 
+	 * @method centerRectInRect
+	 * center a rect so it is inside, or surrounds an other Rect
+	 * @param {Rect} rect the Rect to center
+	 * @param {Rect} centerRect the Rect to center the first rect onto
+	 */
+	function centerRectInRect (rect, centerRect, recurse) {
+		var p = rectGetCenter(rect);
+
+		return centerRectOnPoint(centerRect, p, recurse);
 	}
 
 	function moveRect (rect, x, y, recurse) {
@@ -327,8 +357,8 @@ window.elefart.factory = (function () {
 	}
 
 	function removeChild(obj, childId) {
-		for(var i = 0; i < rect.children.length; i++) {
-			var child = rect.children[i];
+		for(var i = 0; i < obj.children.length; i++) {
+			var child = obj.children[i];
 			if(child.id === id) {
 				array.splice(i, 1);
 			}

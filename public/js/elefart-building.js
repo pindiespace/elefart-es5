@@ -12,11 +12,91 @@ window.elefart.building = (function () {
 	controller, 
 	firstTime = true;
 
-/* 
- * ============================
- * INIT AND RUN
- * ============================
- */
+	/* 
+	 * ============================
+	 * ELEVATORS
+	 * ============================
+	 */
+
+	function Elevator () {
+
+	}
+
+	/* 
+	 * ============================
+	 * ELEVATOR DOORS
+	 * ============================
+	 */
+
+	function ElevatorDoors () {
+
+	}
+
+	/* 
+	 * ============================
+	 * ELEVATOR SHAFTS
+	 * ============================
+ 	 */
+
+ 	function ElevatorShaft () {
+
+ 	}
+
+	/* 
+	 * ============================
+	 * BUILDING FLOORS
+	 * ============================
+	 */
+
+	function BuildingFloor () {
+
+	}
+
+	/* 
+	 * ============================
+	 * BUILDING EXERIORS
+	 * ============================
+	 */
+
+	function Building () {
+
+	}
+
+	/* 
+	 * ============================
+	 * PEOPLE
+	 * ============================
+	 */
+
+	function Person () {
+
+	}
+
+	/* 
+	 * ============================
+	 * GAS
+	 * ============================
+	 */
+
+	function Gas () {
+
+	}
+
+	/* 
+	 * ============================
+	 * GOODIES
+	 * ============================
+	 */
+
+	function Goodie () {
+
+	}
+
+	/* 
+	 * ============================
+	 * INIT AND RUN
+	 * ============================
+	 */
 
 	/** 
 	 * @method init
@@ -27,6 +107,7 @@ window.elefart.building = (function () {
 		controller = elefart.controller;
 		firstTime = false;
 	}
+
 
 	/** 
 	 * @method run
@@ -41,6 +122,13 @@ window.elefart.building = (function () {
 
 	//returned object
 	return {
+		Elevator:Elevator,
+		ElevatorDoors:ElevatorDoors,
+		ElevatorShaft:ElevatorShaft,
+		BuildingFloor:BuildingFloor,
+		Building:Building,
+		Goodie:Goodie,
+		Person:Person,
 		init:init,
 		run:run
 	};
