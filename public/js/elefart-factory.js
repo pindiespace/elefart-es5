@@ -86,12 +86,34 @@ window.elefart.factory = (function () {
 		return obj1;
 	}
 
+	/** 
+	 * @method getEnclosingRect
+	 * find the rect which encloses the set of points
+	 * @param {Array} pts an array of x, y points
+	 * @returns {Rect} 
+	 */
+	function getEnclosingRect (pts) {
+		var r = {top:pts[0].y, left:pts[0].x, bottom:pts[0].y, right:pts[0].x, width:0, height:0};
+		for (var i = 0; i < pts.length; i++) {
+			if(pts[i].x < r.left) r.left = pts[i].x;
+			if(pts[i].y < r.top) r.top = pts[i].y;
+			if(pts[i].x > r.right) r.right = pts[i].x;
+			if(pts[i].y > r.bottom) r.bottom = pts[i].y;
+		}
+		r.width = r.right - r.left;
+		r.height = r.bottom - r.top;
+		return r;
+	}
+
 	/* 
 	 * ============================
 	 * GEOMETRY PRIMITIVES
 	 * ============================
 	 */
 
+	/**
+	 * @constructor Point
+	 */
 	function Point (x, y) {
 		return {
 			type:POINT,
@@ -102,16 +124,22 @@ window.elefart.factory = (function () {
 		};
 	}
 
+	/** 
+	 * @constructor Line
+	 */
 	function Line (pt1, pt2, width) {
 		return {
 			type:LINE,
 			id:getId(),
-			pt1:pt1,
-			pt2:pt2,
+			point1:pt1,
+			point2:pt2,
 			width:width
 		}
 	}
 
+	/** 
+	 * @constructor Rect
+	 */
 	function Rect (x, y, width, height) {
 		return {
 			type:RECT,
@@ -132,6 +160,9 @@ window.elefart.factory = (function () {
 		};
 	}
 
+	/** 
+	 * @constructor Circle
+	 */
 	function Circle (x, y, radius) {
 		var d = 2 * radius;
 		return {
@@ -154,10 +185,26 @@ window.elefart.factory = (function () {
 		};
 	}
 
+	/** 
+	 * @constructor Polygon
+	 */
 	function Polygon (pts) {
+		var e = getEnclosingRect(pts);
 		return {
 			type:POLYGON,
-			id:getId()
+			id:getId(),
+			top:e.top,
+			left:e.left,
+			bottom:e.bottom,
+			right:e.right,
+			width:e.width,
+			height:e.height,
+			points:clone(pts),
+			opacity:1.0,
+			img:null,
+			parent:null,
+			children:null
+
 		}
 	}
 
@@ -169,12 +216,21 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method pointInRect
-	 * determine if a point is inside or outside rect
+	 * determine if a point is inside or outside Rect
+	 * @param {Point} pt the point to test
+	 * @param {Rect} rect the rect to test
+	 * @returns {Boolean} if not in rect, false, else true
 	 */
 	function pointInRect (pt, rect) {
-
+		if(pt.x > rect.left && 
+			pt.x < rect.right && 
+			pt.y > rect.top &&
+			pt.y < rect.bottom) {
+			return true;
+		}
+		return false;
 	}
-	 
+
 	/** 
 	 * @method rectInRect
 	 * determine if rect1 is completely inside rect2
@@ -183,18 +239,29 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean}  if inside, return true, else false
 	 */
 	function rectInRect (rect1, rect2) {
-		
+		if(pointInRect({x:rect1.left, y:rect1.top}, rect2) && 
+			pontInRect({x:rect1.right, y:rect1.bottom}, rect2)) {
+			return true;
+		}
+		return false;
 	}
 
 	/** 
 	 * @method rectHitTest
 	 * determine if two rects intersect at all
+	 * MUCH SIMPLER than generalized collision detection
+	 * @link http://gamedevelopment.tutsplus.com/tutorials/collision-detection-using-the-separating-axis-theorem--gamedev-169
 	 * @returns {Rect} if intersect, return a Rect with the collision sides 
 	 * listed with a 1, non-colliding sides = 0
+	 * @returns {Object} we return a partial Rect object with the collision sides marked
 	 */
-	function rectHitTest (rect1, rect2) {
-
+	function rectCollideTest (rect1, rect2) {
+		return !(((rect1.left + rect1.width - 1) < rect1.right) ||
+			((rect1.right + rect2.width - 1) < rect1.left) ||
+			((rect1.top + rect1.height - 1) < rect1.bottom) ||
+			((rect1.bottom + rect2.height - 1) < rect1.top)) 
 	}
+
 
 	/* 
 	 * ============================
@@ -202,12 +269,26 @@ window.elefart.factory = (function () {
 	 * ============================
 	 */
 
-	function centerRectInRect(rect, centerRect) {
-
+	function rectCenterPoint (rect) {
+		//find center x, y for a rect
+		return {
+			x: rect.right - rect.left,
+			y: rect.bottom - rect.top
+		}
 	}
 
-	function centerRectOnPoint (rect, centerPoint, recurse) {
+	function centerRectInRect (rect, outerRect) {
+		var p = rectCenterPoint(rect);
 
+		return centerRectOnPoint(outerRect, p);
+	}
+
+	function centerRectOnPoint (rect, centerPoint) {
+		rect.left = centerPoint.x - min(rect.right - rect.left/2);
+		rect.right = rect.left + rect.width;
+		rect.top = centerPoint.y - min(rect.bottom - rect.top/2);
+		rect.bottom = rect.top + rect.height;
+		return rect;
 	}
 
 	function moveRect (rect, x, y, recurse) {
