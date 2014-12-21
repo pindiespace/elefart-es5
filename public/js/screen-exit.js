@@ -1,7 +1,7 @@
 /** 
- * @namespace
- * elefart.screens['screen-exit']
- * quit screen for the game
+ * @namespace elefart.screens['screen-exit']
+ * @fileoverview quit screen for the game
+ * @requrires elefart.screens
  */
 window.elefart.screens['screen-exit'] = (function () {
 
@@ -11,7 +11,8 @@ window.elefart.screens['screen-exit'] = (function () {
 	firstTime = true;
 
 	/** 
-	 * @method init
+	 * @method init exit-screen
+	 * @description initialize the exit dialog for the game.
 	 */
 	function init () {
 		panel = document.getElementById(id);
@@ -19,7 +20,8 @@ window.elefart.screens['screen-exit'] = (function () {
 	}
 
 	/** 
-	 * @method run
+	 * @method run exit-screen
+	 * @description show the exit dialog for the game.
 	 */
 	function run () {
 		if(firstTime) {

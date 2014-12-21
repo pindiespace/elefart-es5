@@ -1,9 +1,9 @@
 /** 
- * @namespace
- * elefart.screens['screen-splash']
- * splash (or loader screen). Actually the second 
+ * @namespace elefart.screens['screen-splash']
+ * @fileoverview splash or loader screen. Actually the second 
  * splash, since iOS will display a bitmap loader screen 
  * during the early phases of the app load
+ * @requires elefart
  */
  window.elefart.screens['screen-splash'] = (function () {
 
@@ -13,8 +13,8 @@
 	firstTime = true;
 
 	/** 
-	 * @method init
-	 * bind mouseclick to this screen
+	 * @method init splash-screen
+	 * @description bind mouseclick to elefart.screens['screen-splash']
 	 */
 	function init () {
 		panel = document.getElementById(id);
@@ -22,7 +22,8 @@
 	}
 
 	/** 
-	 * @method run
+	 * @method run splash-screen
+	 * @description show the splash screen captured by elefart.screens['screen-splash']
 	 */
 	function run () {
 		if(firstTime) {

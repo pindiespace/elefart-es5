@@ -1,7 +1,7 @@
 /** 
- * @namespace
- * elefart.screens['screen-menu']
- * at startup, show options for the app (play, info, quit)
+ * @namespace elefart.screens['screen-menu']
+ * @fileoverview display menu options at game startup
+ * @requres elefart.screens
  */
  window.elefart.screens['screen-menu'] = (function () {
 
@@ -11,7 +11,8 @@
 	firstTime = true;
 
 	/** 
-	 * @method init
+	 * @method init menu-screen
+	 * @description get elefart.screens['screen-menu']
 	 */
 	function init () {
 		panel = document.getElementById(id);
@@ -19,7 +20,8 @@
 	}
 
 	/** 
-	 * @method run
+	 * @method run menu-screen
+	 * @description set up elefart.screens['screen-menu'] to show options in the game.
 	 */
 	function run () {
 		if(firstTime) {

@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>DocStrap Source: public/js/elefart-dom.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.cosmo.css">
+
+</head>
+
+<body>
+<div class="container-fluid">
+	<div class="navbar navbar-fixed-top navbar-inverse">
+		<div class="navbar-inner">
+			<a class="brand" href="index.html">DocStrap</a>
+			<ul class="nav">
+				
+				<li class="dropdown">
+					<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b
+						class="caret"></b></a>
+
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="Circle.html">Circle</a>
+						</li>
+						
+						<li>
+							<a href="ClassList.html">ClassList</a>
+						</li>
+						
+						<li>
+							<a href="Line.html">Line</a>
+						</li>
+						
+						<li>
+							<a href="Padding.html">Padding</a>
+						</li>
+						
+						<li>
+							<a href="Point.html">Point</a>
+						</li>
+						
+						<li>
+							<a href="Polygon.html">Polygon</a>
+						</li>
+						
+						<li>
+							<a href="Rect.html">Rect</a>
+						</li>
+						
+						<li>
+							<a href="ScreenCircle.html">ScreenCircle</a>
+						</li>
+						
+						<li>
+							<a href="ScreenImage.html">ScreenImage</a>
+						</li>
+						
+						<li>
+							<a href="ScreenRect.html">ScreenRect</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+				<li class="dropdown">
+					<a href="global.html" class="dropdown-toggle" data-toggle="dropdown">Global<b
+						class="caret"></b></a>
+
+					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="global.html#$">$</a>
+						</li>
+						
+						<li>
+							<a href="global.html#add">add</a>
+						</li>
+						
+						<li>
+							<a href="global.html#addChild">addChild</a>
+						</li>
+						
+						<li>
+							<a href="global.html#addClassList">addClassList</a>
+						</li>
+						
+						<li>
+							<a href="global.html#addEvent">addEvent</a>
+						</li>
+						
+						<li>
+							<a href="global.html#addFns">addFns</a>
+						</li>
+						
+						<li>
+							<a href="global.html#addToDisplayList">addToDisplayList</a>
+						</li>
+						
+						<li>
+							<a href="global.html#bind">bind</a>
+						</li>
+						
+						<li>
+							<a href="global.html#canRun">canRun</a>
+						</li>
+						
+						<li>
+							<a href="global.html#centerRectInRect">centerRectInRect</a>
+						</li>
+						
+						<li>
+							<a href="global.html#checkIfInLayer">checkIfInLayer</a>
+						</li>
+						
+						<li>
+							<a href="global.html#checkIfInList">checkIfInList</a>
+						</li>
+						
+						<li>
+							<a href="global.html#clone">clone</a>
+						</li>
+						
+						<li>
+							<a href="global.html#contains">contains</a>
+						</li>
+						
+						<li>
+							<a href="global.html#DisplayList">DisplayList</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawBackground">drawBackground</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawDisplay">drawDisplay</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawFail">drawFail</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawForeground">drawForeground</a>
+						</li>
+						
+						<li>
+							<a href="global.html#findChild">findChild</a>
+						</li>
+						
+						<li>
+							<a href="global.html#fixScreen">fixScreen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getByClassName">getByClassName</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getCenter">getCenter</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getElement">getElement</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getEnclosingRect">getEnclosingRect</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getFilteredImage">getFilteredImage</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getForegroundCanvas">getForegroundCanvas</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getGameRect">getGameRect</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getId">getId</a>
+						</li>
+						
+						<li>
+							<a href="global.html#handleKeypress">handleKeypress</a>
+						</li>
+						
+						<li>
+							<a href="global.html#handleTouchPoint">handleTouchPoint</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520about-screen">init about-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520building">init building</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520controller">init controller</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520dashboard">init dashboard</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520display">init display</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520dom">init dom</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520elefart">init elefart</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520exit-screen">init exit-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520factory">init factory</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520game-screen">init game-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520install-screen">init install-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520join-screen">init join-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520menu-screen">init menu-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520scores-screen">init scores-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#init%2520splash-screen">init splash-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#intersectRect">intersectRect</a>
+						</li>
+						
+						<li>
+							<a href="global.html#isElementVisible">isElementVisible</a>
+						</li>
+						
+						<li>
+							<a href="global.html#isNumber">isNumber</a>
+						</li>
+						
+						<li>
+							<a href="global.html#isRGB">isRGB</a>
+						</li>
+						
+						<li>
+							<a href="global.html#isString">isString</a>
+						</li>
+						
+						<li>
+							<a href="global.html#mobileParams">mobileParams</a>
+						</li>
+						
+						<li>
+							<a href="global.html#move">move</a>
+						</li>
+						
+						<li>
+							<a href="global.html#moveTo">moveTo</a>
+						</li>
+						
+						<li>
+							<a href="global.html#pointInside">pointInside</a>
+						</li>
+						
+						<li>
+							<a href="global.html#preload">preload</a>
+						</li>
+						
+						<li>
+							<a href="global.html#ptInside">ptInside</a>
+						</li>
+						
+						<li>
+							<a href="global.html#rectCenterOnPoint">rectCenterOnPoint</a>
+						</li>
+						
+						<li>
+							<a href="global.html#rectInRect">rectInRect</a>
+						</li>
+						
+						<li>
+							<a href="global.html#remove">remove</a>
+						</li>
+						
+						<li>
+							<a href="global.html#removeChild">removeChild</a>
+						</li>
+						
+						<li>
+							<a href="global.html#removeEvent">removeEvent</a>
+						</li>
+						
+						<li>
+							<a href="global.html#removeFromDisplayList">removeFromDisplayList</a>
+						</li>
+						
+						<li>
+							<a href="global.html#removeGameHandlers">removeGameHandlers</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520about-screen">run about-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520building">run building</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520controller">run controller</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520dashboard">run dashboard</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520display">run display</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520dom">run dom</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520elefart">run elefart</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520exit-screen">run exit-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520factory">run factory</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520game-screen">run game-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520install-screen">run install-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520join-screen">run join-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520menu-screen">run menu-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520scores-screen">run scores-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#run%2520splash-screen">run splash-screen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#scale">scale</a>
+						</li>
+						
+						<li>
+							<a href="global.html#screenParams">screenParams</a>
+						</li>
+						
+						<li>
+							<a href="global.html#ScreenPoly">ScreenPoly</a>
+						</li>
+						
+						<li>
+							<a href="global.html#ScreenSprite">ScreenSprite</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setBorderRadius">setBorderRadius</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setDimensions">setDimensions</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setFill">setFill</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setFilter">setFilter</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setGameHandlers">setGameHandlers</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setGameSize">setGameSize</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setGradient">setGradient</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setImage">setImage</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setLayer">setLayer</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setOpacity">setOpacity</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setRectPadding">setRectPadding</a>
+						</li>
+						
+						<li>
+							<a href="global.html#setStroke">setStroke</a>
+						</li>
+						
+						<li>
+							<a href="global.html#showError">showError</a>
+						</li>
+						
+						<li>
+							<a href="global.html#showScreenById">showScreenById</a>
+						</li>
+						
+						<li>
+							<a href="global.html#toggle">toggle</a>
+						</li>
+						
+
+					</ul>
+				</li>
+				
+			</ul>
+		</div>
+	</div>
+
+	<div class="row-fluid">
+
+		
+			<div class="span12">
+				
+				<div id="main">
+					
+
+
+		<h1 class="page-title">Source: public/js/elefart-dom.js</h1>
+    
+<section>
+	<article>
+		<pre
+			class="sunlight-highlight-javascript linenums">/** 
+ * @namespace elefart.dom
+ * @fileoverview JavaScript DOM manipulation (classes, ids, event binding)
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
+ */
+window.elefart.dom = (function () {
+
+	var firstTime = true;
+
+/** 
+ * ============================
+ * POLYFILLS
+ * @link https://github.com/inexorabletash/polyfill/blob/master/polyfill.js#L652
+ * ============================
+ */
+	if (!String.prototype.trim) {
+		(function() {
+			// Make sure we trim BOM and NBSP
+			var rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
+			String.prototype.trim = function() {
+				return this.replace(rtrim, '');
+			};
+		})();
+	}
+
+	//IE8 and other old browsers may not have this
+	if (!Array.prototype.indexOf) {
+		(function () {
+			Array.prototype.indexOf = function(elt /*, from*/) {
+    			var len = this.length >>> 0;
+				var from = Number(arguments[1]) || 0;
+				from = (from &lt; 0) ? Math.ceil(from) : Math.floor(from);
+				if (from &lt; 0) from += len;
+    			for (; from &lt; len; from++) {
+					if (from in this &amp;&amp; this[from] === elt)
+						return from;
+				}
+				return -1;
+			};
+		})();
+	}
+
+	/** 
+	 * @constructor ClassList
+	 * @classdesc ClassList polyfill. Use to partially polyfill browsers without a .classList 
+	 * We do NOT try to add .classList to everything, instead 
+	 * we add it on demand to specific DOM elements
+	 * @link https://developer.mozilla.org/en-US/docs/Web/API/element.classList
+	 * @link https://github.com/toddmotto/apollo
+	 * @link http://toddmotto.com/creating-jquery-style-functions-in-javascript-hasclass-addclass-removeclass-toggleclass/
+	 */
+	function ClassList (elm) {
+
+		this.elm = elm;
+
+		/** 
+		 * @method contains
+		 * @description check if a DOMElement contains a class attribute
+		 * @param {String} clsName the name of the class to check for
+		 */
+		this.contains = function contains(clsName) {
+			var regex = new RegExp("(^|\\s)" + clsName + "(\\s|$)");
+			return regex.test(this.elm.className);
+		}
+
+		/** 
+		 * @method add
+		 * @description add a class to a DOM element
+		 * @param {String} clsName the name of the class to add to a DOMElemnt
+		 */
+		this.add = function add(clsName) {
+			if (!this.contains(this.elm, clsName)) {
+				this.elm.className += " " + clsName.trim();
+			}
+		}
+
+		/** 
+		 * @method remove
+		 * @description remove a class
+		 * @param {String} clsName the class to remove from a DOMElement
+		 */
+		this.remove = function remove(clsName) {
+			var regex = new RegExp("(^|\\s)" + clsName + "(\\s|$)");
+			if(this.elm.className) {
+				this.elm.className = this.elm.className.replace(regex, "").trim();
+			}
+
+		}
+
+		/** 
+		 * @method toggle
+		 * @description toggle a class as present or absent in the DOMElement
+		 * @param {String} clsName the class name to add to or remove from a DOMElement
+		 */
+		this.toggle = function toggle(clsName) {
+			if(this.contains(clsName)) this.remove(clsName); else this.add(clsName);
+		}
+
+	}; //end of classList constructor function
+
+	/** 
+	 * @method addClassList
+	 * @description add .classList if it is not present to specified DOM elements
+	 */
+	function addClassList (elements) {
+		for(var i in elements) {
+			var ele = elements[i];
+			if(ele.nodeType &amp;&amp; ele.nodeType === 1 &amp;&amp; !ele.classList) {
+				ele.classList = new ClassList(ele);
+			}
+		}
+	}
+
+	/** 
+	 * @method $
+	 * @description queryselector wrapper
+	 * BOOK Listing 2-9, pp. 31-32
+	 * @param {String|Parent} either a string selecting a DOM element, or the 
+	 * DOM element itself
+	 * @param {DOMElement} parent (optional) if present, the starting point for 
+	 * running querySelector(). Otherwise, document.querySelector() is used
+	 * @return {Array} the recovered element
+	 */
+	function $(sel, parent) {
+		parent = parent || document;
+		return Sizzle(sel);
+		//return parent.querySelectorAll(path); //path is a CSS selector
+	}
+
+	/** 
+	 * @method getByClassName
+	 * @description wrapper for Sizzle providing equivalent functionality to 
+	 * getElementsByClassName for non-supporting browsers
+	 */
+	function getByClassName(sel, parent) {
+		if(sel.charAt(0) !== ".") sel = "." + sel;
+		return Sizzle.matches(sel, parent);
+	}
+
+	/** 
+	 * @method getElement
+	 * @description return an element, either itself or by its id string
+	 * @param {DOMElement|String} el either a DOM element or an id="xxx" string
+	 * @returns {DOMElement|false} if found, return element, else false
+	 */
+	function getElement(elm) {
+		if(typeof elm == "object") {
+			return elm;
+		}
+		else if(typeof elm == "string") {
+			if(elm.charAt(0) == "#") elm = elm.substring(1); //strip "#"
+			return document.getElementById(elm);
+		}
+		else {
+			elefart.showError("invalid element, type:" + typeof elm, true);
+		}
+		return null;
+	}
+
+
+	/** 
+	 * @method addEvent
+	 * @description cross-browser addEventListener
+	 * implemented here instead of polyfill 
+	 * @link https://gist.github.com/eduardocereto/955642
+	 *
+	 * NOTE: the link above shows a much better method for traditional 
+	 * browsers, in particular removing events so they don't accumulate 
+	 * in memory. We didn't use it because old browsers won't run this app, 
+	 * just receive a message that they need to suppport HTML5 canvas to run 
+	 * the game. For general web apps, the gist solution is superior to below.
+	 * 
+	 * @param {DOMElement} elm the HTML DOM element to bind event to
+	 * @param {EventType} evt the type of event (a String)
+	 * @param {Function} callback the callback function
+	 * @param {Boolean} useCapture (if true, capture in capturing phase (default 
+	 * is false, use bubbling phase)
+	 */
+	function addEvent (elm, evt, callback, useCapture) {
+		if (elm.addEventListener) { // Modern
+			elm.addEventListener(evt, function (e) {
+				callback(e);
+			}, false);
+		}
+		else if (document.attachEvent) { // Internet Explorer
+			elm.attachEvent('on' + evt, function(e) {
+				var e = e || win.event;
+				//normalize event object
+				e.target = e.srcElement;
+				e.preventDefault = e.preventDefault || function () { e.returnValue = false;}
+				e.stopPropagation = e.stopPropagation || function () { e.cancelBubble = true;}
+				callback.call(elm, e);
+			});
+		}
+		else { // others
+			 var type = 'on' + evt;
+			if(typeof elm[evt] === 'function'){
+				// Object already has a function on traditional
+				// Let's wrap it with our own function inside another function
+				fnc = (function(f1,f2) {
+					return function() {
+						f1.apply(this,arguments);
+						f2.apply(this,arguments);
+					}
+				})(obj[evt], fnc);
+			}
+			obj[evt] = fnc;
+			return true; 
+		}
+	}
+
+	/** 
+	 * @method removeEvent
+	 * @description remove an event
+	 * @param {DOMElement} elm the HTML DOM element to remove event from
+	 * @param {EventType} evt the type of event (a String)
+	 * @param {Function} callback the callback function
+	 * @param {Boolean} useCapture (if true, capture in capturing phase (default 
+	 * is false, use bubbling phase)
+	 */
+	function removeEvent (elm, evt, callback, useCapture) {
+		if(useCapture === undefined) useCapture = false;
+		if(doc.removeEventListener) {
+			elm.removeEventListener(evt, callback, !!useCapture);
+			return true;
+		}
+		else if(document.attachEvent) {
+			elm.detachEvent("on" + evt, callback);
+			return true;
+		}
+		else {
+			//can't be removed without extra code in addEvent
+			//@link https://gist.github.com/eduardocereto/955642
+		}
+
+	}
+
+	/** 
+	 * @method bind
+	 * @description bind an event to a DOM element
+	 * @param {DOMElement|String} elm a DOM object, or an id for an element
+	 * @param {EventType} evt type of event
+	 * @param {Function} callback callback to execute when event raised
+	 */
+	function bind(elm, evt, callback) {
+
+		//if we get a string, do a query. otherwise, just use the DOM Element
+		if(typeof elm === "string") {
+			elm = $(elm);
+		}
+		if(!elm) {
+			elefart.showError("tried to bind invalid element");
+			return;
+		}
+		//elm may be an array of DOMElements in some cases
+		if(elm.length) {
+			for(var i = 0; i &lt; elm.length; i++) {
+				addEvent(elm[i], evt, callback);
+			}
+		}
+		else {
+			addEvent(elm, evt, callback);
+		}
+	}
+
+	/** 
+	 * @method remove
+	 * @description remove event listener or listeners
+	 * @param {DOMElement|String} elm a DOM object, or an id for an element
+	 * @param {EventType} evt type of event
+	 * @param {Function} callback callback to execute when event raised
+	 */
+	function remove(elm, evt, callback) {
+		removeEvent(elm, evt, callback, false);
+	}
+
+	/** 
+	 * @method showScreenById
+	 * @description show application screens, assumes HTML has a class="screen" which 
+	 * defines the main screens of the application
+	 * @param {DOMElement|String} elm a DOM element, or its id string
+	 * @returns {DOMElement|false} if changed, return the visible screen, else false
+	 */
+	function showScreenById(elm) {
+		elm = getElement(elm);
+		if(elm) {
+			var screens = $(".screen");
+			for(var i = 0; i &lt; screens.length; i++) {
+				if(screens[i] === elm) {
+					screens[i].classList.add("active");
+				}
+				else {
+					screens[i].classList.remove("active");
+				}
+			}
+		}
+		else {
+			elefart.showError("couldn't find screen:" + elm, true);
+		}
+	}
+
+
+	/** 
+	 * @method isElementVisible
+	 * @description confirm an element is visible onscreen
+	 * @link http://stackoverflow.com/questions/123999/how-to-tell-if-a-dom-element-is-visible-in-the-current-viewport
+	 * @param {DOMElement} elm the DOM element we are testing
+	 * @returns {Boolean} if visible, return true, else false
+	 */
+	function isElementInViewport (elm) {
+
+		var rect = elm.getBoundingClientRect();
+    	var windowHeight = (window.innerHeight || document.documentElement.clientHeight);
+    	var windowWidth = (window.innerWidth || document.documentElement.clientWidth);
+
+    	return (
+           (rect.left >= 0) &amp;&amp; (rect.top >= 0) &amp;&amp; 
+           ((rect.left + rect.width) &lt;= windowWidth) &amp;&amp; 
+           ((rect.top + rect.height) &lt;= windowHeight));
+	}
+
+	/* 
+	 * ============================
+	 * INIT AND RUN
+	 * ============================
+	 */
+
+	/** 
+ 	 * @method init dom
+ 	 * @description initialize the DOM interface for the game.
+ 	 */
+	function init () {
+		firstTime = false;
+	}
+
+	/** 
+	 * @method run dom
+	 * @description activate the DOM interface for the game.
+	 */
+	function run () {
+		if(firstTime()) {
+			init();
+		}
+	}
+
+	return {
+		addClassList:addClassList,
+		$:$,
+		getByClassName:getByClassName,
+		bind:bind,
+		remove:remove,
+		showScreenById:showScreenById,
+		init:init,
+		run:run
+	};
+
+})();</pre>
+	</article>
+</section>
+
+
+
+
+
+				</div>
+
+				<div class="clearfix"></div>
+				<footer>
+					
+					
+		<span class="copyright">
+		DocStrap Copyright © 2012-2014 The contributors to the JSDoc3 and DocStrap projects.
+		</span>
+					<br />
+					
+		<span class="jsdoc-message">
+		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
+		on Sun Dec 21st 2014 using the <a
+			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+		</span>
+				</footer>
+			</div>
+
+			
+			<br clear="both">
+		</div>
+
+	</div>
+	<!--<script src="scripts/sunlight.js"></script>-->
+	<script src="scripts/docstrap.lib.js"></script>
+	<script src="scripts/bootstrap-dropdown.js"></script>
+	<script src="scripts/toc.js"></script>
+
+	<script>
+		$( function () {
+			$( "[id*='$']" ).each( function () {
+				var $this = $( this );
+
+				$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+			} );
+
+			$( "#toc" ).toc( {
+				anchorName  : function ( i, heading, prefix ) {
+					return $( heading ).attr( "id" ) || ( prefix + i );
+				},
+				selectors   : "h1,h2,h3,h4",
+				showAndHide : false,
+				scrollTo    : "100px"
+			} );
+
+			$( "#toc>ul" ).addClass( "nav nav-pills nav-stacked" );
+			$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+			$( '.dropdown-toggle' ).dropdown();
+//			$( ".tutorial-section pre, .readme-section pre" ).addClass( "sunlight-highlight-javascript" ).addClass( "linenums" );
+
+			$( ".tutorial-section pre, .readme-section pre" ).each( function () {
+				var $this = $( this );
+
+				var example = $this.find( "code" );
+				exampleText = example.html();
+				var lang = /{@lang (.*?)}/.exec( exampleText );
+				if ( lang && lang[1] ) {
+					exampleText = exampleText.replace( lang[0], "" );
+					example.html( exampleText );
+					lang = lang[1];
+				} else {
+					lang = "javascript";
+				}
+
+				if ( lang ) {
+
+					$this
+						.addClass( "sunlight-highlight-" + lang )
+						.addClass( "linenums" )
+						.html( example.html() );
+
+				}
+			} );
+
+			Sunlight.highlightAll( {
+				lineNumbers : true,
+				showMenu : true,
+				enableDoclinks : true
+			} );
+		} );
+	 </script>
+
+
+
+	<!--Navigation and Symbol Display-->
+	
+
+
+	<!--Google Analytics-->
+	
+
+</body>
+</html>

@@ -1,13 +1,12 @@
 /** 
- * @namespace
- * window.elefart.controller (Controller)
+ * @namespace elefart.controller
+ * @fileoverview elefart.controller Controller
  * trap user input, also route in-game events to
  * supports:
  * - standard mouse desktop events
  * - mouse events on touch devices
  * - keyboard events
  * - virtual keyboard events
- * Model (elefart.building) or Views (elefart.display, elefart.dashboard)
  */
 window.elefart.controller = (function () {
 
@@ -19,6 +18,8 @@ window.elefart.controller = (function () {
 
 	/** 
 	 * @method handleKeypress
+	 * @description branch program execution based on the key pressed by a user.
+	 * @param {Number} keyCode the keycode returned by the event handler.
 	 */
 	function handleKeypress(keyCode) {
 		console.log("key pressed:" + keyCode);
@@ -26,6 +27,9 @@ window.elefart.controller = (function () {
 
 	/** 
 	 * @method handleTouchPoint
+	 * @description branch program execution based on a user swipe or touch 
+	 * on a touch-sensitive screen.
+	 * @param {Object} touchPoint a JS objec with the x and y coordinates of the touch.
 	 */
 	function handleTouchPoint(touchPoint) {
 		console.log("touch:" + touchPoint.x + "," + touchPoint.y);
@@ -33,7 +37,8 @@ window.elefart.controller = (function () {
 
 	/** 
 	 * @method setGameHandlers
-	 * set the event handlers for the active game HTML5 canvas
+	 * @description set the event handlers for the active game HTML5 canvas
+	 * @param {Canvas} gameCanvas the HTML5 Canvas object
 	 */
 	function setGameHandlers (gameCanvas) {
 
@@ -59,14 +64,17 @@ window.elefart.controller = (function () {
 
 	/**
 	 * @method removeGameHandlers
-	 * remove the game event handlers (memory efficient)
+	 * @description remove the game event handlers to improve efficiency
+	 * @param {Canvas} gameCanvas the HTML5 Canvas object
 	 */
 	function removeGameHandlers(gameCanvas) {
 		dom.remove();
 	}
 
 	/** 
-	 * @method init
+	 * @method init controller
+	 * @description initialize the controller, including event handlers. Requires 
+	 * access to elefart.dom.
 	 */
 	function init () {
 		board = elefart.building,
@@ -76,7 +84,9 @@ window.elefart.controller = (function () {
 	}
 
 	/** 
-	 * @method run
+	 * @method run controller
+	 * @description run the controller, starting event handlers for the active game 
+	 * canvas.
 	 */
 	function run () {
 		if(firstTime) {

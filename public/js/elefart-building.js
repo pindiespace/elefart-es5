@@ -1,5 +1,5 @@
 /** 
- * @namespace 
+ * @namespace elefart.building
  * @fileoverview elefart.building (Model) game objects (building, shafts, elevators, users, goodies, gas)
  * @version 0.1.1
  * @author Pete Markeiwicz
@@ -120,7 +120,8 @@ window.elefart.building = (function () {
 	 */
 
 	/** 
-	 * @method init
+	 * @method init building
+	 * @description initialize the building used in the game.
 	 */
 	function init () {
 		factory = elefart.factory,
@@ -132,7 +133,8 @@ window.elefart.building = (function () {
 
 
 	/** 
-	 * @method run
+	 * @method run building
+	 * @description activate the building for display and updating in the game.
 	 */
 	function run () {
 		if(firstTime) {

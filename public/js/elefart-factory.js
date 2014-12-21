@@ -1,5 +1,5 @@
 /** 
- * @namespace 
+ * @namespace elefart.factory
  * @fileoverview factory function for elefart. Makes common objects
  * used on the screen. Objects are scaled via 'mobile first', meaning
  * that constant sizes are defined for small screens, and scaled for 
@@ -47,7 +47,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method getId
-	 * get a unique Id
+	 * @description get a unique Id for ScreenObjects
 	 */
 	function getId() {
 		id++;
@@ -56,7 +56,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method isNumber
-	 * confirm an object is a number
+	 * @description confirm an object is a number
 	 * @param {Object} obj the object to test
 	 * @returns {Boolean} if a number, return true, else false
 	 */
@@ -66,7 +66,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method isString
-	 * confirm and object is a string
+	 * @description confirm an object is a string
 	 * @param {Object} object to test
 	 * @returns {Boolean} if a string, return true, else false
 	 */
@@ -80,7 +80,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method isRGB
-	 * confirm a string is valid rgb() or #rrggbb or #rgb color
+	 * @description confirm a string is valid rgb or #rrggbb or #rgb color
 	 * @link http://www.mkyong.com/regular-expressions/how-to-validate-hex-color-code-with-regular-expression/
 	 * @param {String} str the color string
 	 * @returns {Boolean} if valid color, return true, else false
@@ -101,7 +101,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method clone
-	 * clone a JS object (requires JSON)
+	 * @description clone a JS object, requires JSON
 	 * @param {Object} incoming object
 	 * @returns {Object} the copied object
 	 */
@@ -111,7 +111,7 @@ window.elefart.factory = (function () {
 
 	/*
 	 * @method mergeRecursive
-	 * Recursively merge properties of two objects 
+	 * @description Recursively merge properties of two objects 
 	 * @link http://stackoverflow.com/questions/171251/how-can-i-merge-properties-of-two-javascript-objects-dynamically
 	 */
 	function mergeRecursive(obj1, obj2) {
@@ -135,13 +135,15 @@ window.elefart.factory = (function () {
 
 	/* 
 	 * ============================
-	 * GEOMETRY PRIMITIVES
+	 * GEOMETRY PRIMITIVES, ScreenObjects
 	 * ============================
 	 */
 
 	/**
-	 * @constructor Point, similar to DOMPoint, but 
-	 * only containing information for drawing on 2D Canvas
+	 * @constructor Point
+	 * @classdesc ScreenObject.type POINT. creates a Point object from x and y coordinates 
+	 * (unlike Rect, which uses top, right, bottom, left). Does not 
+	 * support child objects.
 	 * @returns {Point} a Point object
 	 */
 	function Point (x, y) {
@@ -166,6 +168,8 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @constructor Line
+	 * @classdesc ScreenObject type LINE. Creates a Line object from two Points. Does not 
+	 * support child objects or padding.
 	 * @returns {Line} a Line object
 	 */
 	function Line (pt1, pt2) {
@@ -193,8 +197,9 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
-	 * @constructor Padding, like a Rect
-	 * encoded with TRBL
+	 * @constructor Padding
+	 * @classdesc ScreenObject.type PADDING. Like a Rect, but without width and height. 
+	 * Use to set padding on objects which support padding, e.g. Rect. encoded with TRBL
 	 */
 	function Padding(top, right, bottom, left) {
 		if(!isNumber(top) || !isNumber(right) || !isNumber(bottom) || !isNumber(left) || 
@@ -221,8 +226,13 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
-	 * @constructor Rect, similar to DOMRect, but only 
-	 * containing information needed to draw on 2D Canvas
+	 * @constructor Rect
+	 * @classdesc ScreenObject.type RECT. Similar to DOMRect, but only 
+	 * containing information needed to draw on 2D Canvas. 
+	 * Allows for border, padding and a constant borderRadius. 
+	 * the actual Canvas drawing routine uses Rect, or a set of 
+	 * arcs (borderRadius > 0)
+
 	 * @returns {Rect} a Rect object
 	 */
 	function Rect (x, y, width, height) {
@@ -261,6 +271,9 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @constructor Circle
+	 * 
+	 * @classdesc ScreenObject.type CIRCLE. Contains an enclosing Rect object, plus 
+	 * a radius. Supports child objects.
 	 * @returns {Circle} a Circle object
 	 */
 	function Circle (x, y, radius) {
@@ -298,7 +311,10 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @constructor Polygon
-	 * @returns {Polygon} a Polybon object
+	 * @classdesc ScreenObject.type POLYGON. Polygons contain an enclosing Rect object, plus 
+	 * an array of Points defining a shape. Supports child objects. uses the getEnclosingRect 
+	 * function in elefart.factory (not used by other objects).
+	 * @returns {Polygon} a Polygon object
 	 */
 	function Polygon (pts) {
 		if(pts === undefined || !pts.length) {
@@ -342,8 +358,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method getEnclosingRect
-	 * find the rect which encloses the set of points, used 
-	 * to create a Polygon
+	 * @description POLYGON specific. Find the rect which encloses the set of points
 	 * @param {Array} pts an array of x, y points
 	 * @returns {Rect} 
 	 */
@@ -388,7 +403,8 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method ptInside
-	 * non "this" test for Point inside Rect
+	 * @description non "this" test for Point inside Rect, use when 
+	 * "this" would cause problems in scope
 	 * @param {Point} pt the Point
 	 * @param {Rect} rect the Rect
 	 * @returns {Boolean} if Point inside Rect, return true, else false
@@ -404,7 +420,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method pointInside
-	 * determine if a point is inside or outside Rect
+	 * @description determine if a point is inside or outside Rect
 	 * @param {Point} pt the point to test
 	 * @returns {Boolean} if not in rect, false, else true
 	 */
@@ -429,7 +445,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method rectInRect
-	 * determine if this object is completely inside rect2
+	 * @description determine if this object is completely inside rect2
 	 * @param {Rect} rect the outer rect
 	 * @returns {Boolean}  if inside, return true, else false
 	 */
@@ -456,7 +472,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method intersectRect
-	 * determine if an object intersets a Rect at all
+	 * @description determine if an object intersets a Rect at all
 	 * MUCH SIMPLER than generalized collision detection
 	 * @link http://gamedevelopment.tutsplus.com/tutorials/collision-detection-using-the-separating-axis-theorem--gamedev-169
 	 * @returns {Rect} if intersect, return a Rect with the collision sides 
@@ -482,7 +498,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method getCenter
-	 * get the center of an object
+	 * @description get the center of an ScreenObject
 	 * @returns {Point|false} the center point, or false
 	 */
 	function getCenter () {
@@ -522,7 +538,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method move
-	 * move an object, optionally move children
+	 * @description move an object, optionally move children
 	 * @param {Number} dx change in x position
 	 * @param {Number} dy change in y position
 	 * @param {Boolean} recurse if true, move children the same distance
@@ -561,7 +577,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method moveTo
-	 * move an object to a specific coordinate
+	 * @description move an object to a specific coordinate
 	 * @param {Number} x new x position
 	 * @param {Number} y new y position
 	 * @param {Boolean} recurse if true, move children the same distance
@@ -591,8 +607,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method rectCenterOnPoint
-	 * center a Rect on a Point
-	 * @param {Rect} rect the rect to center
+	 * @description center a Rect on a Point
 	 * @param {Point} centerPt the point to use
 	 * @param {Boolean} recurse if true, center children as well, 
 	 * otherwise just move the chidren with their newly centered parent
@@ -627,8 +642,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method centerRectInRect
-	 * center a rect so it is inside, or surrounds an other Rect
-	 * @param {Rect} rect the Rect to center
+	 * @description center a rect so it is inside, or surrounds an other Rect
 	 * @param {Rect} centerRect the Rect to center the first rect onto
 	 * @returns {Boolean} if set, return true, else false
 	 */
@@ -646,8 +660,8 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method setDimensions
-	 * set width and height. Internal variables are NOT private, but should 
-	 * be set using setters in this library
+	 * @description set width and height of a ScreenObject. Internal variables are NOT private, 
+	 * but should be set using setters attached to ScreenObject
 	 * @param {Number} width new width
 	 * @param {Number} height new height
 	 * @returns {Boolean} if set, return true, else false
@@ -667,45 +681,27 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
-	 * @method scale
-	 * scale an object's size (keep integer values)
-	 * @param {Number} scale the scale value. 1.0 = no change
-	 * @param {Boolean} recurse if true, scale child objects
-	 * @returns {Boolean} if set, return true, else false
+	 * @method setBorderRadius
+	 * @description set rounded Rect, in current version all cornder has the 
+	 * same rounding
+	 * @param {Number} borderRadius the border radious
 	 */
-	function scale (scale, recurse) {
-		if(!isNumber(scale) || scale < 0) {
-			elefart.showError(this.type + " invalid scale:" + scale);
+	function setRectBorderRadius(borderRadius) {
+		if(this.type !== RECT) {
+			elefart.showError(this.type + " does not have border radius");
+		}
+		//if borderRadius = width = height we have a Circle
+		if(borderRadius > this.width || borderRadius > this.height) {
+			elefart.showError("invalid border radius dimensions:" + borderRadius);
 			return false;
 		}
-		if(this.type === POINT) {
-			//nothing, Points don't scale
-		}
-		else if(this.type === LINE) {
-			var dx = scale * (this.pt2.x - this.pt1.x);
-			var dy = scale * (this.pt2.y - this.pt1.y);
-			this.pt2.x = this.pt1.x + dx;
-			this.pt2.y = this.pt1.y + dy;
-		}
-		else {
-			this.right = this.left + Math.min(this.width * scale);
-			this.bottom = this.top + Math.min(this.height * scale);
-			this.width = this.right - this.left;
-			this.height = this.bottom - this.top;
-		}
-		if(recurse) {
-			for(var i = 0; i < this.children.length; i++) {
-				var child = obj.children[i];
-				child.scale(child, scale, recurse);
-			}
-		}
-		return true;
+		this.borderRadius = borderRadius;
 	}
 
 	/** 
 	 * @method setRectPadding
-	 * set the padding on a Rect, moving any child objects, but not 
-	 * resizing (which may leave an overhang)
+	 * @description set the padding on a Rect, moving any child objects, but not 
+	 * resizing. This means that objects may overhang their container.
 	 * @param {Padding} padding the padding object, with padding for 
 	 * top, right, bottom, left
 	 * @returns {Boolean} if set, return true, else false
@@ -756,6 +752,42 @@ window.elefart.factory = (function () {
 		return true;
 	}
 
+	/** 
+	 * @method scale
+	 * @description scale an ScreenObject's size, while keeping integer values
+	 * @param {Number} scale the scale value. 1.0 = no change
+	 * @param {Boolean} recurse if true, scale child objects
+	 * @returns {Boolean} if set, return true, else false
+	 */
+	function scale (scale, recurse) {
+		if(!isNumber(scale) || scale < 0) {
+			elefart.showError(this.type + " invalid scale:" + scale);
+			return false;
+		}
+		if(this.type === POINT) {
+			//nothing, Points don't scale
+		}
+		else if(this.type === LINE) {
+			var dx = scale * (this.pt2.x - this.pt1.x);
+			var dy = scale * (this.pt2.y - this.pt1.y);
+			this.pt2.x = this.pt1.x + dx;
+			this.pt2.y = this.pt1.y + dy;
+		}
+		else {
+			this.right = this.left + Math.min(this.width * scale);
+			this.bottom = this.top + Math.min(this.height * scale);
+			this.width = this.right - this.left;
+			this.height = this.bottom - this.top;
+		}
+		if(recurse) {
+			for(var i = 0; i < this.children.length; i++) {
+				var child = obj.children[i];
+				child.scale(child, scale, recurse);
+			}
+		}
+		return true;
+	}
+
 	/* 
 	 * ============================
 	 * OBJECT CREATION AND DELETION
@@ -764,7 +796,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method addChild
-	 * add a child object to an object
+	 * @description add a child ScreenObject to an Object
 	 * @param {Object} a child object, either Point, Line, 
 	 * Rect, Circle, Polygon
 	 */
@@ -792,7 +824,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method findChild
-	 * find a child by its id
+	 * @description find a ScreenObject child by its id
 	 * @param {Number} childId the id of the object
 	 * @returns {Object|false} if OK, return an object, else false
 	 */
@@ -814,7 +846,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method removeChild
-	 * remove a child by its id
+	 * @description remove a child ScreenObject by its id
 	 * @param {Number} childId the id of the object
 	 * @returns {Object|false} if ok, return the removed child, else false
 	 */
@@ -837,7 +869,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method setFilter
-	 * set a filter on an image, if it exists
+	 * @description set a filter on an ScreenObject image, if it exists
 	 * @param {Function} filter the filtering function (expects pixel data)
 	 */
 	function setFilter (filter) {
@@ -853,8 +885,8 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method setGradient
-	 * set an HTML5 canvas gradient object for the object
-	 * @param {HTML5 Canvas Gradient} grad gradient from canvas.getContext()
+	 * @description set an HTML5 canvas gradient object for a ScreenObject
+	 * @param {CanvasGradient} grad gradient from canvas.getContext()
 	 */
 	function setGradient(grad) {
 		if(!grad) {
@@ -866,7 +898,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method setOpacity
-	 * set the opacity of an object
+	 * @description set the opacity of a ScreenObject
 	 * @param {Number} opacity the opacity of the object
 	 */
 	function setOpacity(opacity) {
@@ -878,7 +910,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method setStroke
-	 * set the stroke around an object
+	 * @description set the stroke around an ScreenObject
 	 * @param {Number} width the width of the stroke in pixels
 	 * @param {String} rgb() or #rrggbb or #rgb color string
 	 */
@@ -900,26 +932,8 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
-	 * @method setBorderRadius
-	 * set rounded Rect, in current version all cornder has the 
-	 * same rounding
-	 * @param {Number} borderRadius the border radious
-	 */
-	function setBorderRadius(borderRadius) {
-		if(this.type !== RECT) {
-			elefart.showError(this.type + " does not have border radius");
-		}
-		//if borderRadius = width = height we have a Circle
-		if(borderRadius > this.width || borderRadius > this.height) {
-			elefart.showError("invalid border radius dimensions:" + borderRadius);
-			return false;
-		}
-		this.borderRadius = borderRadius;
-	}
-
-	/** 
 	 * @method setFill
-	 * set the fill color
+	 * @description set the fill color for a ScreenObject
 	 * @param {String} color the rgb() or #rrggbb or #rgb color
 	 */
 	function setFill(color) {
@@ -930,22 +944,51 @@ window.elefart.factory = (function () {
 		this.fillColor = color;
 	}
 
+	/* 
+	 * ============================
+	 * SCREEN OBJECTS WITH IMAGES
+	 * ============================
+	 */
+
 	/** 
 	 * @method setImage
-	 * replace background fill with image pixels in an object
-	 * includes a callback for images that are dynamically loaded
+	 * @description replace background fill with image pixels in a Screen Object. 
+	 * Includes a callback for images that are dynamically loaded
 	 * @param {String} src the file path to the image
 	 * @param {Function} callback function after the image is loaded
 	 */
 	function setImage(src, callback) {
 		var that = this;
-		that.img = new Image().onload = function (callback) {
+		that.img = new Image();
+
+		that.img.onload = function () {
+			//shrink image to size of object
 			this.width = that.width;
 			this.height = that.height;
 			callback(that); //callback function passed image
 		}
+
+		that.img.oneror = function () {
+			elefart.showError("image " + src + "failed to load");
+		}
+
+		//start loading the image
+		that.img.src = src;
 	}
 
+	/* 
+	 * ============================
+	 * LAYERS
+	 * ============================
+	 */
+
+	/** 
+	 * @method setLayer
+	 * @description set the layer in which the ScreenObject is 
+	 * drawn by elefart.display
+	 * @param {Number} layer the layer to draw in. Layers are 
+	 * defined in elefart.display.LAYERS
+	 */
 	function setLayer(layer) {
 		//get length of current layers from elefart.display
 		var len = 0;
@@ -959,6 +1002,14 @@ window.elefart.factory = (function () {
 		this.layer = layer;
 	}
 
+	/** 
+	 * @method addFns
+	 * @description add common methods to a ScreenObject. 
+	 * Methods are typically called as from the object, rather than
+	 * globally from this library, which keeps 'this' working correctly. 
+	 * Use the JS .apply for methods calling each other in the object context
+	 * @param {Object} program object
+	 */
 	function addFns (obj) {
 		obj.pointInside = pointInside,
 		obj.insideRect = insideRect,
@@ -969,16 +1020,18 @@ window.elefart.factory = (function () {
 		obj.centerOnPoint = centerOnPoint,
 		obj.centerInRect = centerInRect,
 		obj.setDimensions = setDimensions,
-		obj.scale = scale,
+		obj.setRectBorderRadius = setRectBorderRadius,
 		obj.setRectPadding = setRectPadding,
+		obj.scale = scale,
+
 		obj.findChild = findChild,
 		obj.addChild = addChild,
 		obj.removeChild = removeChild,
+
 		obj.setFilter = setFilter,
 		obj.setGradient = setGradient,
 		obj.setOpacity = setOpacity,
 		obj.setStroke = setStroke,
-		obj.setBorderRadius = setBorderRadius,
 		obj.setFill = setFill,
 		obj.setImage = setImage,
 		obj.setLayer = setLayer;
@@ -992,8 +1045,18 @@ window.elefart.factory = (function () {
 	 */
 
 	/** 
-	 * @method ScreenRect
-	 * create a ScreenRect object
+	 * @constructor ScreenRect
+	 * @classdesc create a ScreenRect object.
+	 * @param {Number} x the x coordinate of the object
+	 * @param {Number} y the y coordinate of the object
+	 * @param {Number} width the width of the Rect
+	 * @param {Number} height the height of the Rect
+	 * @param {Number} strokeWidth the width of the stroke around the ScreenRect
+	 * @param {String} strokeColor the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
+	 * @param {String} fillColor the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
+	 * @param {Number} layer the layer for elefart.display to draw the object into.
 	 */
 	function ScreenRect (x, y, width, height, strokeWidth, strokeColor, fillColor, layer) {
 		var r = Rect(x, y, width, height);
@@ -1003,8 +1066,18 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
-	 * @method ScreenCircle
-	 * create a screen circle
+	 * @constructor ScreenCircle
+	 * @classdesc create a screen circle.
+	 * @param {Number} x the x coordinate of the object
+	 * @param {Number} y the y coordinate of the object
+	 * @param {Number} width the width of the Rect
+	 * @param {Number} height the height of the Rect
+	 * @param {Number} strokeWidth the width of the stroke around the ScreenRect
+	 * @param {String} strokeColor the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
+	 * @param {String} fillColor the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
+	 * @param {Number} layer the layer for elefart.display to draw the object into.
 	 */
 	function ScreenCircle (x, y, radius, strokeWidth, strokeColor, fillColor, layer) {
 		var c = Circle(x, y, radius);
@@ -1013,13 +1086,34 @@ window.elefart.factory = (function () {
 		return c;
 	}
 
-	function ScreenPoly(pts, layer) {
+	/** 
+	 * @method ScreenPoly
+	 * @classdesc create a screen Polygon
+	 * @param {Array} a set of Point objects with x and y coordinates for the 
+	 * sides of the Polygon.
+	 * @param {Number} strokeWidth the width of the stroke around the ScreenRect
+	 * @param {String} strokeColor the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
+	 * @param {String} fillColor the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
+	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 */
+	function ScreenPoly(pts, layer, strokeWidth, strokeColor, fillColor, layer) {
 		var p = Polygon(pts);
 		addFns(r);
 		p.setLayer(layer);
 		return p;
 	}
 
+	/** 
+	 * @constructor ScreenImage
+	 * @classdesc create a ScreenObject that is a 'naked' image, without visible 
+	 * border or fill.
+	 * @param {Number} x the x coordinate of the object
+	 * @param {Number} y the y coordinate of the object
+	 * @param {String} src the path to the image file used
+	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 */
 	function ScreenImage(x, y, src, callback, layer) {
 		var r = Rect(x, y, 0, 0); //zero until image loaded
 		r.setLayer(layer);
@@ -1029,7 +1123,15 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method ScreenSprite
-	 * create a sprite table from supplied image file
+	 * @classdesc create a sprite table from supplied image file
+	 * @param {String} src the path to the image file used
+	 * @param {Number} the 'type', which is actually the row in 
+	 * the SpriteBoard image where the frames of the sprite are stored
+	 * @param {Number} the 'frames', where are the individual
+	 * columns in the Spriteboard image where frames of animation are 
+	 * stored.
+	 * @param {Function} callback the callback function to call after 
+	 * loading a SpriteBoard image
 	 */
 	function ScreenSprite (src, types, frames, callback) {
 		r.types = types;
@@ -1045,7 +1147,9 @@ window.elefart.factory = (function () {
  */
 
 	/** 
-	 * @method init
+	 * @method init factory
+	 * @description initialize the display object used 
+	 * by the game to draw to HTML5 canvas.
 	 */
 	function init () {
 		display = elefart.display;
@@ -1053,7 +1157,9 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
-	 * @method run
+	 * @method run factory
+	 * @description begin drawing the active game, drawing 
+	 * current state into HTML5 canvas
 	 */
 	function run () {
 		if(firstTime) {

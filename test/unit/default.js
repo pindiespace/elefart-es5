@@ -1,6 +1,9 @@
 /** 
  * karma unit tests for Elefart
  * @link http://osintegrators.com/node/322
+ * 
+ * Command list
+ * @link http://evanhahn.com/how-do-i-jasmine/
  */
 
 "use strict";
@@ -27,6 +30,8 @@ describe("Counter tests", function () {
 
 describe('Elefart base', function() {
 	it('should have core objects attached', function () {
+
+		//nonscreen objects
 		expect(typeof elefart).toBe('object');
 		expect(typeof elefart.dom).toBe('object');
 		expect(typeof elefart.building).toBe('object');
@@ -34,34 +39,44 @@ describe('Elefart base', function() {
 		expect(typeof elefart.controller).toBe('object');
 		expect(typeof elefart.dashboard).toBe('object');
 		expect(typeof elefart.factory).toBe('object'); 
-	});
 
-});
- 
-
-describe('Elefart screens', function () {
-	it('should have screen objects attached', function () {
+		//screen objects
 		expect(typeof elefart.screens['screen-about']).toBe('object');
 		expect(typeof elefart.screens['screen-splash']).toBe('object');
 		expect(typeof elefart.screens['screen-install']).toBe('object');
 		expect(typeof elefart.screens['screen-menu']).toBe('object');
 		expect(typeof elefart.screens['screen-game']).toBe('object');
 		expect(typeof elefart.screens['screen-join']).toBe('object'); 
-		expect(typeof elefart.screens['screen-about']).toBe('object'); 
 		expect(typeof elefart.screens['screen-scores']).toBe('object');
 		expect(typeof elefart.screens['screen-exit']).toBe('object');
 	});
+
 });
-
-
+ 
 
 describe('Elefart factory', function () {
 
 	beforeEach(function () {
+
+		//initialize so we can load a 'dummy' HTML screen correctly
+		var article = document.createElement('article');
+		article.id = 'screen-splash';
+		var docBody = document.getElementsByTagName("body")[0];
+		docBody.appendChild(article);
+
+		//initializations will work, and allow feature tests in elefart to run
+		elefart.init();
+		elefart.display.init();
 		elefart.factory.init();
 	});
 
 	it('should have screen objects attached', function () {
+
+		/**
+		 * ============================
+		 * FACTORY CONSTRUCTORS
+		 * ============================
+		 */
 
 		expect(typeof elefart.factory).toBe('object');
 
@@ -112,6 +127,12 @@ describe('Elefart factory', function () {
 		expect(typeof b).toBe('object');
 		expect(b.top).toBe(2);
 
+		/**
+		 * ============================
+		 * CHECK GETTER METHODS
+		 * ============================
+		 */
+
 		var inside;
 
 		//check pointInside
@@ -156,9 +177,16 @@ describe('Elefart factory', function () {
 		//check centerOnPoint
 		var mv = elefart.factory.ScreenRect(0, 0, 100, 200);
 		mv.centerOnPoint(
-			elefart.factory.Point(200, 400));
+			elefart.factory.Point(200, 400)
+			);
 		expect(mv.left).toBe(150);
 		expect(mv.top).toBe(300);
+
+		/**
+		 * ============================
+		 * CHECK SETTER METHODS
+		 * ============================
+		 */
 
 		//check move
 		mv.move(50, 50);
@@ -183,7 +211,7 @@ describe('Elefart factory', function () {
 		expect(mv.top).toBe(250);
 
 		//center centerInRect
-		mv.centerInRect(elefart.factory.ScreenRect(200, 200, 400, 400)); //FAIL
+		mv.centerInRect(elefart.factory.ScreenRect(200, 200, 400, 400));
 		expect(mv.left).toBe(350);
 		expect(mv.top).toBe(350);
 
@@ -195,6 +223,14 @@ describe('Elefart factory', function () {
 		//check setRectPadding
 		mv.setRectPadding(elefart.factory.Padding(4,5,6,7));
 
+		//check setRectBorderRadius
+		mv.setRectBorderRadius(4);
+
+		/**
+		 * ============================
+		 * CHECK ADD/REMOVE CHILD OBJECTS
+		 * ============================
+		 */
 
 		//check addChild
 		mv.addChild(elefart.factory.ScreenRect(33,55,100,300)); //add a child
@@ -214,12 +250,14 @@ describe('Elefart factory', function () {
 		expect(foundChild.id).toBe(childId);
 		expect(mv.children.length).toBe(2);
 
-		//check setFilter
+		/**
+		 * ============================
+		 * CHECK VISUAL METHODS
+		 * ============================
+		 */
+
+		//create an ScreenObject
 		var vis = elefart.factory.ScreenRect(10, 20, 50, 50);
-		var filter = function (img) {
-			return img;
-		}
-		vis.setFilter(filter);
 
 		//check setGradient
 		var canvas = document.createElement('canvas');
@@ -239,14 +277,31 @@ describe('Elefart factory', function () {
 		//check setFill
 		vis.setFill('#ccddcc');
 
+		var path = 'img/icon/apple-touch-icon.png';
+
 		//check setImage
-		vis.setImage('img/icon/apple-touch-icon.png', 
-			function () {
-				console.log("img width:" + vis.img.width);
+		vis.setImage(path, 
+			function (imgObj) {
+				console.log("img width:" + imgObj.img.width);
 			});
 
-		//check setLayer
+		//check Image features are ok
+		expect(vis.img.src.indexOf(path)).toBeGreaterThan(-1);
+		expect(typeof vis.img).toBe('object');
 
+		//try adding a filter function
+		var filter = function (img) {
+			return img;
+		}
+		vis.setFilter(filter);
+
+		/**
+		 * ============================
+		 * TESTS COMPLETE
+		 * ============================
+		 */
+
+		//kill objects
 		grad = ctx = canvas = null;
 
 	});

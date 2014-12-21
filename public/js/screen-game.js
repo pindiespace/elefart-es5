@@ -1,7 +1,7 @@
 /** 
- * @namespace
- * elefart.screens['screen-game']
- * wrapper for game (entirely in HTML5 canvas)
+ * @namespace elefart.screens['screen-game']
+ * @fileoverview wrapper for game, which is created entirely in HTML5 canvas
+ * @requres elefart.screens
  */
 window.elefart.screens['screen-game'] = (function () {
 
@@ -12,7 +12,8 @@ window.elefart.screens['screen-game'] = (function () {
 	firstTime = true;
 
 	/** 
-	 * @method init
+	 * @method init game-screen
+	 * @description initialize the game screen
 	 */
 	function init () {
 		panel = document.getElementById(id);
@@ -20,7 +21,8 @@ window.elefart.screens['screen-game'] = (function () {
 	}
 
 	/** 
-	 * @method run
+	 * @method run game-screen
+	 * @description show the correct screen in the active game.
 	 */
 	function run () {
 		if(firstTime) {

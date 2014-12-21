@@ -1,7 +1,7 @@
 /** 
- * @namespace
- * elefart.screens['screen-join']
- * login system for joining multi-user elefart
+ * @namespace elefart.screens['screen-join']
+ * @fileoverview login system for joining multi-user elefart
+ * @requres elefart.screens
  */
 window.elefart.screens['screen-join'] = (function () {
 
@@ -11,7 +11,8 @@ window.elefart.screens['screen-join'] = (function () {
 	firstTime = true;
 
 	/** 
-	 * @method init
+	 * @method init join-screen
+	 * @description initialize the multi-user version of the game 
 	 */
 	function init () {
 		panel = document.getElementById(id);
@@ -19,7 +20,8 @@ window.elefart.screens['screen-join'] = (function () {
 	}
 
 	/** 
-	 * @method run
+	 * @method run join-screen
+	 * @description show the form allowing remote users to join the game.
 	 */
 	function run () {
 		if(firstTime) {

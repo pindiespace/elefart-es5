@@ -1,6 +1,6 @@
 /** 
- * @namespace
- * common (JS object available on client and on server)
+ * @namespace common
+ * @fileoverview common JS object available on client and on server
  * common file between client and server provding
  * a dictionary for decoding messages between user programs
  * each message may be associated with additional data, shown
@@ -12,7 +12,7 @@
  * is created. On the server, it already exists. Format follows 
  * CommonJS format.
  * 
- * http://caolanmcmahon.com/posts/writing_for_node_and_the_browser/
+ * @link http://caolanmcmahon.com/posts/writing_for_node_and_the_browser/
  */
 
 (function(exports){

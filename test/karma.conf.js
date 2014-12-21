@@ -13,6 +13,7 @@ module.exports = function(config){
 	files : [
 		'test/unit/*.js',
 		'test/unit/**/*.js',
+		'public/js/lib/*.js',
 		{pattern: 'public/js/elefart-netmessage.js', watched: true, included: true, served: true},
 		{pattern: 'public/js/elefart.js', watched: true, included: true, served: true},
 		{pattern: 'public/js/elefart-dom.js', watched: true, included: true, served: true},

@@ -1,7 +1,6 @@
 /** 
- * @namespace
- * elefart-screens['screen-about']
- * online documentation for the game
+ * @namespace elefart.screens['screen-about']
+ * @fileoverview online documentation for the game
  */
 window.elefart.screens['screen-about'] = (function () {
 
@@ -11,7 +10,8 @@ window.elefart.screens['screen-about'] = (function () {
 	firstTime = true;
 
 	/** 
-	 * @method init
+	 * @method init about-screen
+	 * @description initialize help files for the game.
 	 */
 	function init () {
 		panel = document.getElementById(id);
@@ -19,7 +19,8 @@ window.elefart.screens['screen-about'] = (function () {
 	}
 
 	/** 
-	 * @method run
+	 * @method run about-screen
+	 * @description show help files for the game.
 	 */
 	function run () {
 		if(firstTime) {

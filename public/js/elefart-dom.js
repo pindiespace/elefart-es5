@@ -1,5 +1,5 @@
 /** 
- * @namespace 
+ * @namespace elefart.dom
  * @fileoverview JavaScript DOM manipulation (classes, ids, event binding)
  * @version 0.1.1
  * @author Pete Markeiwicz
@@ -43,8 +43,8 @@ window.elefart.dom = (function () {
 	}
 
 	/** 
-	 * @constructor
-	 * use to partially polyfill browsers without a .classList 
+	 * @constructor ClassList
+	 * @classdesc ClassList polyfill. Use to partially polyfill browsers without a .classList 
 	 * We do NOT try to add .classList to everything, instead 
 	 * we add it on demand to specific DOM elements
 	 * @link https://developer.mozilla.org/en-US/docs/Web/API/element.classList
@@ -57,6 +57,8 @@ window.elefart.dom = (function () {
 
 		/** 
 		 * @method contains
+		 * @description check if a DOMElement contains a class attribute
+		 * @param {String} clsName the name of the class to check for
 		 */
 		this.contains = function contains(clsName) {
 			var regex = new RegExp("(^|\\s)" + clsName + "(\\s|$)");
@@ -65,6 +67,8 @@ window.elefart.dom = (function () {
 
 		/** 
 		 * @method add
+		 * @description add a class to a DOM element
+		 * @param {String} clsName the name of the class to add to a DOMElemnt
 		 */
 		this.add = function add(clsName) {
 			if (!this.contains(this.elm, clsName)) {
@@ -74,6 +78,8 @@ window.elefart.dom = (function () {
 
 		/** 
 		 * @method remove
+		 * @description remove a class
+		 * @param {String} clsName the class to remove from a DOMElement
 		 */
 		this.remove = function remove(clsName) {
 			var regex = new RegExp("(^|\\s)" + clsName + "(\\s|$)");
@@ -85,7 +91,8 @@ window.elefart.dom = (function () {
 
 		/** 
 		 * @method toggle
-		 * toggle a class as present or absent in the DOM element
+		 * @description toggle a class as present or absent in the DOMElement
+		 * @param {String} clsName the class name to add to or remove from a DOMElement
 		 */
 		this.toggle = function toggle(clsName) {
 			if(this.contains(clsName)) this.remove(clsName); else this.add(clsName);
@@ -95,7 +102,7 @@ window.elefart.dom = (function () {
 
 	/** 
 	 * @method addClassList
-	 * add .classList if it is not present to specified DOM elements
+	 * @description add .classList if it is not present to specified DOM elements
 	 */
 	function addClassList (elements) {
 		for(var i in elements) {
@@ -108,7 +115,7 @@ window.elefart.dom = (function () {
 
 	/** 
 	 * @method $
-	 * queryselector wrapper
+	 * @description queryselector wrapper
 	 * BOOK Listing 2-9, pp. 31-32
 	 * @param {String|Parent} either a string selecting a DOM element, or the 
 	 * DOM element itself
@@ -122,6 +129,11 @@ window.elefart.dom = (function () {
 		//return parent.querySelectorAll(path); //path is a CSS selector
 	}
 
+	/** 
+	 * @method getByClassName
+	 * @description wrapper for Sizzle providing equivalent functionality to 
+	 * getElementsByClassName for non-supporting browsers
+	 */
 	function getByClassName(sel, parent) {
 		if(sel.charAt(0) !== ".") sel = "." + sel;
 		return Sizzle.matches(sel, parent);
@@ -129,7 +141,7 @@ window.elefart.dom = (function () {
 
 	/** 
 	 * @method getElement
-	 * return an element, either itself or by its id string
+	 * @description return an element, either itself or by its id string
 	 * @param {DOMElement|String} el either a DOM element or an id="xxx" string
 	 * @returns {DOMElement|false} if found, return element, else false
 	 */
@@ -150,7 +162,7 @@ window.elefart.dom = (function () {
 
 	/** 
 	 * @method addEvent
-	 * cross-browser addEventListener
+	 * @description cross-browser addEventListener
 	 * implemented here instead of polyfill 
 	 * @link https://gist.github.com/eduardocereto/955642
 	 *
@@ -201,7 +213,7 @@ window.elefart.dom = (function () {
 
 	/** 
 	 * @method removeEvent
-	 * remove an event
+	 * @description remove an event
 	 * @param {DOMElement} elm the HTML DOM element to remove event from
 	 * @param {EventType} evt the type of event (a String)
 	 * @param {Function} callback the callback function
@@ -216,7 +228,7 @@ window.elefart.dom = (function () {
 		}
 		else if(document.attachEvent) {
 			elm.detachEvent("on" + evt, callback);
-      		return true;
+			return true;
 		}
 		else {
 			//can't be removed without extra code in addEvent
@@ -227,8 +239,8 @@ window.elefart.dom = (function () {
 
 	/** 
 	 * @method bind
-	 * bind an event to a DOM element
-	 * @param {DOMElement|Array[DOMElement]|String} elm a DOM object, or an id for an element
+	 * @description bind an event to a DOM element
+	 * @param {DOMElement|String} elm a DOM object, or an id for an element
 	 * @param {EventType} evt type of event
 	 * @param {Function} callback callback to execute when event raised
 	 */
@@ -255,8 +267,8 @@ window.elefart.dom = (function () {
 
 	/** 
 	 * @method remove
-	 * remove event listener(s)
-	 * @param {DOMElement|Array[DOMElement]|String} elm a DOM object, or an id for an element
+	 * @description remove event listener or listeners
+	 * @param {DOMElement|String} elm a DOM object, or an id for an element
 	 * @param {EventType} evt type of event
 	 * @param {Function} callback callback to execute when event raised
 	 */
@@ -265,9 +277,9 @@ window.elefart.dom = (function () {
 	}
 
 	/** 
-	 * @method showScreenById()
-	 * show application screens (assumes HTML has a class="screen") defining 
-	 * the main screens of the application.
+	 * @method showScreenById
+	 * @description show application screens, assumes HTML has a class="screen" which 
+	 * defines the main screens of the application
 	 * @param {DOMElement|String} elm a DOM element, or its id string
 	 * @returns {DOMElement|false} if changed, return the visible screen, else false
 	 */
@@ -292,7 +304,7 @@ window.elefart.dom = (function () {
 
 	/** 
 	 * @method isElementVisible
-	 * confirm an element is visible onscreen
+	 * @description confirm an element is visible onscreen
 	 * @link http://stackoverflow.com/questions/123999/how-to-tell-if-a-dom-element-is-visible-in-the-current-viewport
 	 * @param {DOMElement} elm the DOM element we are testing
 	 * @returns {Boolean} if visible, return true, else false
@@ -309,16 +321,24 @@ window.elefart.dom = (function () {
            ((rect.top + rect.height) <= windowHeight));
 	}
 
-/* 
- * ============================
- * INIT AND RUN
- * ============================
- */
+	/* 
+	 * ============================
+	 * INIT AND RUN
+	 * ============================
+	 */
 
+	/** 
+ 	 * @method init dom
+ 	 * @description initialize the DOM interface for the game.
+ 	 */
 	function init () {
 		firstTime = false;
 	}
 
+	/** 
+	 * @method run dom
+	 * @description activate the DOM interface for the game.
+	 */
 	function run () {
 		if(firstTime()) {
 			init();

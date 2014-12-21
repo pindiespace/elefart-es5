@@ -1,5 +1,5 @@
 /** 
- * @namespace 
+ * @namespace elefart
  * @fileoverview main game object for Elefart application. Contains
  * initialization code and some factory functions for common objects
  * @version 0.1.1
@@ -12,7 +12,8 @@ window.elefart = (function () {
 
 	var screens = {}, //game screens
 	mobile = {},      //mobile params
-	device = {},      //game params
+	device = {},      //hardware params
+	features = {},     //web browser feature tests
 	TRUE = "true",
 	FALSE = "false",
 	UNKNOWN = -1,
@@ -27,7 +28,7 @@ window.elefart = (function () {
 
 	/** 
 	 * @method showError
-	 * show the error, try to trace caller function
+	 * @description show the error, try to trace caller function
 	 * @param {String} msg the error message to display
 	 * @param {Boolean} fnFlag if true, display the calling function
 	 * @returns {String} error string, which may have the caller function name attached
@@ -49,8 +50,7 @@ window.elefart = (function () {
 
 	/** 
 	 * @method screenParams
-	 * determine 
-	 * determine if in standalone mode
+	 * @description determine if in standalone mode. 
 	 * HTML5 Games Listing 3-19, p. 65
 	 * IE pinning
 	 * @link http://msdn.microsoft.com/en-us/library/ie/gg618530(v=vs.85).aspx
@@ -91,7 +91,11 @@ window.elefart = (function () {
 	}
 
 	/** 
-	 * @method isMobile
+	 * @method mobileParams
+	 * @description test for the mobile device and OS being used. Creates 
+	 * an object which the device type listing. 
+	 * This requies some user-agent sniffing, and should be compliemented 
+	 * by feature detection in the browser.
 	 */
 	function mobileParams () {
 
@@ -120,15 +124,13 @@ window.elefart = (function () {
 
 	/** 
 	 * @method fixScreen
-	 * initial fixes of Android and iOS so they 
+	 * @description initial fixes of Android and iOS so they 
 	 * behave more like native apps and less like a 
 	 * browser window
 	 * HTML5 Games BOOK: Listing 3-26, p. 71
 	 */
 	function fixScreen () {
-		
-		console.log("in fixScreen");
-		
+
 		//disable touchmove
 		elefart.dom.bind(document, "touchmove", function (e) {
 			console.log("touchmove disabled");
@@ -147,7 +149,7 @@ window.elefart = (function () {
 
 	/**
 	 * @method canRun
-	 * determine if the device can run the app
+	 * @description determine if the web browser can run the app
 	 * use feature detection, with device detection on as necessary
 	 * Required features
 	 * - HTML5 Canvas API
@@ -156,26 +158,40 @@ window.elefart = (function () {
 	 * @returns {Boolean} if can run, return true, else false
 	 */
 	function canRun () {
-		if(document.createElement) {
+		features.ok = false;
+		if(window.JSON && document.createElement) {
+			features.createelement = true;
+			features.json = true;
 			var c = document.createElement('canvas');
 			if(c && c.getContext) {
+				features.canvas = true;
 				var ctx = c.getContext('2d');
 				if(ctx) {
+					features.canvascontext = true;
 					var txt = typeof ctx.fillText == "function";
 					if(txt) {
+						features.canvastext = true;
+						features.ok = true; //ok to run game
 						return true;
 					}
 					else {
 						showError("HTML5 Canvas Text not supported");
+						features.canvastext = false;
 					}
 				}
 				else {
 					showError("Could not create HTML5 Canvas context");
+					features.canvascontext = false;
 				}
 			}
 			else {
 				showError("HTML5 Canvas API not supported");
+				features.canvas = false;
 			}
+		}
+		else {
+			features.createelement = false;
+			features.json = false;
 		}
 		return false;
 	}
@@ -187,7 +203,8 @@ window.elefart = (function () {
  */
 
 	/** 
-	 * @method init
+	 * @method init elefart
+	 * @description initialize the entire game app
 	 */
 	function init () {
 		dom = elefart.dom;
@@ -211,7 +228,7 @@ window.elefart = (function () {
 		}
 
 
-		fixScreen();    //fix screens for some mobiles
+		fixScreen(); //fix screens for some mobiles
 
 
 		/** 
@@ -221,11 +238,11 @@ window.elefart = (function () {
 		 * 
 		 */
 		if(mobile.standalone) {
-			console.log("standalone mode");
+			console.log("Elefart:standalone mode");
 			dom.showScreenById("screen-install")
 		}
 		else {
-			console.log("browser mode");
+			console.log("Elefart:browser mode");
 			dom.showScreenById("screen-splash");
 		}
 
@@ -233,7 +250,8 @@ window.elefart = (function () {
 	}
 
 	/** 
-	 * @method run
+	 * @method run elefart
+	 * @description run the Elefart application
 	 */
 	function run () {
 		if(firstTime) {
@@ -249,6 +267,7 @@ window.elefart = (function () {
 		screens:screens,
 		mobile:mobile,
 		device:device,
+		features:features,
 		TRUE:TRUE,
 		FALSE:FALSE,
 		UNKNOWN:UNKNOWN,

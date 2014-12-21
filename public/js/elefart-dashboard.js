@@ -1,6 +1,6 @@
 /** 
- * @namespace
- * elefart.dashboard (Model)
+ * @namespace elefart.dashboard
+ * @fileoverview elefart.dashboard Model
  * definitions for dashboard controls and HUD screens
  */
 window.elefart.dashboard = (function () {
@@ -11,7 +11,8 @@ window.elefart.dashboard = (function () {
 	firstTime = true;
 
 	/** 
-	 * @method init
+	 * @method init dashboard
+	 * @description initialize user controls for the game on the canvas.
 	 */
 	function init () {
 		board = elefart.building,
@@ -21,7 +22,8 @@ window.elefart.dashboard = (function () {
 	}
 
 	/** 
-	 * @method run
+	 * @method run dashboard
+	 * @description enable user controls during the active game.
 	 */
 	function run () {
 		if(firstTime) {

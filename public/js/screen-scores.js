@@ -1,7 +1,7 @@
 /** 
- * @namespace
- * elefart.screens['screen-scores']
- * elefart score screen,shows high scores for users
+ * @namespace elefart.screens['screen-scores']
+ * @fileoverview elefart score screen,shows high scores for users
+ * @requres elefart.screens
  */
 window.elefart.screens['screen-scores'] = (function () {
 
@@ -11,7 +11,8 @@ window.elefart.screens['screen-scores'] = (function () {
 	firstTime = true;
 
 	/** 
-	 * @method init
+	 * @method init scores-screen
+	 * @description initialize elefart.screens['screen-scores']
 	 */
 	function init () {
 		panel = document.getElementById(id);
@@ -19,7 +20,8 @@ window.elefart.screens['screen-scores'] = (function () {
 	}
 
 	/** 
-	 * @method run
+	 * @method run scores-screen
+	 * @description set up elefart.screens['screen-scores'] for display
 	 */
 	function run () {
 		if(firstTime) {

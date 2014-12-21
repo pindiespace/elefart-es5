@@ -1,7 +1,7 @@
 /** 
- * @namespace
- * elefart.display (View)
- * HTML5 Canvas drawing for game
+ * @namespace elefart.display
+ * @fileoverview elefart.display View
+ * HTML5 Canvas drawing routines for game
  */
 window.elefart.display = (function () {
 
@@ -15,12 +15,16 @@ window.elefart.display = (function () {
 	foreground,  //foreground canvas
 	background,  //background canvas
 	displayList = {}, //multi-dimensional array with drawing objects
-	imgPath,     //path to image directory
 	hotelWalls,  //hotel walls
 	hotelSign,   //hotel sign
 	spriteBoard, //images of users for animation
 	firstTime = true;
 
+/**
+ * Enum for types of layers, colors, materials in canvas drawing
+ * @readonly
+ * @enum {String}
+ */
 	var LAYERS = {
 		BUILDING:"BUILDING",
 		SHAFTS:"SHAFTS",
@@ -51,7 +55,7 @@ window.elefart.display = (function () {
 
 	/** 
 	 * @method getGameRect
-	 * get the current dimensions of the game
+	 * @description get the current dimensions of the game
 	 * NOTE: have to fire it when the screen size changes!
 	 * @returns {DOMRect} a DOMRect 
 	 * DOMRect {left:0, top:0, right:0, bottom:0, width:0, height:0}
@@ -62,7 +66,7 @@ window.elefart.display = (function () {
 
 	/** 
 	  * @method setGameSize
-	  * (re)set the size of the game drawing at 
+	  * @description set or reset the size of the game drawing at 
 	  * start, or if user changes window size
 	  */
 	function setGameSize () {
@@ -70,13 +74,11 @@ window.elefart.display = (function () {
 		//TODO: recalculate
 	}
 
-	function setImagePath (path) {
-		imgPath = path;
-	}
-
 	/** 
 	 * @method preload
-	 * start game images loading early!
+	 * @description start game images loading before other JS libraries and 
+	 * initialization. Ensures that images are immediately available when the 
+	 * game starts.
 	 */
 	function preload () {
 
@@ -102,6 +104,69 @@ window.elefart.display = (function () {
 		spriteBoard.src = "img/game/spriteboard.png";
 	}
 
+	/** 
+	 * =========================================
+	 * CANVAS FILTERS
+	 * =========================================
+	 */
+
+	/** 
+	 * function getPixels 
+	 * @description get the pixel RGB(A) data from an image 
+	 * @param {HTMLImageElement} img image to return pixel data from 
+	 * @param {HTMLCanvasElement} c offscreen <canvas> object to filter in
+	 * @return {Array}  array with RGB or RGBA image data 
+	 */
+	function getPixels (img, c) { 
+		c.width = img.width; 
+		c.height = img.height; 
+		var ctx = c.getContext('2d'); //temporary canvas context
+		ctx.drawImage(img);
+		return ctx.getImageData(0, 0, c.width, c.height);
+	}
+
+	/** 
+	 * function filterImageData
+	 * @description HTML5 canvas filters applied to image 
+	 * put image as first array member, then arguments, then  
+	 * call filter function, applying arguments 
+	 * @link http://www.html5rocks.com/en/tutorials/canvas/imagefilters/ 
+	 * @param {Function} filter the filtering function we apply our image and arguments to 
+	 * @param {HTMLImageElement} img the image object 
+	 * @param {Array} varArgs additional arguments 
+	 * @return {ImageData} image data object returned by  
+	 * HTML5CanvasContext.getImageData() 
+	 */ 
+	function filterImageData (filter, img, varArgs) { 
+		var c = document.createElement('canvas'); 
+		var args = [getPixels(img, c)]; 
+		for (var i = 2; i < arguments.length; i++) { 
+			args.push(arguments[i]); 
+		}
+		return filter.apply(null, args);
+	}
+
+	/** 
+	 * @method getFilteredImage 
+	 * @description get a filtered image as a new JS image object 
+	 * @param {HTMLImageElement} img the image object
+	 * @param {Function} the filtering function
+	 * @param {Array} varArgs additional arguments for the filter, if needed
+	 * @returns {HTMLImageElement} image with its pixel data filtered
+	 */
+	function getFilteredImage (img, filter, varArgs) { 
+		var c = document.createElement('canvas'); 
+		var args = [getPixels(img, c)]; 
+		for (var i = 2; i < arguments.length; i++) { 
+			args.push(arguments[i]); 
+		}
+		var pixels = filter.apply(null, args);
+		return (new Image().src = c.toDataURL()); 
+	}
+
+
+
+
 	/**
 	 * =========================================
 	 * DISPLAY LIST
@@ -110,7 +175,7 @@ window.elefart.display = (function () {
 
 	/** 
 	 * @method DisplayList
-	 * create a new DisplayList
+	 * @description create a new DisplayList
 	 */
 	function initDisplayList () {
 		displayList = {};
@@ -121,9 +186,9 @@ window.elefart.display = (function () {
 
 	/** 
 	 * @method checkIfInLayer
-	 * check if an object is in a specific layer in the display list
+	 * @description check if an object is in a specific layer in the display list
 	 * @param {} obj the object to check
-	 * @param {enum LAYERS} layer the layer to check
+	 * @param {String} layer the LAYERS enum to check
 	 * @returns {Number|false} if found, return the index, else false
 	 */
 	function checkIfInLayer(obj, layer) {
@@ -137,7 +202,7 @@ window.elefart.display = (function () {
 	}
 	/** 
 	 * @method checkIfInList 
-	 * check if an object is already in the drawing list
+	 * @description check if an object is already in the drawing list
 	 * if present, return its position in the array
 	 * @param {} obj the object to draw
 	 * @returns {Object}false} if found, return its layer and index in layer
@@ -156,7 +221,7 @@ window.elefart.display = (function () {
 
 	/** 
 	 * @method addToDisplayList
-	 * add an object to the visual display list
+	 * @description add an object to the visual display list
 	 * @param {Point|Line|Rect|Circle|Polygon|Sprite} obj the object to draw
 	 * @param {Number} layer the layer to draw in
 	 */
@@ -166,8 +231,8 @@ window.elefart.display = (function () {
 
 	/** 
 	 * @method removeFromDisplayList
-	 * remove an object from drawing (make invisible)
-	 * @param {Point|Line|Rect|Circle|Polygon|Sprite} obj the object to draw
+	 * @description remove an object from drawing display list
+	 * @param {Point|Line|Rect|Circle|Polygon|SpriteBoard} obj the object to draw
 	 * @param {Number} layer the layer to draw in (optional)
 	 */
 	function removeFromDisplayList (obj, layer) {
@@ -186,15 +251,6 @@ window.elefart.display = (function () {
 		}
 	}
 
-	/** 
-	 * @method changeDisplayLayer
-	 * change the layer that the object is drawn in
-	 */
-	function changeDisplayLayer (obj, newLayer) {
-
-	}
-
-
 	/**
 	 * =========================================
 	 * DRAW BACKGROUND CANVAS
@@ -203,7 +259,7 @@ window.elefart.display = (function () {
 
 	/** 
 	 * @method getForegroundCanvas
-	 * get a reference to the foreground canvas
+	 * @description get a reference to the foreground canvas
 	 */
 	function getBackgroundCanvas () {
 		if(firstTime) return false;
@@ -212,11 +268,9 @@ window.elefart.display = (function () {
 
 	/** 
 	 * @method drawBackground
-	 * draw the background for a game in an 
-	 * underlying canvas layer
-	 * - sky
-	 * - Ui bottom panel
-	 * - Ui left panel
+	 * @description draw the background for a game in an underlying canvas layer
+	 * - some building layers including the Sky and Walls
+	 * - additional background objects
 	 */
 	function drawBackground () {
 
@@ -237,46 +291,30 @@ window.elefart.display = (function () {
 
 	/** 
 	 * @method getForegroundCanvas
-	 * get a reference to the foreground canvas
+	 * @description get a reference to the foreground canvas
 	 */
 	function getForegroundCanvas () {
 		if(firstTime) return false;
 		return foreground;
 	}
 
-	function drawUi () {
 
-	}
-
-	function drawElevators () {
-
-	}
-
-	function drawShafts () {
-
-	}
-
-	function drawDoors () {
-
-	}
-
-	function drawPeople () {
-
-	}
-
+	/** 
+	 * @method drawForeground
+	 * @description draw the foreground for the display
+	 */
 	function drawForeground () {
+
+		fctx.save();
 
 		//clear the foreground
 		fctx.clearRect(0, 0, foreground.width, foreground.height);
 
 		//draw user interface
-		drawUi();
-		drawElevators();
-		drawShafts();
-		drawPeople();
-		drawDoors();
-	}
 
+		//restore
+		fctx.restore();
+	}
 
 	/**
 	 * =========================================
@@ -284,10 +322,36 @@ window.elefart.display = (function () {
 	 * =========================================
 	 */
 
+	/** 
+	 * @method drawDisplay
+	 * @description draw the entire game, (background, foreground, 
+	 * user controls) as necessary
+	 */
 	function drawDisplay () {
 
 		drawForeground();
 
+	}
+
+	/**
+	 * =========================================
+	 * DRAW FAIL SCREEN
+	 * =========================================
+	 */
+
+	/** 
+	 * @method drawFail
+	 * @description if we can't run HTML5 canvas, put up an 
+	 * error and exit screen for the user
+	 */
+	function drawFail () {
+		//TODO: need to draw a fail screen with 
+		//DOM methods
+		console.log("elefart:" + elefart);
+		console.log("elefart features:" + elefart.features);
+		console.log("elefart createelement:" + elefart.features.createelement);
+		console.log("elefart features ok:" + elefart.features.ok);
+		elefart.showError("can't load canvas, draw fail screen here");
 	}
 
 	/**
@@ -298,11 +362,18 @@ window.elefart.display = (function () {
 
 
 	/** 
-	 * @method init
+	 * @method init display
+	 * @description initialize the HTML5 canvas display.
 	 */
 	function init () {
 
-		console.log("in display.init")
+		//if we can't run canvas, fallback to DOM error message
+		if(!elefart.features || !elefart.features.ok) {
+			drawFail();
+			return;
+		}
+
+		//assign shared objects
 		building = elefart.building,
 		controller = elefart.controller;
 
@@ -327,7 +398,8 @@ window.elefart.display = (function () {
 	}
 
 	/** 
-	 * @method run
+	 * @method run display
+	 * @description turn on the game canvas so it can be drawn to.
 	 */
 	function run (gamePanel) {
 		if(firstTime) {
@@ -369,7 +441,6 @@ window.elefart.display = (function () {
 		COLORS:COLORS,
 		MATERIALS:MATERIALS,
 		setGameRect:setGameRect,
-		setImagePath:setImagePath,
 		getBackgroundCanvas:getBackgroundCanvas,
 		getForegroundCanvas:getForegroundCanvas,
 		addToDisplayList:addToDisplayList,
