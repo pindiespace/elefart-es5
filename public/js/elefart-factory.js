@@ -11,6 +11,7 @@
 window.elefart.factory = (function () {
 
 	var id = 0, //object Ids
+	display,
 	firstTime = true;
 
 	/* 
@@ -20,6 +21,7 @@ window.elefart.factory = (function () {
 	 */
 	var POINT = "POINT",
 	LINE = "LINE",
+	PADDING = "PADDING",
 	RECT = "RECT",
 	CIRCLE = "CIRCLE",
 	POLYGON = "POLYGON",
@@ -50,6 +52,51 @@ window.elefart.factory = (function () {
 	function getId() {
 		id++;
 		return id;
+	}
+
+	/** 
+	 * @method isNumber
+	 * confirm an object is a number
+	 * @param {Object} obj the object to test
+	 * @returns {Boolean} if a number, return true, else false
+	 */
+	function isNumber (obj) { 
+		return !isNaN(parseFloat(obj))
+	}
+
+	/** 
+	 * @method isString
+	 * confirm and object is a string
+	 * @param {Object} object to test
+	 * @returns {Boolean} if a string, return true, else false
+	 */
+	function isString (obj) {
+		return ("String" === Object.prototype.toString.call(obj).slice(8, -1));
+	}
+
+	function isFunction (obj) {
+		return ("Function" === Object.prototype.toString.call(obj).slice(8, -1));
+	}
+
+	/** 
+	 * @method isRGB
+	 * confirm a string is valid rgb() or #rrggbb or #rgb color
+	 * @link http://www.mkyong.com/regular-expressions/how-to-validate-hex-color-code-with-regular-expression/
+	 * @param {String} str the color string
+	 * @returns {Boolean} if valid color, return true, else false
+	 */
+	function isRGB (str) {
+		var rgb = str.match(/\d+/g);
+		if(rgb && rgb.length && isNumber(rgb[0]) && isNumber(rgb[1]) && isNumber(rgb[2])) {
+			return true;
+		}
+		//check for hex (3 or six digits)
+		var hex = str.match(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/);
+		if(hex) {
+			return true;
+		}
+		elefart.showError("invalid RGB string:" + str);
+		return false;
 	}
 
 	/** 
@@ -95,42 +142,102 @@ window.elefart.factory = (function () {
 	/**
 	 * @constructor Point, similar to DOMPoint, but 
 	 * only containing information for drawing on 2D Canvas
+	 * @returns {Point} a Point object
 	 */
 	function Point (x, y) {
+		if(!isNumber(x) || !isNumber(y)) {
+			elefart.showError(this.type + " not defined, x:" + x + " y:" + y);
+			return false;
+		}
 		return {
 			type:POINT,
 			id:getId(), //unique
 			x:x,
-			y:y
+			y:y,
+			valid: function () { 
+				if(!isNumber(this.x) || !isNumber(this.y)) 
+					return false;
+				else 
+					return true;
+			}
 			//points can't have parents or children
 		};
 	}
 
 	/** 
 	 * @constructor Line
+	 * @returns {Line} a Line object
 	 */
-	function Line (pt1, pt2, width) {
+	function Line (pt1, pt2) {
+		if(pt1 === undefined || pt2 === undefined || 
+			!isNumber(pt1.x) || !isNumber(pt1.y) || 
+			!isNumber(pt2.x) || !isNumber(pt2.y)) {
+			elefart.showError(this.type + " invalid points, pt1:" + typeof pt1 + " pt2:" + typeof pt2);
+			return false;
+		}
 		return {
 			type:LINE,
 			id:getId(),
 			point1:pt1,
 			point2:pt2,
-			width:width
+			width:0,
+			valid: function () {
+				if(!pt1 || !pt2 || 
+					!isNumber(pt1.x) || !isNumber(pt2.y) || 
+					!isNumber(pt2.x) || !isNumber(pt2.y))
+						return false;
+					else 
+						return true;
+			}
+		};
+	}
+
+	/** 
+	 * @constructor Padding, like a Rect
+	 * encoded with TRBL
+	 */
+	function Padding(top, right, bottom, left) {
+		if(!isNumber(top) || !isNumber(right) || !isNumber(bottom) || !isNumber(left) || 
+			bottom + top > this.height || 
+			right + left > this.width) {
+			elefart.showError(this.type + " invalid: top:"+ top + " left:" + left + " bottom:" + bottom + " right:" + right);
+			return false;
 		}
+		return {
+			type:PADDING,
+			id:getId(),
+			top:top,
+			left:left,
+			bottom:bottom,
+			right:right,
+			valid: function () {
+				if(!isNumber(this.top) || !isNumber(this.right) || 
+					!isNumber(this.bottom) || !isNumber(this.left)) 
+						return false;
+					else
+						return true;
+			}
+		};
 	}
 
 	/** 
 	 * @constructor Rect, similar to DOMRect, but only 
 	 * containing information needed to draw on 2D Canvas
+	 * @returns {Rect} a Rect object
 	 */
 	function Rect (x, y, width, height) {
+		if(!isNumber(x) || !isNumber(y) || !isNumber(width) || 
+			!isNumber(height) || width < 0 || y < 0) {
+			elefart.showError(this.type + " invalid dimensions x:" + x + " y:" + y + " w:" + width + " h:" + height)
+			return false;
+		}
 		return {
 			type:RECT,
 			id:getId(),
-			top:x,
-			left:y,
-			bottom: y + width,
-			right: x + height,
+			top:y,
+			right: x + width,
+			bottom: y + height,
+			left:x,
 			width:width,
 			height:height,
 			opacity:1.0,
@@ -138,23 +245,38 @@ window.elefart.factory = (function () {
 			paddingRect:{top:0, left:0, bottom:0, right:0, width:0, height:0},
 			img:null, //IMAGE IN OBJECT
 			parent:null,
-			children:[]
+			children:[],
+			valid: function () {
+				if(!isNumber(this.top) || !isNumber(this.left) || 
+					!isNumber(this.bottom) || !isNumber(this.right) || 
+					this.width != (this.right - this.left) || 
+					this.height != (this.bottom - this.top)) 
+						return false;
+					else
+						return true;
+			}
 
 		};
 	}
 
 	/** 
 	 * @constructor Circle
+	 * @returns {Circle} a Circle object
 	 */
 	function Circle (x, y, radius) {
+		if(!isNumber(x) || !isNumber(y) || 
+			!isNumber(radius) || radius < 0) {
+			elefart.showError(this.type + " invalid dmensions x:" + x + " y:" + y + " radius:" + radius);
+			return false;
+		}
 		var d = 2 * radius;
 		return {
 			type:CIRCLE,
 			id:getId(),
-			top:x,
-			left:y,
-			bottom:y + d,
+			top:y,
 			right:x + d,
+			bottom:y + d,
+			left:x,
 			width:d,
 			height:d,
 			radius:radius,
@@ -164,32 +286,99 @@ window.elefart.factory = (function () {
 			img:null,
 			parent:null,
 			children:[],
-
+			valid: function () {
+				if(!isNumber(this.x) || !isNumber(this.y) || !isNumber(this.radius) || 
+					this.width != radius * 2 || this.height != radius * 2) 
+						return true;
+					else
+						return false;
+			}
 		};
 	}
 
 	/** 
 	 * @constructor Polygon
+	 * @returns {Polygon} a Polybon object
 	 */
 	function Polygon (pts) {
-		var e = getEnclosingRect(pts);
-		return {
+		if(pts === undefined || !pts.length) {
+			elefart.showError(this.type + " invalid points:" + pts);
+			return false;
+		}
+		for(var i = 0; i < pts.length; i++) {
+			if(!pts[i].valid.apply(pts[i],[])) {
+				return false;
+			}
+		}
+		var p = {
 			type:POLYGON,
 			id:getId(),
-			top:e.top,
-			left:e.left,
-			bottom:e.bottom,
-			right:e.right,
-			width:e.width,
-			height:e.height,
+			top:0,
+			right:0,
+			bottom:0,
+			left:0,
+			width:0,
+			height:0,
 			points:clone(pts),
 			opacity:1.0,
 			img:null,
 			parent:null,
-			children:null
-
-		}
+			children:[],
+			enclosingRect:enclosingRect,
+			valid: function () {
+				enclosingRect.apply(this,[]);
+				var pts = this.points
+				for(var i = 0; i < pts.length; i++) {
+					if(!isNumber(pts[i].x) || !isNumber(pts[i].y)) {
+						return false;
+					}
+				}
+				return true;
+			}
+		};
+		p.enclosingRect();
+		return p;
 	}
+
+	/** 
+	 * @method getEnclosingRect
+	 * find the rect which encloses the set of points, used 
+	 * to create a Polygon
+	 * @param {Array} pts an array of x, y points
+	 * @returns {Rect} 
+	 */
+	function enclosingRect () {
+		if(this.type === POINT) {
+			console.log("Warning: returning tiny Rect enclosing a Point");
+			return Rect(this.x,this.y,1,1);
+		}
+		else if(this.type === LINE) {
+			if(this.pt2.y > this.pt1.y) {
+				return Rect(this.pt1.x, this.pt1.y, this.pt2.x - this.pt1.x, this.pt2.y - this.pt1.y);
+			}
+			else {
+				return Rect(this.pt2.x, this.pt2.y, this.pt1.x - this.pt2.x, this.pt1.y - this.pt2.y);
+			}
+		}
+		else if(this.type === POLYGON) {
+			//test and generate the rect at the same time
+			var pts = this.points;
+			if(pts.length) {
+				this.top = this.bottom = pts[0].y;
+				this.left = this.right = pts[0].x;
+				for (var i = 0; i < pts.length; i++) {
+					if(pts[i].x < this.left) this.left = pts[i].x;
+					if(pts[i].y < this.top) this.top = pts[i].y;
+					if(pts[i].x > this.right) this.right = pts[i].x;
+					if(pts[i].y > this.bottom) this.bottom = pts[i].y;
+				}
+			}
+		}
+		this.width = this.right - this.left;
+		this.height = this.bottom - this.top;
+		return Rect(this.left, this.top, this.right, this.bottom);
+	}
+
 
 	/* 
 	 * ============================
@@ -198,36 +387,41 @@ window.elefart.factory = (function () {
 	 */
 
 	/** 
-	 * @method getEnclosingRect
-	 * find the rect which encloses the set of points
-	 * @param {Array} pts an array of x, y points
-	 * @returns {Rect} 
+	 * @method ptInside
+	 * non "this" test for Point inside Rect
+	 * @param {Point} pt the Point
+	 * @param {Rect} rect the Rect
+	 * @returns {Boolean} if Point inside Rect, return true, else false
 	 */
-	function getEnclosingRect (pts) {
-		var r = {top:pts[0].y, left:pts[0].x, bottom:pts[0].y, right:pts[0].x, width:0, height:0};
-		for (var i = 0; i < pts.length; i++) {
-			if(pts[i].x < r.left) r.left = pts[i].x;
-			if(pts[i].y < r.top) r.top = pts[i].y;
-			if(pts[i].x > r.right) r.right = pts[i].x;
-			if(pts[i].y > r.bottom) r.bottom = pts[i].y;
+	function ptInside(pt, rect) {
+		if(pt.x >= this.left && 
+			pt.x <= this.right && 
+			pt.y >= this.top &&
+			pt.y <= this.bottom) {
+			return true;
 		}
-		r.width = r.right - r.left;
-		r.height = r.bottom - r.top;
-		return r;
 	}
 
 	/** 
-	 * @method pointInRect
+	 * @method pointInside
 	 * determine if a point is inside or outside Rect
 	 * @param {Point} pt the point to test
-	 * @param {Rect} rect the rect to test
 	 * @returns {Boolean} if not in rect, false, else true
 	 */
-	function pointInRect (pt, rect) {
-		if(pt.x > rect.left && 
-			pt.x < rect.right && 
-			pt.y > rect.top &&
-			pt.y < rect.bottom) {
+	function pointInside (pt) {
+		if(this.type === POINT || this.type === LINE) {
+			elefart.showError("point cannot be inside POINT or LINE objects");
+			return false;
+		} 
+		//everything else has a Rect in it
+		if(this.top === undefined) {
+			elefart.showError(this.type + " can't determine if Point is inside");
+			return false;
+		}
+		if(pt.x >= this.left && 
+			pt.x <= this.right && 
+			pt.y >= this.top &&
+			pt.y <= this.bottom) {
 			return true;
 		}
 		return false;
@@ -235,35 +429,90 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method rectInRect
-	 * determine if rect1 is completely inside rect2
-	 * @param {Rect} rect1 the inner rect
-	 * @param {Rect} rect2 the outer rect
+	 * determine if this object is completely inside rect2
+	 * @param {Rect} rect the outer rect
 	 * @returns {Boolean}  if inside, return true, else false
 	 */
-	function rectInRect (rect1, rect2) {
-		if(pointInRect({x:rect1.left, y:rect1.top}, rect2) && 
-			pontInRect({x:rect1.right, y:rect1.bottom}, rect2)) {
+	function insideRect (rect) {
+		if(this.type === POINT) {
+			return ptInside(this, rect);
+		}
+		else if(this.type === LINE) {
+			return (ptInside(this.pt1, rect) && ptInside(this.pt2, rect));
+		}
+		//everything else has a Rect in it
+		if(this.top === undefined) {
+			elefart.showError(this.type + " can't determine if it is inside Rect");
+			return false;
+		}
+		if(this.top >= rect.top && 
+			this.left >= rect.left && 
+			this.bottom <= rect.bottom && 
+			this.right <= rect.right) {
 			return true;
 		}
 		return false;
 	}
 
 	/** 
-	 * @method rectHitTest
-	 * determine if two rects intersect at all
+	 * @method intersectRect
+	 * determine if an object intersets a Rect at all
 	 * MUCH SIMPLER than generalized collision detection
 	 * @link http://gamedevelopment.tutsplus.com/tutorials/collision-detection-using-the-separating-axis-theorem--gamedev-169
 	 * @returns {Rect} if intersect, return a Rect with the collision sides 
 	 * listed with a 1, non-colliding sides = 0
-	 * @returns {Object} we return a partial Rect object with the collision sides marked
+	 * @returns {Boolean} if collided, return true, else false
 	 */
-	function rectCollideTest (rect1, rect2) {
-		return !(((rect1.left + rect1.width - 1) < rect1.right) ||
-			((rect1.right + rect2.width - 1) < rect1.left) ||
-			((rect1.top + rect1.height - 1) < rect1.bottom) ||
-			((rect1.bottom + rect2.height - 1) < rect1.top)) 
+	function intersectRect (rect) {
+		if(this.type === POINT) {
+			return ptInside(this, rect);
+		}
+		else if(this.type === LINE) {
+			return (ptInside(this.pt1, rect) && ptInside(this.pt2, rect));
+		}
+		if(this.top === undefined) {
+			elefart.showError(this.type + " can't get its intersect");
+			return false;
+		}
+		return (this.left <= rect.right &&
+			rect.left <= this.right &&
+			this.top <= rect.bottom &&
+			rect.top <= this.bottom);
 	}
 
+	/** 
+	 * @method getCenter
+	 * get the center of an object
+	 * @returns {Point|false} the center point, or false
+	 */
+	function getCenter () {
+		if(this.type === POINT) {
+			return this;
+		}
+		else if(this.type === LINE) {
+			if(pt2.x >= pt1.x) {
+				return {
+					x: this.pt1.x + Math.floor((this.pt2.x - this.pt1.x)/2),
+					y: this.pt1.y + Math.floor((this.pt2.y - this.pt1.y)/2)
+				}
+			}
+			else {
+				return {
+					x: this.pt2.x + Math.floor((this.pt1.x - this.pt2.x)/2),
+					y: this.pt2.y + Math.floor((this.pt1.y - this.pt2.y)/2)
+				}
+			}
+		}
+		//everything else has a Rect, so find center x, y for a rect
+		if(this.top === undefined) {
+			elefart.showError(this.type + " can't get its center");
+			return false;
+		}
+		return {
+			x: this.left + Math.floor((this.right - this.left)/2),
+			y: this.top + Math.floor((this.bottom - this.top)/2)
+		}
+	}
 
 	/* 
 	 * ============================
@@ -272,41 +521,108 @@ window.elefart.factory = (function () {
 	 */
 
 	/** 
-	 * @method rectGetCenter
-	 * center a Rect on a Point
-	 * @param {Rect} rect the rect to center
+	 * @method move
+	 * move an object, optionally move children
+	 * @param {Number} dx change in x position
+	 * @param {Number} dy change in y position
+	 * @param {Boolean} recurse if true, move children the same distance
+	 * @returns {Boolean} if moved, return true, else false
 	 */
-	function rectGetCenter (rect) {
-		//find center x, y for a rect
-		return {
-			x: rect.right - rect.left,
-			y: rect.bottom - rect.top
+	function move (dx, dy, recurse) {
+		if(dx === undefined || dy === undefined) {
+			elefart.showError(this.type + " invalid move, x:" + dx + " y:" + dy);
+			return false;
 		}
+		if(this.type === POINT) {
+			this.x += dx;
+			this.y += dy; 
+		}
+		else if(this.type === LINE) {
+			this.pt1.x += dx; this.pt2.x += dx;
+			this.pt1.y += dy; this.pt2.y += dy;
+		}
+		else if(this.type === POLYGON) {
+			for(var i = 0; i < this.pts.length; i++) {
+				this.pts[i].x += dx; this.pts[i].y += dy;
+			}
+		}
+		//Rect and Circle and Polygon
+		this.left += dx; this.right  += dx;
+		this.top  += dy; this.bottom += dy;
+		//update children
+		if(recurse && this.children) {
+			for(var i = 0; i < this.children.length; i++) {
+				var child = this.children[i];
+				child.move.apply(this, [dx, dy, recurse]);
+			}
+		}
+		return true;
 	}
 
 	/** 
-	 * @method centerRectOnPoint
+	 * @method moveTo
+	 * move an object to a specific coordinate
+	 * @param {Number} x new x position
+	 * @param {Number} y new y position
+	 * @param {Boolean} recurse if true, move children the same distance
+	 * @returns {Boolean} if moved, return true, else false
+	 */ 
+	function moveTo(x, y, recurse) {
+		var dx, dy;
+		if(x === undefined || y === undefined) {
+			elefart.showError(this.type + " invalid moveTo, x:" + x + " y:" + y);
+			return false;
+		}
+		if(this.type === POINT) {
+			dx = x - this.x;
+			dy = y - this.y;
+		}
+		else if(this.type === LINE) {
+			dx = x - this.pt1.x;
+			dy = y = this.pt1.y;
+		}
+		else { //all others have Rect
+			dx = x - this.left;
+			dy = y - this.top;
+			move.apply(this, [dx, dy, recurse]);
+		}
+		return true;
+	}
+
+	/** 
+	 * @method rectCenterOnPoint
 	 * center a Rect on a Point
 	 * @param {Rect} rect the rect to center
 	 * @param {Point} centerPt the point to use
 	 * @param {Boolean} recurse if true, center children as well, 
 	 * otherwise just move the chidren with their newly centered parent
+	 * @returns {Boolean} of set. return true, else false
 	 */
-	function centerRectOnPoint (rect, centerPt, recurse) {
-		var oldx = rect.left, 
-		oldy = rect.top;
-		rect.left = centerPt.x - min(rect.right - rect.left/2);
-		rect.right = rect.left + rect.width;
-		rect.top = centerPt.y - min(rect.bottom - rect.top/2);
-		rect.bottom = rect.top + rect.height;
-		dx = oldX - rect.left;
-		dy = oldY = rect.top;
-		if(recurse) {
-			for(var i = 0; i < children.length; i++) {
-				moveRect(children[i], dx, dy, recurse);
-			}
+	function centerOnPoint (centerPt, recurse) {
+		var dx, dy;
+		if(!centerPt.valid.apply(centerPt,[])) {
+			return false;
 		}
-		return rect;
+		if(this.type === PADDING) {
+			elefart.showError(this.type + " cannot be centered on a POINT");
+			return false;
+		}
+		if(this.type === POINT) {
+			this.x = centerPt.x;
+			this.y = centerPt.y;
+		}
+		else if(this.type === LINE) {
+			dx = centerPt.x - Math.min((this.pt2.x - this.pt1.x)/2);
+			dy = centerPt.y - Math.min((this.pt2.y - this. pt1.y)/2);
+			this.pt1.x += dx; this.pt2.x += dx;
+			this.pt1.y += dy; this.pt2.y += dy;
+		}
+		else {
+			dx = centerPt.x - Math.min(this.width/2);
+			dy = centerPt.y - Math.min(this.height/2);
+			moveTo.apply(this, [dx, dy, recurse]);
+		}
+		return true;
 	}
 
 	/** 
@@ -314,88 +630,359 @@ window.elefart.factory = (function () {
 	 * center a rect so it is inside, or surrounds an other Rect
 	 * @param {Rect} rect the Rect to center
 	 * @param {Rect} centerRect the Rect to center the first rect onto
+	 * @returns {Boolean} if set, return true, else false
 	 */
-	function centerRectInRect (rect, centerRect, recurse) {
-		var p = rectGetCenter(rect);
-
-		return centerRectOnPoint(centerRect, p, recurse);
+	function centerInRect (centerRect, recurse) {
+		if(this.type == POINT || this.type === LINE || this.type === PADDING) {
+			elefart.showError(this.type + " cannot be centered in RECT");
+			return false;
+		}
+		var c = getCenter.apply(centerRect);
+		var x = c.x - Math.min(this.width/2);
+		var y = c.y - Math.min(this.height/2);
+		moveTo.apply(this, [x, y, recurse]);
+		return true;
 	}
 
-	function moveRect (rect, x, y, recurse) {
-		rect.left += x; rect.right += x;
-		rect.top += y; rect.bottom += y;
-		if(recurse) {
-			for(var i = 0; i < this.children.length; i++) {
-				var child = obj.children[i];
-				child.move(child, x, y, recurse);
-			}
-		}	
+	/** 
+	 * @method setDimensions
+	 * set width and height. Internal variables are NOT private, but should 
+	 * be set using setters in this library
+	 * @param {Number} width new width
+	 * @param {Number} height new height
+	 * @returns {Boolean} if set, return true, else false
+	 */
+	function setDimensions (width, height) {
+		if(this.type === POINT || this.type === LINE || this.type === PADDING) {
+			elefart.showError(this.type + " cannot set dimensions");
+			return false;
+		}
+		var dw =  width - this.width;
+		var dh =  height - this.height;
+		this.width = width;
+		this.height = height;
+		this.right += dw;
+		this.bottom += dh;
+		return true;
 	}
 
-	function scaleRect (rect, scale, recurse) {
-		rect.right *= scale;
-		rect.bottom *= scale;
-		rect.width = rect.right - rect.left;
-		rect.height = rect.bottom - rect.top;
+	/** 
+	 * @method scale
+	 * scale an object's size (keep integer values)
+	 * @param {Number} scale the scale value. 1.0 = no change
+	 * @param {Boolean} recurse if true, scale child objects
+	 * @returns {Boolean} if set, return true, else false
+	 */
+	function scale (scale, recurse) {
+		if(!isNumber(scale) || scale < 0) {
+			elefart.showError(this.type + " invalid scale:" + scale);
+			return false;
+		}
+		if(this.type === POINT) {
+			//nothing, Points don't scale
+		}
+		else if(this.type === LINE) {
+			var dx = scale * (this.pt2.x - this.pt1.x);
+			var dy = scale * (this.pt2.y - this.pt1.y);
+			this.pt2.x = this.pt1.x + dx;
+			this.pt2.y = this.pt1.y + dy;
+		}
+		else {
+			this.right = this.left + Math.min(this.width * scale);
+			this.bottom = this.top + Math.min(this.height * scale);
+			this.width = this.right - this.left;
+			this.height = this.bottom - this.top;
+		}
 		if(recurse) {
 			for(var i = 0; i < this.children.length; i++) {
 				var child = obj.children[i];
 				child.scale(child, scale, recurse);
 			}
 		}
+		return true;
 	}
 
-	function setRectPadding (rect, paddingRect) {
-		rect.paddingRect.top = paddingRect.top;
-		rect.paddingRect.left = paddingRect.left;
-		rect.paddingRect.bottom = paddingRect.bottom;
-		rect.paddingRect.right = paddingRect.right;
-	}
+	/** 
+	 * @method setRectPadding
+	 * set the padding on a Rect, moving any child objects, but not 
+	 * resizing (which may leave an overhang)
+	 * @param {Padding} padding the padding object, with padding for 
+	 * top, right, bottom, left
+	 * @returns {Boolean} if set, return true, else false
+	 */
+	function setRectPadding (padding) {
+		if(this.type === POINT || this.type === PADDING || this.type === LINE) {
+			elefart.showError(this.type + " padding not allowed");
+			return false;
+		}
+		//check if valid padding
+		if((padding.left + padding.right) > this.width || 
+			(padding.top + padding.bottom) > this.height) {
+			elefart.showError(this.type + " padding exceeds width and height of its Rect");
+		}
+		//set padding
+		this.paddingRect.top = padding.top;
+		this.paddingRect.left = padding.left;
+		this.paddingRect.bottom = padding.bottom;
+		this.paddingRect.right = padding.right;
 
-	function addChild(obj, child) {
-		obj.children.push(child);
-	}
+		var x, y;
+		if(this.type === POINT) {
+			x = this.x + this.paddingRect.left, y = this.y + this.paddingRect.top;
+		}
+		else if(this.type === LINE) {
+			x = this.pt1.x + this.paddingRect.left, y = this.pt1.y + this.paddingRect.top;
+		}
+		else if(this.type === RECT) {
+			x = this.top + this.paddingRect.top, y = this.left + this.paddingRect.left;
+		}
+		else if(this.type === CIRCLE) {
+			elefart.showError("can't set padding for CIRCLE");
+		}
+		else if(this.type === POLYGON) {
+			elefart.showError("can't set padding for POLYGON");
+		}
 
-	function removeChild(obj, childId) {
-		for(var i = 0; i < obj.children.length; i++) {
-			var child = obj.children[i];
-			if(child.id === id) {
-				array.splice(i, 1);
+		/* 
+		 * We set top and left padding, and then adjust bottom 
+		 * and right, which may result in an overhang. If an object
+		 * is "floating" inside any padding, we leave it alone
+		 */
+		if(this.children) {
+			for(var i = 0; i < this.children.length; i++) {
+				move.apply(this.children[i], [x, y]);
 			}
 		}
+		return true;
 	}
 
-	function setFilter (obj, filter) {
-		obj.filter = filter;
+	/* 
+	 * ============================
+	 * OBJECT CREATION AND DELETION
+	 * ============================
+	 */
+
+	/** 
+	 * @method addChild
+	 * add a child object to an object
+	 * @param {Object} a child object, either Point, Line, 
+	 * Rect, Circle, Polygon
+	 */
+	function addChild(child) {
+		if(this.children) {
+			if(child === undefined || !child.type === undefined || 
+				child.type === PADDING) {
+				elefart.showError(child.type + " cannot add as child");
+				return false;
+			}
+			//don't let child be added twice
+			for(var i = 0; i < this.children.length; i++) {
+				if(child === this.children[i]) {
+					elefart.showError("addChild, tried to add child that is already present in this object" + child);
+					return false;
+				}
+			}
+			//add to array
+			this.children.push(child);
+			return true;
+		}
+		elefart.showError(child.type + " cannot have children");
+		return false;
 	}
 
-	function setGradient(obj, grad) {
-		obj.gradient = grad;
+	/** 
+	 * @method findChild
+	 * find a child by its id
+	 * @param {Number} childId the id of the object
+	 * @returns {Object|false} if OK, return an object, else false
+	 */
+	function findChild(childId) {
+		if(this.children) {
+			if(childId === undefined || !isNumber(childId)) {
+				elefart.showError("findChild, invalid childId:" + childId);
+				return false;
+			}
+			for(var i = 0; i < this.children.length; i++) {
+				if(this.children[i].id === childId) {
+					return this.children[i];
+				}
+			}
+		}
+		elefart.showError(this.type + " cannot add children");
+		return false;
 	}
 
-	function setOpacity(obj, opacity) {
-		obj.opacity = opacity;
+	/** 
+	 * @method removeChild
+	 * remove a child by its id
+	 * @param {Number} childId the id of the object
+	 * @returns {Object|false} if ok, return the removed child, else false
+	 */
+	function removeChild(childId) {
+		if(this.children) {
+			if(childId === undefined || !isNumber(childId)) {
+				elefart.showError("removeChild, invalid childId:" + childId);
+				return false;
+			}
+			for(var i = 0; i < this.children.length; i++) {
+				var child = this.children[i];
+				if(this.children[i].id === childId) {
+					return this.children.splice(i, 1)[0]; //return child outside array .splice() array
+				}
+			}
+		}
+		elefart.showError(this.type + " cannot add children");
+		return false;
 	}
 
-	function setStroke(obj, width, color) {
-		obj.borderWidth = width;
-		obj.borderColor = color;
+	/** 
+	 * @method setFilter
+	 * set a filter on an image, if it exists
+	 * @param {Function} filter the filtering function (expects pixel data)
+	 */
+	function setFilter (filter) {
+		if(!this.img) {
+			elefart.showError(this.type + " warning, filter added, but no image present");
+			return false;
+		}
+		if(!isFunction(filter)) {
+			elefart.showError("supplied filter is not a Function:" + filter);
+		}
+		this.filter = filter;
 	}
 
-	function setFill(obj, color) {
-		obj.fillColor = color;
+	/** 
+	 * @method setGradient
+	 * set an HTML5 canvas gradient object for the object
+	 * @param {HTML5 Canvas Gradient} grad gradient from canvas.getContext()
+	 */
+	function setGradient(grad) {
+		if(!grad) {
+			elefart.showError("null gradient applied to object");
+			return false;
+		}
+		this.gradient = grad;
 	}
 
-	function setImage(obj, src, callback) {
-		obj.img = new Image().onload = function (callback) {
-			this.width = obj.width;
-			this.height = obj.height;
-			callback(this); //callback function passed image
+	/** 
+	 * @method setOpacity
+	 * set the opacity of an object
+	 * @param {Number} opacity the opacity of the object
+	 */
+	function setOpacity(opacity) {
+		if(!isNumber(opacity || opacity < 0.0 || opacity > 1.0)) {
+			elefart.showError("invalid opacity:" + opacity);
+		}
+		this.opacity = opacity;
+	}
+
+	/** 
+	 * @method setStroke
+	 * set the stroke around an object
+	 * @param {Number} width the width of the stroke in pixels
+	 * @param {String} rgb() or #rrggbb or #rgb color string
+	 */
+	function setStroke(width, color) {
+		if(this.type === POINT || this.type === PADDING) {
+			elefart.showError(this.type + " can't apply a width or color");
+			return false;
+		}
+		if(width < 0) {
+			elefart.showError(this.type + " invalid stroke");
+			return false;
+		}
+		if(!isRGB(color)) {
+			elefart.showError("invalid color string:" + color);
+			return false;
+		}
+		this.borderWidth = width;
+		this.borderColor = color;
+	}
+
+	/** 
+	 * @method setBorderRadius
+	 * set rounded Rect, in current version all cornder has the 
+	 * same rounding
+	 * @param {Number} borderRadius the border radious
+	 */
+	function setBorderRadius(borderRadius) {
+		if(this.type !== RECT) {
+			elefart.showError(this.type + " does not have border radius");
+		}
+		//if borderRadius = width = height we have a Circle
+		if(borderRadius > this.width || borderRadius > this.height) {
+			elefart.showError("invalid border radius dimensions:" + borderRadius);
+			return false;
+		}
+		this.borderRadius = borderRadius;
+	}
+
+	/** 
+	 * @method setFill
+	 * set the fill color
+	 * @param {String} color the rgb() or #rrggbb or #rgb color
+	 */
+	function setFill(color) {
+		if(!isRGB(color)) {
+			elefart.showError("invalid RGB color");
+			return false;
+		}
+		this.fillColor = color;
+	}
+
+	/** 
+	 * @method setImage
+	 * replace background fill with image pixels in an object
+	 * includes a callback for images that are dynamically loaded
+	 * @param {String} src the file path to the image
+	 * @param {Function} callback function after the image is loaded
+	 */
+	function setImage(src, callback) {
+		var that = this;
+		that.img = new Image().onload = function (callback) {
+			this.width = that.width;
+			this.height = that.height;
+			callback(that); //callback function passed image
 		}
 	}
 
-	function setLayer(obj, layer) {
-		obj.layer = layer;
+	function setLayer(layer) {
+		//get length of current layers from elefart.display
+		var len = 0;
+		for(var i in display.LAYERS) {
+			len++;
+		}
+		if(layer < 0 || layer >= len) {
+			elefart.showError("invalid layer index:" + layer);
+			return false;
+		}
+		this.layer = layer;
+	}
+
+	function addFns (obj) {
+		obj.pointInside = pointInside,
+		obj.insideRect = insideRect,
+		obj.intersectRect = intersectRect,
+		obj.getCenter = getCenter,
+		obj.move = move,
+		obj.moveTo = moveTo,
+		obj.centerOnPoint = centerOnPoint,
+		obj.centerInRect = centerInRect,
+		obj.setDimensions = setDimensions,
+		obj.scale = scale,
+		obj.setRectPadding = setRectPadding,
+		obj.findChild = findChild,
+		obj.addChild = addChild,
+		obj.removeChild = removeChild,
+		obj.setFilter = setFilter,
+		obj.setGradient = setGradient,
+		obj.setOpacity = setOpacity,
+		obj.setStroke = setStroke,
+		obj.setBorderRadius = setBorderRadius,
+		obj.setFill = setFill,
+		obj.setImage = setImage,
+		obj.setLayer = setLayer;
+		return obj;
 	}
 
 	/* 
@@ -408,18 +995,10 @@ window.elefart.factory = (function () {
 	 * @method ScreenRect
 	 * create a ScreenRect object
 	 */
-	function ScreenRect (x, y, width, height, strokeWidth, strokeColor, fillColor, paddingRect, layer) {
+	function ScreenRect (x, y, width, height, strokeWidth, strokeColor, fillColor, layer) {
 		var r = Rect(x, y, width, height);
-		setStroke(r, strokeWidth, strokeColor);
-		setFill(r, fillColor);
-		setRectPadding(r, paddingRect);
-		setLayer(r, layer);
-		r.move = moveRect;
-		r.scale = scaleRect;
-		r.setPadding = setRectPadding;
-		r.setOpacity = setOpacity;
-		r.setStroke = setStroke;
-		r.setFill = setFill;
+		addFns(r);
+		r.setLayer(layer);
 		return r;
 	}
 
@@ -428,18 +1007,23 @@ window.elefart.factory = (function () {
 	 * create a screen circle
 	 */
 	function ScreenCircle (x, y, radius, strokeWidth, strokeColor, fillColor, layer) {
-		var r = Circle(x, y, radius);
-		setOpacity(r, 1.0);
-		setStroke(r, strokeWidth, strokeColor);
-		setFill(r, fillColor);
-		setLayer(r, layer);
-		return r;
+		var c = Circle(x, y, radius);
+		addFns(c);
+		c.setLayer(layer);
+		return c;
+	}
+
+	function ScreenPoly(pts, layer) {
+		var p = Polygon(pts);
+		addFns(r);
+		p.setLayer(layer);
+		return p;
 	}
 
 	function ScreenImage(x, y, src, callback, layer) {
 		var r = Rect(x, y, 0, 0); //zero until image loaded
-		setLayer(r, layer);
-		setImage(r, src, callback);
+		r.setLayer(layer);
+		r.setImage(src, callback);
 		return r;
 	}
 
@@ -464,6 +1048,7 @@ window.elefart.factory = (function () {
 	 * @method init
 	 */
 	function init () {
+		display = elefart.display;
 		firstTime = false;
 	}
 
@@ -480,6 +1065,7 @@ window.elefart.factory = (function () {
 	return {
 		Point:Point,
 		Line:Line,
+		Padding:Padding,
 		Rect:Rect,
 		Circle:Circle,
 		Polygon:Polygon,

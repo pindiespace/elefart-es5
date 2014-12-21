@@ -15,6 +15,7 @@ window.elefart.display = (function () {
 	foreground,  //foreground canvas
 	background,  //background canvas
 	displayList = {}, //multi-dimensional array with drawing objects
+	imgPath,     //path to image directory
 	hotelWalls,  //hotel walls
 	hotelSign,   //hotel sign
 	spriteBoard, //images of users for animation
@@ -33,6 +34,8 @@ window.elefart.display = (function () {
 		FLOORS:"FLOORS"  //people and objects in the room floors
 	}, //d"isplay list layers. Layers are drawn from 0 outwards
 	COLORS = { //flat colors
+		BLACK:"rgb(0,0,0)",
+		WHITE:"rgb(255,255,255)",
 		LIGHT_GREY:"rgb(128,128,128)",
 		DARK_GREY:"rgb(40,40,40)"
 	},
@@ -53,19 +56,23 @@ window.elefart.display = (function () {
 	 * @returns {DOMRect} a DOMRect 
 	 * DOMRect {left:0, top:0, right:0, bottom:0, width:0, height:0}
 	 */
-	 function setGameRect () {
-	 	rect = panel.getBoundingClientRect();
-	 }
+	function setGameRect () {
+		rect = panel.getBoundingClientRect();
+	}
 
-	 /** 
+	/** 
 	  * @method setGameSize
 	  * (re)set the size of the game drawing at 
 	  * start, or if user changes window size
 	  */
-	 function setGameSize () {
-	 	rect = panel.getBoundingClientRect();
-	 	//TODO: recalculate
-	 }
+	function setGameSize () {
+		rect = panel.getBoundingClientRect();
+		//TODO: recalculate
+	}
+
+	function setImagePath (path) {
+		imgPath = path;
+	}
 
 	/** 
 	 * @method preload
@@ -161,10 +168,22 @@ window.elefart.display = (function () {
 	 * @method removeFromDisplayList
 	 * remove an object from drawing (make invisible)
 	 * @param {Point|Line|Rect|Circle|Polygon|Sprite} obj the object to draw
-	 * @param {Number} layer the layer to draw in
+	 * @param {Number} layer the layer to draw in (optional)
 	 */
 	function removeFromDisplayList (obj, layer) {
-
+		var pos;
+		if(layer) {
+			pos = checkIfInLayer(obj);
+			if(pos) {
+				displayList[layer].splice(pos, 1); //remove element
+			}
+		}
+		else {
+			pos = checkIfInList(obj);
+			if(pos) {
+				displayList[pos.layer].splice(pos, 1);
+			}
+		}
 	}
 
 	/** 
@@ -346,9 +365,15 @@ window.elefart.display = (function () {
 
 	//returned object
 	return {
+		LAYERS:LAYERS,
+		COLORS:COLORS,
+		MATERIALS:MATERIALS,
 		setGameRect:setGameRect,
+		setImagePath:setImagePath,
 		getBackgroundCanvas:getBackgroundCanvas,
 		getForegroundCanvas:getForegroundCanvas,
+		addToDisplayList:addToDisplayList,
+		removeFromDisplayList:removeFromDisplayList,
 		drawDisplay:drawDisplay,
 		init:init,
 		run:run

@@ -27,20 +27,20 @@ window.elefart.building = (function () {
 	 */
 
 	function Elevator () {
-		console.log("FACTORYYYYYYYYYYYY:"+elefart.factory)
 		var elev = {
 			disp:factory.ScreenRect(
 				10, 10, 
 				100, 100, 
 				4, 
-				display.DARK_GREY, display.LIGHT_GREY, 
-				factory.setRectPadding(elev, factory.Rect(0,0,0,0)), 
-				0
+				display.COLORS.BLACK, 
+				display.COLORS.WHITE, 
+				display.LAYERS.ELEBACK
 			)
 		};
 		parts.elevators.push(elev);
-		elev.setStroke(rect, 4, 'rgb(25,50,100');
-		elev.setFill(rect,'rgb(200,100,100');
+		elev.disp.setStroke(4, 'rgb(25,50,100');
+		elev.disp.setFill('rgb(200,100,100');
+			return elev;
 	}
 
 	/* 

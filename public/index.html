@@ -329,7 +329,7 @@ toast(
 		console.log('set 1 downloaded, core functions');
 		elefart.init();
 		elefart.dom.init();
-		elefart.factory.init();
+
 	},
 	'js/screen-splash.js', 
 	'js/screen-install.js', 
@@ -349,6 +349,7 @@ toast(
 		elefart.building.init();
 		elefart.dashboard.init();
 		elefart.controller.init();
+		elefart.factory.init(); //NOTE: we loaded earlier, but init now
 	},
 	'js/screen-game.js', 
 	'js/screen-join.js', 

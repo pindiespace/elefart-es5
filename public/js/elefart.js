@@ -33,10 +33,11 @@ window.elefart = (function () {
 	 * @returns {String} error string, which may have the caller function name attached
 	 */
 	function showError (msg, fnFlag) {
+		var c = "";
 		if(fnFlag && (arguments.callee.caller.name)) {
-			var c = (arguments.callee.caller.name) + "()";
+			c = (arguments.callee.caller.name) + "() - ";
 		}
-		console.log("ERROR::" + c + " - " + msg);
+		console.log("ERROR::" + c + msg);
 	}
 
 /* 

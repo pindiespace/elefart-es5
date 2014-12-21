@@ -4,7 +4,6 @@
  */
 
 "use strict";
-var r;
 
 describe("Counter tests", function () {
 
@@ -23,6 +22,7 @@ describe("Counter tests", function () {
 
 });
 
+
 //base object tests
 
 describe('Elefart base', function() {
@@ -37,7 +37,7 @@ describe('Elefart base', function() {
 	});
 
 });
-
+ 
 
 describe('Elefart screens', function () {
 	it('should have screen objects attached', function () {
@@ -54,47 +54,239 @@ describe('Elefart screens', function () {
 });
 
 
-//screen object tests
 
-describe('Make Rect', function () {
+describe('Elefart factory', function () {
 
-		beforeEach(function() {
-			r = new elefart.factory.Rect (10, 20, 100, 200);
-		});
+	beforeEach(function () {
+		elefart.factory.init();
+	});
 
-		afterEach(function() {
-			r = null;
-		});
+	it('should have screen objects attached', function () {
 
-	it('should have consistent params', function () {
-		expect(r.top).toBe(10);
-		expect(r.left).toBe(20);
-		expect(r.width).toBe(100);
-		expect(r.height).toBe(200);
-		expect(r.bottom).toBe(120);
-		expect(r.right).toBe(210);
+		expect(typeof elefart.factory).toBe('object');
+
+		//Point and Line tests
+		var p = new elefart.factory.Point(10, 10);
+		expect(typeof p).toBe('object');
+		expect(p.valid()).toBe(true);
+		var l = new elefart.factory.Line(
+			elefart.factory.Point(10, 20), 
+			elefart.factory.Point(100, 200)
+			);
+
+		//Padding tests
+		var pd = new elefart.factory.Padding(4,3,2,1);
+		expect(typeof pd).toBe('object');
+		expect(pd.valid()).toBe(true);
+
+		//Rect tests
+		var r = new elefart.factory.Rect(10, 100, 20, 200);
+		expect(typeof r).toBe('object');
+		expect(r.valid()).toBe(true);
+		expect(r.top).toBe(100);
+		expect(r.left).toBe(10);
+		expect(r.bottom).toBe(300);
+		expect(r.right).toBe(30);
+
+		//Circle tests
+		var c = new elefart.factory.Circle(20, 10, 200);
+		expect(typeof c).toBe('object');
+		expect(c.valid()).toBe(true);
+		expect(c.top).toBe(10);
+		expect(c.left).toBe(20);
+		expect(c.bottom).toBe(410);
+		expect(c.right).toBe(420);
+		expect(c.width).toBe(400);
+		expect(c.height).toBe(400);
+
+		//Polygon tests
+		var p = new elefart.factory.Polygon([
+			elefart.factory.Point(1,2), 
+			elefart.factory.Point(3,20),
+			elefart.factory.Point(9, 10)]
+			);
+
+		expect(typeof p).toBe('object');
+		expect(p.valid()).toBe(true);
+		var b = p.enclosingRect();
+		expect(typeof b).toBe('object');
+		expect(b.top).toBe(2);
+
+		var inside;
+
+		//check pointInside
+		inside = elefart.factory.ScreenRect(4, 5, 20, 20).pointInside(
+			elefart.factory.Point(3, 2)
+			);
+		expect(inside).toBe(false);
+		inside = elefart.factory.ScreenRect(1, 0, 20, 20).pointInside(
+			elefart.factory.Point(3, 2)
+			);
+		expect(inside).toBe(true);
+		inside = elefart.factory.ScreenRect(1, 0, 20, 20).pointInside(
+			elefart.factory.Point(10, 100)
+			);
+		expect(inside).toBe(false);
+		inside = elefart.factory.ScreenRect(1, 0, 20, 20).pointInside(
+			elefart.factory.Point(33, 6)
+			);
+		expect(inside).toBe(false);
+
+		//check insideRect
+		inside = elefart.factory.ScreenRect(10, 40, 200, 500).insideRect(
+			elefart.factory.Rect(20, 60, 100, 300)
+			);
+		expect(inside).toBe(false);
+		inside = elefart.factory.ScreenRect(10, 40, 100, 300).insideRect(
+			elefart.factory.Rect(4, 9, 400, 600)
+			);
+		expect(inside).toBe(true);
+
+		//check intersectRect
+		var collide = elefart.factory.ScreenRect(10, 40, 100, 300).intersectRect(
+			elefart.factory.Rect(4, 9, 400, 600)
+			);
+		expect(collide).toBe(true);
+
+		//check getCenter
+		var center = elefart.factory.ScreenRect(20, 100, 16, 9).getCenter();
+		expect(center.x).toBe(28);
+		expect(center.y).toBe(104);
+
+		//check centerOnPoint
+		var mv = elefart.factory.ScreenRect(0, 0, 100, 200);
+		mv.centerOnPoint(
+			elefart.factory.Point(200, 400));
+		expect(mv.left).toBe(150);
+		expect(mv.top).toBe(300);
+
+		//check move
+		mv.move(50, 50);
+		expect(mv.left).toBe(200);
+		expect(mv.top).toBe(350);
+
+		//check moveTo
+		mv.moveTo(200, 300);
+		expect(mv.left).toBe(200);
+		expect(mv.top).toBe(300);
+
+		//check setDimensions
+		mv.setDimensions(100, 100);
+		expect(mv.width).toBe(100);
+		expect(mv.height).toBe(100);
+
+		//check centerOnPoint
+		mv.centerOnPoint(
+			elefart.factory.Point(300, 300)
+			);
+		expect(mv.left).toBe(250);
+		expect(mv.top).toBe(250);
+
+		//center centerInRect
+		mv.centerInRect(elefart.factory.ScreenRect(200, 200, 400, 400)); //FAIL
+		expect(mv.left).toBe(350);
+		expect(mv.top).toBe(350);
+
+		//check scale
+		mv.scale(2.0);
+		expect(mv.width).toBe(200);
+		expect(mv.height).toBe(200);
+
+		//check setRectPadding
+		mv.setRectPadding(elefart.factory.Padding(4,5,6,7));
+
+
+		//check addChild
+		mv.addChild(elefart.factory.ScreenRect(33,55,100,300)); //add a child
+		var child = elefart.factory.ScreenRect(20, 20, 10, 10); //create our test child
+		var childId = child.id;
+		mv.addChild(child); //add our test child
+		mv.addChild(elefart.factory.ScreenRect(4, 2, 200, 300)); //add another child
+		expect(mv.children.length).toBe(3);
+		expect(mv.children[1].id).toBe(childId);
+
+		//check findChild
+		var foundChild = mv.findChild(childId);
+		expect(foundChild.id).toBe(childId);
+
+		//check removeChild
+		foundChild = mv.removeChild(childId);
+		expect(foundChild.id).toBe(childId);
+		expect(mv.children.length).toBe(2);
+
+		//check setFilter
+		var vis = elefart.factory.ScreenRect(10, 20, 50, 50);
+		var filter = function (img) {
+			return img;
+		}
+		vis.setFilter(filter);
+
+		//check setGradient
+		var canvas = document.createElement('canvas');
+		expect(typeof canvas).toBe('object');
+		var ctx = canvas.getContext('2d');
+		expect(typeof ctx).toBe('object');
+		var grad = ctx.createLinearGradient(0, 0, 0, 50); 
+		expect(typeof grad).toBe('object');
+		vis.setGradient(grad);
+
+		//check setOpacity
+		vis.setOpacity(0.5);
+
+		//check setStroke
+		vis.setStroke(4, 'rgb(50,59,50');
+
+		//check setFill
+		vis.setFill('#ccddcc');
+
+		//check setImage
+		vis.setImage('img/icon/apple-touch-icon.png', 
+			function () {
+				console.log("img width:" + vis.img.width);
+			});
+
+		//check setLayer
+
+		grad = ctx = canvas = null;
+
+	});
+
+	afterEach(function() {
 
 	});
 
 });
 
+describe('Elefart building', function () {
 
-describe('Make Circle', function () {
-		var c;
+	beforeEach(function () {
+		elefart.building.init();
+	});
 
-		beforeEach(function() {
-			c = new elefart.factory.Circle (10, 20, 100);
-		});
+	it('should have screen objects attached', function () {
+		expect(typeof elefart.building).toBe('object');
+		//var r = new elefart.building.Elevator();
+		
+	});
 
-		afterEach(function() {
-			c = null;
-		});
+	afterEach(function () {
 
-	it('should have consistent params', function () {
-		expect(c.top).toBe(10);
-		expect(c.left).toBe(20);
-		expect(c.bottom).toBe(220);
-		expect(c.right).toBe(210);
+	});
+});
+
+
+describe('Elefart display', function () {
+
+	beforeEach(function () {
+		elefart.display.init();
+	});
+
+	it('should have screen objects attached', function () {
+		expect(typeof elefart.display).toBe('object');
+	});
+
+	afterEach(function () {
+
 	});
 
 });

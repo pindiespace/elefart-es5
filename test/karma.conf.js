@@ -11,7 +11,6 @@ module.exports = function(config){
 	basePath : '../',
 
 	files : [
-
 		'test/unit/*.js',
 		'test/unit/**/*.js',
 		{pattern: 'public/js/elefart-netmessage.js', watched: true, included: true, served: true},
@@ -32,25 +31,30 @@ module.exports = function(config){
 		{pattern: 'public/js/screen-exit.js', watched: true, included: true, served: true}
 	],
 
-    autoWatch : true,
+	proxies: { //add so tested modules can load assets from the site
+		'/img/': 'http://localhost:3000/img/'
+	},
 
-    //frameworks to use
-    frameworks: ['jasmine'],
+	autoWatch : true,
 
-    //web server port
-    port: 9876,
+	//frameworks to use
+	frameworks: ['jasmine'],
 
-    //enable / disable colors in the output (reporters and logs)
-    colors: true,
+	//web server port
+	port: 9876,
 
-    //test browser
-    browsers : ['Chrome'],
+	//enable / disable colors in the output (reporters and logs)
+	colors: true,
 
-    plugins : [
-            'karma-chrome-launcher',
-            'karma-firefox-launcher',
-            'karma-jasmine'
-            ],
+	//test browser
+	browsers : ['Chrome'],
+
+	plugins : [
+		'karma-junit-reporter',
+		'karma-chrome-launcher',
+		'karma-firefox-launcher',
+		'karma-jasmine'
+	],
 
 	reporters: ['progress', 'junit']
 

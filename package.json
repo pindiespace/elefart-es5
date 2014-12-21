@@ -16,6 +16,7 @@
 		"serve-favicon": "~2.x",
 		"karma": "latest",
 		"karma-jasmine": "latest",
+		"karma-junit-reporter": "latest",
 		"karma-chrome-launcher": "latest",
 		"karma-firefox-launcher": "latest"
 	},
