@@ -1,12 +1,20 @@
 /** 
  * @namespace elefart.controller
- * @fileoverview elefart.controller Controller
- * trap user input, also route in-game events to
- * supports:
+ * @fileoverview elefart.controller The Controller module for the application. 
+ * Traps user input, also routes in-game events to other modules (e.g. elefart.display). 
+ * Requires the wrapper event methods in elefart.dom.
+ * Supports:
  * - standard mouse desktop events
  * - mouse events on touch devices
  * - keyboard events
  * - virtual keyboard events
+ * @requires elefart
+ * @requires elefart.display
+ * @requires elefart.building
+ * @requires elefart.dashboard
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
  */
 window.elefart.controller = (function () {
 

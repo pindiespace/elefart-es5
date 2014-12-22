@@ -1,11 +1,15 @@
 /** 
  * @namespace elefart.screens['screen-scores']
- * @fileoverview elefart score screen,shows high scores for users
- * @requres elefart.screens
+ * @fileoverview elefart score screen, shows high scores for users.
+ * @requires elefart
+ * @requires elefart.dom
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
  */
 window.elefart.screens['screen-scores'] = (function () {
 
-	var dom = elefart.dom,
+	var dom,
 	panel,
 	id = 'screen-scores',
 	firstTime = true;
@@ -15,6 +19,7 @@ window.elefart.screens['screen-scores'] = (function () {
 	 * @description initialize elefart.screens['screen-scores']
 	 */
 	function init () {
+		dom = elefart.com;
 		panel = document.getElementById(id);
 		firstTime = false;
 	}

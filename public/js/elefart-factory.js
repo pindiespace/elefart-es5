@@ -4,6 +4,8 @@
  * used on the screen. Objects are scaled via 'mobile first', meaning
  * that constant sizes are defined for small screens, and scaled for 
  * larger ones.
+ * @requires elefart
+ * @requires elefart.display
  * @version 0.1.1
  * @author Pete Markeiwicz
  * @license MIT
@@ -19,13 +21,21 @@ window.elefart.factory = (function () {
 	 * OBJECT PRIMITIVES
 	 * ============================
 	 */
-	var POINT = "POINT",
-	LINE = "LINE",
-	PADDING = "PADDING",
-	RECT = "RECT",
-	CIRCLE = "CIRCLE",
-	POLYGON = "POLYGON",
-	SPRITE = "SPRITE";
+
+	/** 
+	 * @readonly
+	 * @enum {String}
+	 * @typedef TYPES
+	 */
+	var TYPES = {
+		POINT:"POINT",
+		LINE:"LINE",
+		PADDING:"PADDING",
+		RECT:"RECT",
+		CIRCLE:"CIRCLE",
+		POLYGON:"POLYGON",
+		SPRITE:"SPRITE"
+	};
 
 	var BLACK = "rgb(0,0,0)",
 	WHITE = "rgb(255,255,255)";
@@ -152,7 +162,7 @@ window.elefart.factory = (function () {
 			return false;
 		}
 		return {
-			type:POINT,
+			type:TYPES.POINT,
 			id:getId(), //unique
 			x:x,
 			y:y,
@@ -180,7 +190,7 @@ window.elefart.factory = (function () {
 			return false;
 		}
 		return {
-			type:LINE,
+			type:TYPES.LINE,
 			id:getId(),
 			point1:pt1,
 			point2:pt2,
@@ -209,7 +219,7 @@ window.elefart.factory = (function () {
 			return false;
 		}
 		return {
-			type:PADDING,
+			type:TYPES.PADDING,
 			id:getId(),
 			top:top,
 			left:left,
@@ -242,7 +252,7 @@ window.elefart.factory = (function () {
 			return false;
 		}
 		return {
-			type:RECT,
+			type:TYPES.RECT,
 			id:getId(),
 			top:y,
 			right: x + width,
@@ -284,7 +294,7 @@ window.elefart.factory = (function () {
 		}
 		var d = 2 * radius;
 		return {
-			type:CIRCLE,
+			type:TYPES.CIRCLE,
 			id:getId(),
 			top:y,
 			right:x + d,
@@ -327,7 +337,7 @@ window.elefart.factory = (function () {
 			}
 		}
 		var p = {
-			type:POLYGON,
+			type:TYPES.POLYGON,
 			id:getId(),
 			top:0,
 			right:0,
@@ -358,16 +368,16 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method getEnclosingRect
-	 * @description POLYGON specific. Find the rect which encloses the set of points
+	 * @description type POLYGON specific. Find the rect which encloses the set of points
 	 * @param {Array} pts an array of x, y points
 	 * @returns {Rect} 
 	 */
 	function enclosingRect () {
-		if(this.type === POINT) {
+		if(this.type === TYPES.POINT) {
 			console.log("Warning: returning tiny Rect enclosing a Point");
 			return Rect(this.x,this.y,1,1);
 		}
-		else if(this.type === LINE) {
+		else if(this.type === TYPES.LINE) {
 			if(this.pt2.y > this.pt1.y) {
 				return Rect(this.pt1.x, this.pt1.y, this.pt2.x - this.pt1.x, this.pt2.y - this.pt1.y);
 			}
@@ -375,7 +385,7 @@ window.elefart.factory = (function () {
 				return Rect(this.pt2.x, this.pt2.y, this.pt1.x - this.pt2.x, this.pt1.y - this.pt2.y);
 			}
 		}
-		else if(this.type === POLYGON) {
+		else if(this.type === TYPES.POLYGON) {
 			//test and generate the rect at the same time
 			var pts = this.points;
 			if(pts.length) {
@@ -425,7 +435,7 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean} if not in rect, false, else true
 	 */
 	function pointInside (pt) {
-		if(this.type === POINT || this.type === LINE) {
+		if(this.type === TYPES.POINT || this.type === TYPES.LINE) {
 			elefart.showError("point cannot be inside POINT or LINE objects");
 			return false;
 		} 
@@ -450,10 +460,10 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean}  if inside, return true, else false
 	 */
 	function insideRect (rect) {
-		if(this.type === POINT) {
+		if(this.type === TYPES.POINT) {
 			return ptInside(this, rect);
 		}
-		else if(this.type === LINE) {
+		else if(this.type === TYPES.LINE) {
 			return (ptInside(this.pt1, rect) && ptInside(this.pt2, rect));
 		}
 		//everything else has a Rect in it
@@ -480,10 +490,10 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean} if collided, return true, else false
 	 */
 	function intersectRect (rect) {
-		if(this.type === POINT) {
+		if(this.type === TYPES.POINT) {
 			return ptInside(this, rect);
 		}
-		else if(this.type === LINE) {
+		else if(this.type === TYPES.LINE) {
 			return (ptInside(this.pt1, rect) && ptInside(this.pt2, rect));
 		}
 		if(this.top === undefined) {
@@ -502,10 +512,10 @@ window.elefart.factory = (function () {
 	 * @returns {Point|false} the center point, or false
 	 */
 	function getCenter () {
-		if(this.type === POINT) {
+		if(this.type === TYPES.POINT) {
 			return this;
 		}
-		else if(this.type === LINE) {
+		else if(this.type === TYPES.LINE) {
 			if(pt2.x >= pt1.x) {
 				return {
 					x: this.pt1.x + Math.floor((this.pt2.x - this.pt1.x)/2),
@@ -549,15 +559,15 @@ window.elefart.factory = (function () {
 			elefart.showError(this.type + " invalid move, x:" + dx + " y:" + dy);
 			return false;
 		}
-		if(this.type === POINT) {
+		if(this.type === TYPES.POINT) {
 			this.x += dx;
 			this.y += dy; 
 		}
-		else if(this.type === LINE) {
+		else if(this.type === TYPES.LINE) {
 			this.pt1.x += dx; this.pt2.x += dx;
 			this.pt1.y += dy; this.pt2.y += dy;
 		}
-		else if(this.type === POLYGON) {
+		else if(this.type === TYPES.POLYGON) {
 			for(var i = 0; i < this.pts.length; i++) {
 				this.pts[i].x += dx; this.pts[i].y += dy;
 			}
@@ -589,11 +599,11 @@ window.elefart.factory = (function () {
 			elefart.showError(this.type + " invalid moveTo, x:" + x + " y:" + y);
 			return false;
 		}
-		if(this.type === POINT) {
+		if(this.type === TYPES.POINT) {
 			dx = x - this.x;
 			dy = y - this.y;
 		}
-		else if(this.type === LINE) {
+		else if(this.type === TYPES.LINE) {
 			dx = x - this.pt1.x;
 			dy = y = this.pt1.y;
 		}
@@ -618,15 +628,15 @@ window.elefart.factory = (function () {
 		if(!centerPt.valid.apply(centerPt,[])) {
 			return false;
 		}
-		if(this.type === PADDING) {
-			elefart.showError(this.type + " cannot be centered on a POINT");
+		if(this.type === TYPES.PADDING) {
+			elefart.showError(this.type + " cannot be centered on a TYPES.POINT");
 			return false;
 		}
-		if(this.type === POINT) {
+		if(this.type === TYPES.POINT) {
 			this.x = centerPt.x;
 			this.y = centerPt.y;
 		}
-		else if(this.type === LINE) {
+		else if(this.type === TYPES.LINE) {
 			dx = centerPt.x - Math.min((this.pt2.x - this.pt1.x)/2);
 			dy = centerPt.y - Math.min((this.pt2.y - this. pt1.y)/2);
 			this.pt1.x += dx; this.pt2.x += dx;
@@ -647,7 +657,7 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean} if set, return true, else false
 	 */
 	function centerInRect (centerRect, recurse) {
-		if(this.type == POINT || this.type === LINE || this.type === PADDING) {
+		if(this.type == TYPES.POINT || this.type === TYPES.LINE || this.type === TYPES.PADDING) {
 			elefart.showError(this.type + " cannot be centered in RECT");
 			return false;
 		}
@@ -667,7 +677,7 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean} if set, return true, else false
 	 */
 	function setDimensions (width, height) {
-		if(this.type === POINT || this.type === LINE || this.type === PADDING) {
+		if(this.type === TYPES.POINT || this.type === TYPES.LINE || this.type === TYPES.PADDING) {
 			elefart.showError(this.type + " cannot set dimensions");
 			return false;
 		}
@@ -687,7 +697,7 @@ window.elefart.factory = (function () {
 	 * @param {Number} borderRadius the border radious
 	 */
 	function setRectBorderRadius(borderRadius) {
-		if(this.type !== RECT) {
+		if(this.type !== TYPES.RECT) {
 			elefart.showError(this.type + " does not have border radius");
 		}
 		//if borderRadius = width = height we have a Circle
@@ -707,7 +717,7 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean} if set, return true, else false
 	 */
 	function setRectPadding (padding) {
-		if(this.type === POINT || this.type === PADDING || this.type === LINE) {
+		if(this.type === TYPES.POINT || this.type === TYPES.PADDING || this.type === TYPES.LINE) {
 			elefart.showError(this.type + " padding not allowed");
 			return false;
 		}
@@ -723,19 +733,19 @@ window.elefart.factory = (function () {
 		this.paddingRect.right = padding.right;
 
 		var x, y;
-		if(this.type === POINT) {
+		if(this.type === TYPES.POINT) {
 			x = this.x + this.paddingRect.left, y = this.y + this.paddingRect.top;
 		}
-		else if(this.type === LINE) {
+		else if(this.type === TYPES.LINE) {
 			x = this.pt1.x + this.paddingRect.left, y = this.pt1.y + this.paddingRect.top;
 		}
-		else if(this.type === RECT) {
+		else if(this.type === TYPES.RECT) {
 			x = this.top + this.paddingRect.top, y = this.left + this.paddingRect.left;
 		}
-		else if(this.type === CIRCLE) {
+		else if(this.type === TYPES.CIRCLE) {
 			elefart.showError("can't set padding for CIRCLE");
 		}
-		else if(this.type === POLYGON) {
+		else if(this.type === TYPES.POLYGON) {
 			elefart.showError("can't set padding for POLYGON");
 		}
 
@@ -764,10 +774,10 @@ window.elefart.factory = (function () {
 			elefart.showError(this.type + " invalid scale:" + scale);
 			return false;
 		}
-		if(this.type === POINT) {
+		if(this.type === TYPES.POINT) {
 			//nothing, Points don't scale
 		}
-		else if(this.type === LINE) {
+		else if(this.type === TYPES.LINE) {
 			var dx = scale * (this.pt2.x - this.pt1.x);
 			var dy = scale * (this.pt2.y - this.pt1.y);
 			this.pt2.x = this.pt1.x + dx;
@@ -803,7 +813,7 @@ window.elefart.factory = (function () {
 	function addChild(child) {
 		if(this.children) {
 			if(child === undefined || !child.type === undefined || 
-				child.type === PADDING) {
+				child.type === TYPES.PADDING) {
 				elefart.showError(child.type + " cannot add as child");
 				return false;
 			}
@@ -915,7 +925,7 @@ window.elefart.factory = (function () {
 	 * @param {String} rgb() or #rrggbb or #rgb color string
 	 */
 	function setStroke(width, color) {
-		if(this.type === POINT || this.type === PADDING) {
+		if(this.type === TYPES.POINT || this.type === TYPES.PADDING) {
 			elefart.showError(this.type + " can't apply a width or color");
 			return false;
 		}
@@ -1046,6 +1056,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @constructor ScreenRect
+	 * @implements {Rect}
 	 * @classdesc create a ScreenRect object.
 	 * @param {Number} x the x coordinate of the object
 	 * @param {Number} y the y coordinate of the object
@@ -1067,6 +1078,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @constructor ScreenCircle
+	 * @implements {Circle}
 	 * @classdesc create a screen circle.
 	 * @param {Number} x the x coordinate of the object
 	 * @param {Number} y the y coordinate of the object
@@ -1088,6 +1100,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method ScreenPoly
+	 * @implements {Polygon}
 	 * @classdesc create a screen Polygon
 	 * @param {Array} a set of Point objects with x and y coordinates for the 
 	 * sides of the Polygon.
@@ -1107,6 +1120,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @constructor ScreenImage
+	 * @implements {Rect}
 	 * @classdesc create a ScreenObject that is a 'naked' image, without visible 
 	 * border or fill.
 	 * @param {Number} x the x coordinate of the object
@@ -1123,6 +1137,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method ScreenSprite
+	 * @implements {Rect}
 	 * @classdesc create a sprite table from supplied image file
 	 * @param {String} src the path to the image file used
 	 * @param {Number} the 'type', which is actually the row in 

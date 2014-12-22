@@ -10,7 +10,7 @@
 	<![endif]-->
 	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
 
-	<link type="text/css" rel="stylesheet" href="styles/site.cosmo.css">
+	<link type="text/css" rel="stylesheet" href="styles/site.spacelab.css">
 
 </head>
 
@@ -532,8 +532,10 @@
 
     
         
-            <div class="description"><p>main game object for Elefart application. Contains
-initialization code and some factory functions for common objects</p></div>
+            <div class="description"><p>main game object for elefart application. Contains
+initialization code and some factory functions for common objects. 
+Also does feature detection and loading of individual game screen 
+objects.</p></div>
         
 
         
@@ -570,7 +572,7 @@ initialization code and some factory functions for common objects</p></div>
 	<dt class="tag-license">License:</dt>
 	<dd class="tag-license">
 		<ul class="dummy">
-			<li>MITJSDOC reference:</li>
+			<li>MIT</li>
 		</ul>
 	</dd>
 	
@@ -608,6 +610,12 @@ initialization code and some factory functions for common objects</p></div>
     
 
     
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:index.html</li>
+        </ul>
+    
 
     
 
@@ -644,7 +652,8 @@ initialization code and some factory functions for common objects</p></div>
 
     
         
-            <div class="description"><p>elefart.building (Model) game objects (building, shafts, elevators, users, goodies, gas)</p></div>
+            <div class="description"><p>elefart.building (Model) creates the game objects (building, shafts, elevators, 
+users, goodies, gas) used during gameplay.</p></div>
         
 
         
@@ -719,6 +728,20 @@ initialization code and some factory functions for common objects</p></div>
     
 
     
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.factory</li>
+        
+            <li>module:elefart.dashboard</li>
+        
+            <li>module:elefart.display</li>
+        
+            <li>module:elefart.controller</li>
+        </ul>
+    
 
     
 
@@ -755,9 +778,10 @@ initialization code and some factory functions for common objects</p></div>
 
     
         
-            <div class="description"><p>elefart.controller Controller
-trap user input, also route in-game events to
-supports:</p>
+            <div class="description"><p>elefart.controller The Controller module for the application. 
+Traps user input, also routes in-game events to other modules (e.g. elefart.display). 
+Requires the wrapper event methods in elefart.dom.
+Supports:</p>
 <ul>
 <li>standard mouse desktop events</li>
 <li>mouse events on touch devices</li>
@@ -771,7 +795,12 @@ supports:</p>
 	
 
 	
-
+	<dt class="tag-version">Version:</dt>
+	<dd class="tag-version">
+		<ul class="dummy">
+			<li>0.1.1</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -781,7 +810,23 @@ supports:</p>
 	
 
 	
+	<dt class="tag-author">Author:</dt>
+	<dd class="tag-author">
+		<ul>
+			<li>Pete Markeiwicz</li>
+			</ul>
+	</dd>
+	
 
+	
+
+	
+	<dt class="tag-license">License:</dt>
+	<dd class="tag-license">
+		<ul class="dummy">
+			<li>MIT</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -816,6 +861,18 @@ supports:</p>
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.display</li>
+        
+            <li>module:elefart.building</li>
+        
+            <li>module:elefart.dashboard</li>
+        </ul>
     
 
     
@@ -853,8 +910,9 @@ supports:</p>
 
     
         
-            <div class="description"><p>elefart.dashboard Model
-definitions for dashboard controls and HUD screens</p></div>
+            <div class="description"><p>elefart.dashboard provides definitions for dashboard controls and HUD screens 
+used by the application. Equivalent to elefart.building for game objects. Generic objects are 
+created in elefart.factory.</p></div>
         
 
         
@@ -862,7 +920,12 @@ definitions for dashboard controls and HUD screens</p></div>
 	
 
 	
-
+	<dt class="tag-version">Version:</dt>
+	<dd class="tag-version">
+		<ul class="dummy">
+			<li>0.1.1</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -872,7 +935,23 @@ definitions for dashboard controls and HUD screens</p></div>
 	
 
 	
+	<dt class="tag-author">Author:</dt>
+	<dd class="tag-author">
+		<ul>
+			<li>Pete Markeiwicz</li>
+			</ul>
+	</dd>
+	
 
+	
+
+	
+	<dt class="tag-license">License:</dt>
+	<dd class="tag-license">
+		<ul class="dummy">
+			<li>MIT</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -907,6 +986,18 @@ definitions for dashboard controls and HUD screens</p></div>
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.building</li>
+        
+            <li>module:elefart.display</li>
+        
+            <li>module:elefart.controller</li>
+        </ul>
     
 
     
@@ -944,8 +1035,8 @@ definitions for dashboard controls and HUD screens</p></div>
 
     
         
-            <div class="description"><p>elefart.display View
-HTML5 Canvas drawing routines for game</p></div>
+            <div class="description"><p>elefart.display (the View object) for the application. 
+Contains the HTML5 Canvas drawing routines for game.</p></div>
         
 
         
@@ -953,7 +1044,12 @@ HTML5 Canvas drawing routines for game</p></div>
 	
 
 	
-
+	<dt class="tag-version">Version:</dt>
+	<dd class="tag-version">
+		<ul class="dummy">
+			<li>0.1.1</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -963,7 +1059,23 @@ HTML5 Canvas drawing routines for game</p></div>
 	
 
 	
+	<dt class="tag-author">Author:</dt>
+	<dd class="tag-author">
+		<ul>
+			<li>Pete Markeiwicz</li>
+			</ul>
+	</dd>
+	
 
+	
+
+	
+	<dt class="tag-license">License:</dt>
+	<dd class="tag-license">
+		<ul class="dummy">
+			<li>MIT</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -998,6 +1110,16 @@ HTML5 Canvas drawing routines for game</p></div>
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.dom</li>
+        
+            <li>module:elefart.controller</li>
+        </ul>
     
 
     
@@ -1035,7 +1157,8 @@ HTML5 Canvas drawing routines for game</p></div>
 
     
         
-            <div class="description"><p>JavaScript DOM manipulation (classes, ids, event binding)</p></div>
+            <div class="description"><p>JavaScript DOM manipulation (classes, ids, event binding). Contains 
+mini-ClassList polyfill, and wrapper functions for events for cross-browser compatibility.</p></div>
         
 
         
@@ -1109,6 +1232,12 @@ HTML5 Canvas drawing routines for game</p></div>
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        </ul>
     
 
     
@@ -1223,6 +1352,14 @@ larger ones.</p></div>
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.display</li>
+        </ul>
     
 
     
@@ -1359,7 +1496,7 @@ CommonJS format.</p></div>
 
     
         
-            <div class="description"><p>online documentation for the game</p></div>
+            <div class="description"><p>Creates a screen which displays online documentation for the game.</p></div>
         
 
         
@@ -1367,7 +1504,12 @@ CommonJS format.</p></div>
 	
 
 	
-
+	<dt class="tag-version">Version:</dt>
+	<dd class="tag-version">
+		<ul class="dummy">
+			<li>0.1.1</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1377,7 +1519,23 @@ CommonJS format.</p></div>
 	
 
 	
+	<dt class="tag-author">Author:</dt>
+	<dd class="tag-author">
+		<ul>
+			<li>Pete Markeiwicz</li>
+			</ul>
+	</dd>
+	
 
+	
+
+	
+	<dt class="tag-license">License:</dt>
+	<dd class="tag-license">
+		<ul class="dummy">
+			<li>MIT</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1412,6 +1570,14 @@ CommonJS format.</p></div>
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.dom</li>
+        </ul>
     
 
     
@@ -1449,7 +1615,7 @@ CommonJS format.</p></div>
 
     
         
-            <div class="description"><p>quit screen for the game</p></div>
+            <div class="description"><p>quit screen (a dialog) for the game.</p></div>
         
 
         
@@ -1457,7 +1623,12 @@ CommonJS format.</p></div>
 	
 
 	
-
+	<dt class="tag-version">Version:</dt>
+	<dd class="tag-version">
+		<ul class="dummy">
+			<li>0.1.1</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1467,7 +1638,23 @@ CommonJS format.</p></div>
 	
 
 	
+	<dt class="tag-author">Author:</dt>
+	<dd class="tag-author">
+		<ul>
+			<li>Pete Markeiwicz</li>
+			</ul>
+	</dd>
+	
 
+	
+
+	
+	<dt class="tag-license">License:</dt>
+	<dd class="tag-license">
+		<ul class="dummy">
+			<li>MIT</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1502,6 +1689,14 @@ CommonJS format.</p></div>
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.dom</li>
+        </ul>
     
 
     
@@ -1547,7 +1742,12 @@ CommonJS format.</p></div>
 	
 
 	
-
+	<dt class="tag-version">Version:</dt>
+	<dd class="tag-version">
+		<ul class="dummy">
+			<li>0.1.1</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1557,7 +1757,23 @@ CommonJS format.</p></div>
 	
 
 	
+	<dt class="tag-author">Author:</dt>
+	<dd class="tag-author">
+		<ul>
+			<li>Pete Markeiwicz</li>
+			</ul>
+	</dd>
+	
 
+	
+
+	
+	<dt class="tag-license">License:</dt>
+	<dd class="tag-license">
+		<ul class="dummy">
+			<li>MIT</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1592,6 +1808,18 @@ CommonJS format.</p></div>
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.dom</li>
+        
+            <li>module:elefart.factory</li>
+        
+            <li>module:elefart.display</li>
+        </ul>
     
 
     
@@ -1637,7 +1865,12 @@ CommonJS format.</p></div>
 	
 
 	
-
+	<dt class="tag-version">Version:</dt>
+	<dd class="tag-version">
+		<ul class="dummy">
+			<li>0.1.1</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1647,7 +1880,23 @@ CommonJS format.</p></div>
 	
 
 	
+	<dt class="tag-author">Author:</dt>
+	<dd class="tag-author">
+		<ul>
+			<li>Pete Markeiwicz</li>
+			</ul>
+	</dd>
+	
 
+	
+
+	
+	<dt class="tag-license">License:</dt>
+	<dd class="tag-license">
+		<ul class="dummy">
+			<li>MIT</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1686,7 +1935,9 @@ CommonJS format.</p></div>
         <h3 class="subsection-title">Requires</h3>
 
         <ul>
-            <li>module:elefart.screens</li>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.dom</li>
         </ul>
     
 
@@ -1733,7 +1984,12 @@ CommonJS format.</p></div>
 	
 
 	
-
+	<dt class="tag-version">Version:</dt>
+	<dd class="tag-version">
+		<ul class="dummy">
+			<li>0.1.1</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1743,7 +1999,23 @@ CommonJS format.</p></div>
 	
 
 	
+	<dt class="tag-author">Author:</dt>
+	<dd class="tag-author">
+		<ul>
+			<li>Pete Markeiwicz</li>
+			</ul>
+	</dd>
+	
 
+	
+
+	
+	<dt class="tag-license">License:</dt>
+	<dd class="tag-license">
+		<ul class="dummy">
+			<li>MIT</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1778,6 +2050,14 @@ CommonJS format.</p></div>
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.dom</li>
+        </ul>
     
 
     
@@ -1815,7 +2095,8 @@ CommonJS format.</p></div>
 
     
         
-            <div class="description"><p>display menu options at game startup</p></div>
+            <div class="description"><p>display menu options at game startup. Displays a screen 
+with buttons for loading the game, help screens, and exiting.</p></div>
         
 
         
@@ -1823,7 +2104,12 @@ CommonJS format.</p></div>
 	
 
 	
-
+	<dt class="tag-version">Version:</dt>
+	<dd class="tag-version">
+		<ul class="dummy">
+			<li>0.1.1</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1833,7 +2119,23 @@ CommonJS format.</p></div>
 	
 
 	
+	<dt class="tag-author">Author:</dt>
+	<dd class="tag-author">
+		<ul>
+			<li>Pete Markeiwicz</li>
+			</ul>
+	</dd>
+	
 
+	
+
+	
+	<dt class="tag-license">License:</dt>
+	<dd class="tag-license">
+		<ul class="dummy">
+			<li>MIT</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1868,6 +2170,14 @@ CommonJS format.</p></div>
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.dom</li>
+        </ul>
     
 
     
@@ -1905,7 +2215,7 @@ CommonJS format.</p></div>
 
     
         
-            <div class="description"><p>elefart score screen,shows high scores for users</p></div>
+            <div class="description"><p>elefart score screen, shows high scores for users.</p></div>
         
 
         
@@ -1913,7 +2223,12 @@ CommonJS format.</p></div>
 	
 
 	
-
+	<dt class="tag-version">Version:</dt>
+	<dd class="tag-version">
+		<ul class="dummy">
+			<li>0.1.1</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1923,7 +2238,23 @@ CommonJS format.</p></div>
 	
 
 	
+	<dt class="tag-author">Author:</dt>
+	<dd class="tag-author">
+		<ul>
+			<li>Pete Markeiwicz</li>
+			</ul>
+	</dd>
+	
 
+	
+
+	
+	<dt class="tag-license">License:</dt>
+	<dd class="tag-license">
+		<ul class="dummy">
+			<li>MIT</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -1958,6 +2289,14 @@ CommonJS format.</p></div>
 
     
 
+    
+        <h3 class="subsection-title">Requires</h3>
+
+        <ul>
+            <li>module:elefart</li>
+        
+            <li>module:elefart.dom</li>
+        </ul>
     
 
     
@@ -1995,9 +2334,10 @@ CommonJS format.</p></div>
 
     
         
-            <div class="description"><p>splash or loader screen. Actually the second 
+            <div class="description"><p>splash or loader screen for the game, when there is an option 
+to save the game with an icon to the user's desktop. Actually acts as the second 
 splash, since iOS will display a bitmap loader screen 
-during the early phases of the app load</p></div>
+during the early phases of the app load.</p></div>
         
 
         
@@ -2005,7 +2345,12 @@ during the early phases of the app load</p></div>
 	
 
 	
-
+	<dt class="tag-version">Version:</dt>
+	<dd class="tag-version">
+		<ul class="dummy">
+			<li>0.1.1</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -2015,7 +2360,23 @@ during the early phases of the app load</p></div>
 	
 
 	
+	<dt class="tag-author">Author:</dt>
+	<dd class="tag-author">
+		<ul>
+			<li>Pete Markeiwicz</li>
+			</ul>
+	</dd>
+	
 
+	
+
+	
+	<dt class="tag-license">License:</dt>
+	<dd class="tag-license">
+		<ul class="dummy">
+			<li>MIT</li>
+		</ul>
+	</dd>
 	
 
 	
@@ -2055,6 +2416,8 @@ during the early phases of the app load</p></div>
 
         <ul>
             <li>module:elefart</li>
+        
+            <li>module:elefart.com</li>
         </ul>
     
 

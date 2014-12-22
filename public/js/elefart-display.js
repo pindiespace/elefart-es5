@@ -1,7 +1,13 @@
 /** 
  * @namespace elefart.display
- * @fileoverview elefart.display View
- * HTML5 Canvas drawing routines for game
+ * @fileoverview elefart.display (the View object) for the application. 
+ * Contains the HTML5 Canvas drawing routines for game.
+ * @requires elefart
+ * @requires elefart.dom
+ * @requires elefart.controller
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
  */
 window.elefart.display = (function () {
 
@@ -20,11 +26,12 @@ window.elefart.display = (function () {
 	spriteBoard, //images of users for animation
 	firstTime = true;
 
-/**
- * Enum for types of layers, colors, materials in canvas drawing
- * @readonly
- * @enum {String}
- */
+	/**
+	 * Enum for types of layers, colors, materials in canvas drawing
+	 * @readonly
+	 * @enum {String}
+	 * @typedef LAYERS
+	 */
 	var LAYERS = {
 		BUILDING:"BUILDING",
 		SHAFTS:"SHAFTS",
@@ -36,15 +43,28 @@ window.elefart.display = (function () {
 		WALLS:"WALLS", //building walls
 		DOORS:"DOORS", //elevator doors
 		FLOORS:"FLOORS"  //people and objects in the room floors
-	}, //d"isplay list layers. Layers are drawn from 0 outwards
-	COLORS = { //flat colors
+	}; //d"isplay list layers. Layers are drawn from 0 outwards
+
+	/** 
+	 * @readonly
+	 * @enum {String}
+	 * @typedef COLORS
+	 */
+	var COLORS = { //flat colors
 		BLACK:"rgb(0,0,0)",
 		WHITE:"rgb(255,255,255)",
 		LIGHT_GREY:"rgb(128,128,128)",
 		DARK_GREY:"rgb(40,40,40)"
-	},
-	MATERIALS = { //gradients
+	};
 
+	/** 
+	 * @readonly
+	 * @enum {String}
+	 * @typefef MATERIALS
+	 */
+	var MATERIALS = { //gradients
+		SMOOTH:0,
+		ROUGH:1
 	};
 
 	/**
@@ -187,8 +207,8 @@ window.elefart.display = (function () {
 	/** 
 	 * @method checkIfInLayer
 	 * @description check if an object is in a specific layer in the display list
-	 * @param {} obj the object to check
-	 * @param {String} layer the LAYERS enum to check
+	 * @param {Object} obj the object to check
+	 * @param {LAYERS} layer the LAYERS enum to check
 	 * @returns {Number|false} if found, return the index, else false
 	 */
 	function checkIfInLayer(obj, layer) {
@@ -204,8 +224,8 @@ window.elefart.display = (function () {
 	 * @method checkIfInList 
 	 * @description check if an object is already in the drawing list
 	 * if present, return its position in the array
-	 * @param {} obj the object to draw
-	 * @returns {Object}false} if found, return its layer and index in layer
+	 * @param {Object} obj the object to draw
+	 * @returns {Object|false} if found, return its layer and index in layer
 	 * otherwise return false
 	 */
 	function checkIfInList(obj) {
@@ -223,7 +243,7 @@ window.elefart.display = (function () {
 	 * @method addToDisplayList
 	 * @description add an object to the visual display list
 	 * @param {Point|Line|Rect|Circle|Polygon|Sprite} obj the object to draw
-	 * @param {Number} layer the layer to draw in
+	 * @param {LAYERS} layer the layer to draw in
 	 */
 	function addToDisplayList (obj, layer) {
 		displayList[layer].push(obj);
@@ -233,7 +253,7 @@ window.elefart.display = (function () {
 	 * @method removeFromDisplayList
 	 * @description remove an object from drawing display list
 	 * @param {Point|Line|Rect|Circle|Polygon|SpriteBoard} obj the object to draw
-	 * @param {Number} layer the layer to draw in (optional)
+	 * @param {LAYERS} layer the layer to draw in (optional)
 	 */
 	function removeFromDisplayList (obj, layer) {
 		var pos;

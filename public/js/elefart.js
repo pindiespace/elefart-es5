@@ -1,12 +1,13 @@
 /** 
  * @namespace elefart
- * @fileoverview main game object for Elefart application. Contains
- * initialization code and some factory functions for common objects
+ * @fileoverview main game object for elefart application. Contains
+ * initialization code and some factory functions for common objects. 
+ * Also does feature detection and loading of individual game screen 
+ * objects.
+ * @requires index.html (screens defined as <article> tags)
  * @version 0.1.1
  * @author Pete Markeiwicz
  * @license MIT
- * JSDOC reference:
- * @link http://www.2ality.com/2011/08/jsdoc-intro.html
  */
 window.elefart = (function () {
 

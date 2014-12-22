@@ -1,11 +1,15 @@
 /** 
  * @namespace elefart.screens['screen-join']
  * @fileoverview login system for joining multi-user elefart
- * @requres elefart.screens
+ * @requires elefart
+ * @requires elefart.dom
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
  */
 window.elefart.screens['screen-join'] = (function () {
 
-	var com = elefart.dom,
+	var dom,
 	id = 'screen-join',
 	panel,
 	firstTime = true;
@@ -15,6 +19,7 @@ window.elefart.screens['screen-join'] = (function () {
 	 * @description initialize the multi-user version of the game 
 	 */
 	function init () {
+		dom = elefart.dom;
 		panel = document.getElementById(id);
 		firstTime = false;
 	}

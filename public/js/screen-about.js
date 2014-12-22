@@ -1,10 +1,15 @@
 /** 
  * @namespace elefart.screens['screen-about']
- * @fileoverview online documentation for the game
+ * @fileoverview Creates a screen which displays online documentation for the game.
+ * @requires elefart
+ * @requires elefart.dom
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
  */
 window.elefart.screens['screen-about'] = (function () {
 
-	var dom = elefart.dom,
+	var dom,
 	id = 'screen-about',
 	panel,
 	firstTime = true;
@@ -14,6 +19,7 @@ window.elefart.screens['screen-about'] = (function () {
 	 * @description initialize help files for the game.
 	 */
 	function init () {
+		dom = elefart.com;
 		panel = document.getElementById(id);
 		firstTime = false;
 	}

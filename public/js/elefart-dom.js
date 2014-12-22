@@ -1,6 +1,8 @@
 /** 
  * @namespace elefart.dom
- * @fileoverview JavaScript DOM manipulation (classes, ids, event binding)
+ * @fileoverview JavaScript DOM manipulation (classes, ids, event binding). Contains 
+ * mini-ClassList polyfill, and wrapper functions for events for cross-browser compatibility.
+ * @requires elefart
  * @version 0.1.1
  * @author Pete Markeiwicz
  * @license MIT

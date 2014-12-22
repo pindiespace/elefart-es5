@@ -1,11 +1,15 @@
 /** 
  * @namespace elefart.screens['screen-exit']
- * @fileoverview quit screen for the game
- * @requrires elefart.screens
+ * @fileoverview quit screen (a dialog) for the game.
+ * @requires elefart
+ * @requires elefart.dom
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
  */
 window.elefart.screens['screen-exit'] = (function () {
 
-	var dom = elefart.dom,
+	var dom,
 	id = 'screen-exit',
 	panel,
 	firstTime = true;
@@ -15,6 +19,7 @@ window.elefart.screens['screen-exit'] = (function () {
 	 * @description initialize the exit dialog for the game.
 	 */
 	function init () {
+		dom = elefart.dom;
 		panel = document.getElementById(id);
 		firstTime = false;
 	}

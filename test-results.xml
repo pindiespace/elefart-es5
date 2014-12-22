@@ -1,17 +1,17 @@
 <?xml version="1.0"?>
 <testsuites>
-  <testsuite name="Chrome 39.0.2171 (Windows 8.1)" package="" timestamp="2014-12-21T21:36:24" id="0" hostname="LorriBuntain">
+  <testsuite name="Chrome 39.0.2171 (Windows 8.1)" package="" timestamp="2014-12-21T23:13:36" id="0" hostname="LorriBuntain">
     <properties>
       <property name="browser.fullName" value="Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"/>
     </properties>
   </testsuite>
-  <testsuite name="Chrome 39.0.2171 (Windows 8.1)" package="" timestamp="2014-12-21T21:36:24" id="0" hostname="LorriBuntain" tests="6" errors="0" failures="0" time="0.028">
+  <testsuite name="Chrome 39.0.2171 (Windows 8.1)" package="" timestamp="2014-12-21T23:13:37" id="0" hostname="LorriBuntain" tests="6" errors="0" failures="0" time="0.017">
     <properties>
       <property name="browser.fullName" value="Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"/>
     </properties>
-    <testcase name="Add gives the correct result" time="0.001" classname="Chrome 39.0.2171 (Windows 8.1).Counter tests"/>
+    <testcase name="Add gives the correct result" time="0.002" classname="Chrome 39.0.2171 (Windows 8.1).Counter tests"/>
     <testcase name="should have core objects attached" time="0.001" classname="Chrome 39.0.2171 (Windows 8.1).Elefart base"/>
-    <testcase name="should have screen objects attached" time="0.025" classname="Chrome 39.0.2171 (Windows 8.1).Elefart factory"/>
+    <testcase name="should have screen objects attached" time="0.013" classname="Chrome 39.0.2171 (Windows 8.1).Elefart factory"/>
     <testcase name="should have screen objects attached" time="0" classname="Chrome 39.0.2171 (Windows 8.1).Elefart building"/>
     <testcase name="should have screen objects attached" time="0.001" classname="Chrome 39.0.2171 (Windows 8.1).Elefart display"/>
     <testcase name="should have child objects attached" time="0" classname="Chrome 39.0.2171 (Windows 8.1).js/elefart-building_js elefart_building Logic"/>

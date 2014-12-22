@@ -1,11 +1,16 @@
 /** 
  * @namespace elefart.screens['screen-menu']
- * @fileoverview display menu options at game startup
- * @requres elefart.screens
+ * @fileoverview display menu options at game startup. Displays a screen 
+ * with buttons for loading the game, help screens, and exiting.
+ * @requires elefart
+ * @requires elefart.dom
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
  */
  window.elefart.screens['screen-menu'] = (function () {
 
-	var dom = elefart.dom,
+	var dom,
 	id = 'screen-menu',
 	panel,
 	firstTime = true;
@@ -15,6 +20,7 @@
 	 * @description get elefart.screens['screen-menu']
 	 */
 	function init () {
+		dom = elefart.dom;
 		panel = document.getElementById(id);
 		firstTime = false;
 	}

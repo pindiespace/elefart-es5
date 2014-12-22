@@ -10,7 +10,7 @@
 	<![endif]-->
 	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
 
-	<link type="text/css" rel="stylesheet" href="styles/site.cosmo.css">
+	<link type="text/css" rel="stylesheet" href="styles/site.spacelab.css">
 
 </head>
 
@@ -497,6 +497,8 @@
  * used on the screen. Objects are scaled via 'mobile first', meaning
  * that constant sizes are defined for small screens, and scaled for 
  * larger ones.
+ * @requires elefart
+ * @requires elefart.display
  * @version 0.1.1
  * @author Pete Markeiwicz
  * @license MIT
@@ -512,6 +514,16 @@ window.elefart.factory = (function () {
 	 * OBJECT PRIMITIVES
 	 * ============================
 	 */
+
+	/** 
+	 * @readonly
+	 * @enum {String}
+	 * @typedef SHAPES
+	 */
+	var SHAPES = {
+
+	};
+
 	var POINT = "POINT",
 	LINE = "LINE",
 	PADDING = "PADDING",
@@ -1539,6 +1551,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @constructor ScreenRect
+	 * @implements {Rect}
 	 * @classdesc create a ScreenRect object.
 	 * @param {Number} x the x coordinate of the object
 	 * @param {Number} y the y coordinate of the object
@@ -1560,6 +1573,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @constructor ScreenCircle
+	 * @implements {Circle}
 	 * @classdesc create a screen circle.
 	 * @param {Number} x the x coordinate of the object
 	 * @param {Number} y the y coordinate of the object
@@ -1581,6 +1595,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method ScreenPoly
+	 * @implements {Polygon}
 	 * @classdesc create a screen Polygon
 	 * @param {Array} a set of Point objects with x and y coordinates for the 
 	 * sides of the Polygon.
@@ -1600,6 +1615,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @constructor ScreenImage
+	 * @implements {Rect}
 	 * @classdesc create a ScreenObject that is a 'naked' image, without visible 
 	 * border or fill.
 	 * @param {Number} x the x coordinate of the object
@@ -1616,6 +1632,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method ScreenSprite
+	 * @implements {Rect}
 	 * @classdesc create a sprite table from supplied image file
 	 * @param {String} src the path to the image file used
 	 * @param {Number} the 'type', which is actually the row in 

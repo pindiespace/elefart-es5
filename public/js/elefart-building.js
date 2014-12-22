@@ -1,6 +1,12 @@
 /** 
  * @namespace elefart.building
- * @fileoverview elefart.building (Model) game objects (building, shafts, elevators, users, goodies, gas)
+ * @fileoverview elefart.building (Model) creates the game objects (building, shafts, elevators, 
+ * users, goodies, gas) used during gameplay.
+ * @requires elefart
+ * @requires elefart.factory
+ * @requires elefart.dashboard
+ * @requires elefart.display
+ * @requires elefart.controller
  * @version 0.1.1
  * @author Pete Markeiwicz
  * @license MIT

@@ -1,7 +1,15 @@
 /** 
  * @namespace elefart.dashboard
- * @fileoverview elefart.dashboard Model
- * definitions for dashboard controls and HUD screens
+ * @fileoverview elefart.dashboard provides definitions for dashboard controls and HUD screens 
+ * used by the application. Equivalent to elefart.building for game objects. Generic objects are 
+ * created in elefart.factory.
+ * @requires elefart
+ * @requires elefart.building
+ * @requires elefart.display
+ * @requires elefart.controller
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
  */
 window.elefart.dashboard = (function () {
 

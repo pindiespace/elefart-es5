@@ -10,7 +10,7 @@
 	<![endif]-->
 	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
 
-	<link type="text/css" rel="stylesheet" href="styles/site.cosmo.css">
+	<link type="text/css" rel="stylesheet" href="styles/site.spacelab.css">
 
 </head>
 
@@ -494,11 +494,15 @@
 			class="sunlight-highlight-javascript linenums">/** 
  * @namespace elefarts.screens['screen-install']
  * @fileoverview option to install to desktop
- * @requires elefart.screens
+ * @requires elefart
+ * @requires elefart.dom
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
  */
 window.elefart.screens['screen-install'] = (function () {
 
-	var dom = elefart.dom,
+	var dom,
 	id = 'screen-install',
 	panel,
 	firstTime = true;
@@ -509,6 +513,7 @@ window.elefart.screens['screen-install'] = (function () {
 	 * platforms so that an icon can be copied to a desktop.
 	 */
 	function init () {
+		dom = elefart.dom;
 		panel = document.getElementById(id);
 		firstTime = false;
 	}

@@ -1,12 +1,19 @@
 /** 
  * @namespace elefart.screens['screen-game']
  * @fileoverview wrapper for game, which is created entirely in HTML5 canvas
- * @requres elefart.screens
+ * @requires elefart
+ * @requires elefart.dom
+ * @requires elefart.factory
+ * @requires elefart.display
+ * @version 0.1.1
+ * @author Pete Markeiwicz
+ * @license MIT
  */
 window.elefart.screens['screen-game'] = (function () {
 
-	var dom = elefart.dom,
-	factory = elefart.factory,
+	var dom,
+	factory,
+	display,
 	id ='screen-game',
 	panel,
 	firstTime = true;
@@ -16,6 +23,9 @@ window.elefart.screens['screen-game'] = (function () {
 	 * @description initialize the game screen
 	 */
 	function init () {
+		dom = elefart.dom,
+		factory = elefart.factory,
+		display = elefart.display;
 		panel = document.getElementById(id);
 		firstTime = false;
 	}
