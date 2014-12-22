@@ -281,7 +281,6 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @constructor Circle
-	 * 
 	 * @classdesc ScreenObject.type CIRCLE. Contains an enclosing Rect object, plus 
 	 * a radius. Supports child objects.
 	 * @returns {Circle} a Circle object
@@ -403,7 +402,6 @@ window.elefart.factory = (function () {
 		this.height = this.bottom - this.top;
 		return Rect(this.left, this.top, this.right, this.bottom);
 	}
-
 
 	/* 
 	 * ============================
@@ -966,15 +964,20 @@ window.elefart.factory = (function () {
 	 * Includes a callback for images that are dynamically loaded
 	 * @param {String} src the file path to the image
 	 * @param {Function} callback function after the image is loaded
+	 * @param {Boolean} scaleToRect if true, scale the image to the defined 
+	 * Rect object inside this object
 	 */
-	function setImage(src, callback) {
+	function setImage(src, callback, scaleToRect) {
 		var that = this;
 		that.img = new Image();
 
 		that.img.onload = function () {
 			//shrink image to size of object
-			this.width = that.width;
-			this.height = that.height;
+			if(scaleToRect) {
+				this.width = that.width;
+				this.height = that.height;
+			}
+
 			callback(that); //callback function passed image
 		}
 
@@ -996,7 +999,7 @@ window.elefart.factory = (function () {
 	 * @method setLayer
 	 * @description set the layer in which the ScreenObject is 
 	 * drawn by elefart.display
-	 * @param {Number} layer the layer to draw in. Layers are 
+	 * @param {LAYERS} layer the layer to draw in. Layers are 
 	 * defined in elefart.display.LAYERS
 	 */
 	function setLayer(layer) {
@@ -1147,11 +1150,21 @@ window.elefart.factory = (function () {
 	 * stored.
 	 * @param {Function} callback the callback function to call after 
 	 * loading a SpriteBoard image
+	 * @param {LAYERS} layer the layer to draw the sprite into
 	 */
-	function ScreenSprite (src, types, frames, callback) {
+	function ScreenSprite (src, types, frames, callback, layer) {
+		var r = Rect(0, 0, 0, 0); //always starts at 0, 0
+		r.setImage(src, callback, false); //load, but don't scale
+		r.setLayer(layer);
+		r.width = r.left = r.img.width;     //adjust based on image size
+		r.height = r.bottom = r.img.height;
 		r.types = types;
 		r.frames = frames;
-		var r = screenImage(0, 0, src, callback, 0);
+		r.currentFrame = 0;
+		r.interval = 0;
+		r.loop = false;
+		r.frameWidth = 0;
+		r.frameHeight = 0;
 		return r;
 	}
 
