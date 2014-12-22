@@ -154,6 +154,8 @@ window.elefart.factory = (function () {
 	 * @classdesc ScreenObject.type POINT. creates a Point object from x and y coordinates 
 	 * (unlike Rect, which uses top, right, bottom, left). Does not 
 	 * support child objects.
+	 * @param {Number} x the x coordinate of the Point
+	 * @param {Number} y the y coordinate of the Point
 	 * @returns {Point} a Point object
 	 */
 	function Point (x, y) {
@@ -179,7 +181,9 @@ window.elefart.factory = (function () {
 	/** 
 	 * @constructor Line
 	 * @classdesc ScreenObject type LINE. Creates a Line object from two Points. Does not 
-	 * support child objects or padding.
+	 * support child objects or padding.{
+	 * @param {Point} pt1 a Point object defining the start of the line
+	 * @param {Point} pt2 a point object defining the end of the line
 	 * @returns {Line} a Line object
 	 */
 	function Line (pt1, pt2) {
@@ -210,6 +214,11 @@ window.elefart.factory = (function () {
 	 * @constructor Padding
 	 * @classdesc ScreenObject.type PADDING. Like a Rect, but without width and height. 
 	 * Use to set padding on objects which support padding, e.g. Rect. encoded with TRBL
+	 * @param {Number} top the top padding
+	 * @param {Number} right the right-hand padding
+	 * @param {Number} bottom the bottom padding
+	 * @param {Number} left the left-hand padding
+	 * @returns {Padding} a Padding object
 	 */
 	function Padding(top, right, bottom, left) {
 		if(!isNumber(top) || !isNumber(right) || !isNumber(bottom) || !isNumber(left) || 
@@ -242,7 +251,10 @@ window.elefart.factory = (function () {
 	 * Allows for border, padding and a constant borderRadius. 
 	 * the actual Canvas drawing routine uses Rect, or a set of 
 	 * arcs (borderRadius > 0)
-
+	 * @param {Number} x the x coordinate onscreen (Integer)
+	 * @param {Number} y the y coordinate onscreen (Integer)
+	 * @param {Number} width the horizontal size of the Rect
+	 * @param {Number} height the vertical size of the number
 	 * @returns {Rect} a Rect object
 	 */
 	function Rect (x, y, width, height) {
@@ -283,6 +295,8 @@ window.elefart.factory = (function () {
 	 * @constructor Circle
 	 * @classdesc ScreenObject.type CIRCLE. Contains an enclosing Rect object, plus 
 	 * a radius. Supports child objects.
+	 * @param {Number} x the x coordinate of the Circle (top side of enclosing Rect)
+	 * @param {Number} y the y coordinate of the circle (left side of enclosing Rect)
 	 * @returns {Circle} a Circle object
 	 */
 	function Circle (x, y, radius) {

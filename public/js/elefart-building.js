@@ -32,6 +32,15 @@ window.elefart.building = (function () {
 	 * ============================
 	 */
 
+	/** 
+	 * @constructor Elevator
+	 * @classdesc an Elevator consists of a single rounded Rect
+	 * representing the elevator, plush some line arcs on top forming 
+	 * the attachment in the shaft
+	 * - parent: elevator shaft
+	 * - grandparent: building
+	 * - chidren: elevator doors, people
+	 */
 	function Elevator () {
 		var elev = {
 			disp:factory.ScreenRect(
@@ -55,6 +64,11 @@ window.elefart.building = (function () {
 	 * ============================
 	 */
 
+	/** 
+	 * @constructor ElevatorDoors
+	 * @classdesc elevator doors consist of an enclosing rect, with 
+	 * two smaller Rects functioning as the sliding doors
+	 */
 	function ElevatorDoors () {
 
 	}
@@ -65,6 +79,11 @@ window.elefart.building = (function () {
 	 * ============================
  	 */
 
+ 	/**
+ 	 * @constructor ElevatorShaft
+ 	 * @classdesc the elevator is a long Rect column running vertically 
+ 	 * in the building.
+ 	 */
  	function ElevatorShaft () {
 
  	}
