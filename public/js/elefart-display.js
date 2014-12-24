@@ -27,28 +27,30 @@ window.elefart.display = (function () {
 	firstTime = true;
 
 	/**
-	 * Enum for types of layers, colors, materials in canvas drawing
 	 * @readonly
 	 * @enum {String}
 	 * @typedef LAYERS
+	 * @description Enum for types of layers, colors, materials in canvas drawing
 	 */
 	var LAYERS = {
-		BUILDING:"BUILDING",
-		SHAFTS:"SHAFTS",
-		ELEBACK:"ELEBACK", //back wall of elevators
+		WORLD: "WORLD",        //environment outside building (Sun, Sky)
+		BUILDING:"BUILDING",   //back wall of building
+		SHAFTS:"SHAFTS",       //elevator shafts in building
+		ELEBACK:"ELEBACK",     //back wall of elevators
 		ELESPACE1:"ELESPACE1", //places for People to stand
 		ELESPACE2:"ELESPCE2",
 		ELESPACE3:"ELESPACE3",
 		ELESPACE4:"ELESPCE4",
-		WALLS:"WALLS", //building walls
-		DOORS:"DOORS", //elevator doors
-		FLOORS:"FLOORS"  //people and objects in the room floors
-	}; //d"isplay list layers. Layers are drawn from 0 outwards
+		WALLS:"WALLS",         //building walls
+		DOORS:"DOORS",         //elevator doors
+		FLOORS:"FLOORS"        //people and objects in the room floors
+	};
 
 	/** 
 	 * @readonly
 	 * @enum {String}
 	 * @typedef COLORS
+	 * @description basic HTML5 Canvas rgb() colors for default objects
 	 */
 	var COLORS = { //flat colors
 		BLACK:"rgb(0,0,0)",
@@ -61,6 +63,7 @@ window.elefart.display = (function () {
 	 * @readonly
 	 * @enum {String}
 	 * @typefef MATERIALS
+	 * @description gradients simple to complex (some may create a patterned texture)
 	 */
 	var MATERIALS = { //gradients
 		SMOOTH:0,
@@ -80,18 +83,17 @@ window.elefart.display = (function () {
 	 * @returns {DOMRect} a DOMRect 
 	 * DOMRect {left:0, top:0, right:0, bottom:0, width:0, height:0}
 	 */
-	function setGameRect () {
-		rect = panel.getBoundingClientRect();
+	function getGameRect() {
+		return (rect = panel.getBoundingClientRect());
 	}
 
-	/** 
-	  * @method setGameSize
-	  * @description set or reset the size of the game drawing at 
-	  * start, or if user changes window size
-	  */
-	function setGameSize () {
+	/**
+	 * @method setGameRect
+	 * @description set the size of the overall game via the enclosng 
+	 * DOM element the HTML5 Canvas object is attached to.
+	 */
+	function setGameRect () {
 		rect = panel.getBoundingClientRect();
-		//TODO: recalculate
 	}
 
 	/** 
@@ -460,6 +462,7 @@ window.elefart.display = (function () {
 		LAYERS:LAYERS,
 		COLORS:COLORS,
 		MATERIALS:MATERIALS,
+		getGameRect:getGameRect,
 		setGameRect:setGameRect,
 		getBackgroundCanvas:getBackgroundCanvas,
 		getForegroundCanvas:getForegroundCanvas,

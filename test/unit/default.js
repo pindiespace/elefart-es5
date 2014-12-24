@@ -70,11 +70,11 @@ describe('Elefart factory', function () {
 		elefart.factory.init();
 	});
 
-	it('should have screen objects attached', function () {
+	it('should have ScreenObjects', function () {
 
 		/**
 		 * ============================
-		 * FACTORY CONSTRUCTORS
+		 * BASIC GEOMETRIC SHAPES
 		 * ============================
 		 */
 
@@ -84,6 +84,7 @@ describe('Elefart factory', function () {
 		var p = new elefart.factory.Point(10, 10);
 		expect(typeof p).toBe('object');
 		expect(p.valid()).toBe(true);
+
 		var l = new elefart.factory.Line(
 			elefart.factory.Point(10, 20), 
 			elefart.factory.Point(100, 200)
@@ -129,11 +130,36 @@ describe('Elefart factory', function () {
 
 		/**
 		 * ============================
-		 * CHECK GETTER METHODS
+		 * ScreenObjects
 		 * ============================
 		 */
 
 		var inside;
+		var BLACK = "rgb(0,0,0)",
+		WHITE = "rgb(255,255,255)";
+		var layer = 0;
+
+		//Point
+		var pt = elefart.factory.ScreenPoint(
+			30, 40, 
+			2, 
+			BLACK
+			);
+		expect(pt.getX()).toBe(30);
+		expect(pt.getY()).toBe(40);
+		expect(pt.getWidth()).toBe(0);
+
+		var ln = elefart.factory.ScreenLine(
+			elefart.factory.Point(10, 20),
+			elefart.factory.Point(30,40),
+			4,
+			BLACK
+			);
+		expect(typeof ln).toBe('object');
+		expect(ln.getWidth()).toBe(20);
+		expect(ln.getHeight()).toBe(20);
+		expect(ln.getX()).toBe(10);
+		expect(ln.getY()).toBe(20);
 
 		//check pointInside
 		inside = elefart.factory.ScreenRect(4, 5, 20, 20).pointInside(
@@ -176,6 +202,12 @@ describe('Elefart factory', function () {
 
 		//check centerOnPoint
 		var mv = elefart.factory.ScreenRect(0, 0, 100, 200);
+		expect(mv.getWidth()).toBe(100);
+		expect(mv.getHeight()).toBe(200);
+		expect(mv.getTop()).toBe(0);
+		expect(mv.getX()).toBe(0);
+		expect(mv.getY()).toBe(0);
+		//center the object on a Point
 		mv.centerOnPoint(
 			elefart.factory.Point(200, 400)
 			);
@@ -256,7 +288,7 @@ describe('Elefart factory', function () {
 		 * ============================
 		 */
 
-		//create an ScreenObject
+		//create an ScreenRect
 		var vis = elefart.factory.ScreenRect(10, 20, 50, 50);
 
 		//check setGradient
@@ -294,6 +326,13 @@ describe('Elefart factory', function () {
 			return img;
 		}
 		vis.setFilter(filter);
+
+		//screen sprites
+		var type = 4; //row number 4 on spriteboard
+		var frames = 10; //number of frames to use
+		var sprite = elefart.factory.ScreenSprite(path, type, frames, function () {
+			console.log('sprite callback')
+		})
 
 		/**
 		 * ============================

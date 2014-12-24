@@ -20,6 +20,27 @@ window.elefart.building = (function () {
 	world, //the top-level object 
 	firstTime = true;
 
+	var TYPES = {
+		ELEVATOR:"ELEVATOR",
+		ELEVATOR_DOORS:"ELEVATOR_DOORS",
+		ELEVATOR_SHAFT:"ELEVATOR_SHAFT",
+		BUILDING_FLOOR:"BUILDING_FLOOR",
+		BUILDING:"BUILDING",
+		SUN:"SUN",
+		SKY:"SKY",
+		WORLD:"WORLD",
+		PERSON:"PERSON",
+		GOODIE:"GOODIE",
+		GAS:"GAS"
+	};
+
+	/* 
+	 * Using Decorator pattern to augment 
+	 * basic 2D screen objects from elefart.screens. 
+	 * A publish-subscribe pattern links the game objects 
+	 * instead of custom events.
+	 */
+
 	/* 
 	 * ============================
 	 * ELEVATORS
@@ -30,31 +51,45 @@ window.elefart.building = (function () {
 	 * @constructor Elevator
 	 * @classdesc an Elevator consists of a single rounded Rect
 	 * representing the elevator, plush some line arcs on top forming 
-	 * the attachment in the shaft
+	 * the attachment in the shaft. 
 	 * - parent: ElevatorShaft
 	 * - grandparent: Building
 	 * - chidren: ElevatorDoors, Person(s)
+	 * @param {ScreenObject} parent a parent ScreenObject (can be null)
+	 * @param {Boolean} display if true, add to displayList
+	 * @returns {Elevator} if ok, return the Elevator, else false
 	 */
-	function Elevator () {
-		var elev = {
-			queue: [],
-			disp:factory.ScreenRect(
-				10, 10, 
-				100, 100, 
-				4, 
-				display.COLORS.BLACK, 
-				display.COLORS.WHITE, 
-				display.LAYERS.ELEBACK
-			)
-		};
+	function Elevator (parent, display) {
+		var elev = false,
+		border = 4;
+		//elevator should start in its parent (ElevatorShaft)
+		if(parent === TYPES.ELEVATOR_SHAFT) {
 
-		//visual features
-		elev.disp.setStroke(4, 'rgb(25,50,100');
-		elev.disp.setFill('rgb(200,100,100');
-		elev.disp.setLayer(display.LAYERS.ELEBACK);
+			elev = factory.ScreenRect(
+				parent.x, parent.bottom - parent.width, //square 
+				parent.width, parent.width, 
+				border,                //stroke width
+				display.COLORS.BLACK,  //stroke color
+				display.COLORS.WHITE,  //fill color
+				display.LAYERS.ELEBACK //bottom layer
+			);
+			if(elev) {
+				elev.buildingType = TYPES.ELEVATOR;
+				//visual features
+				if(parent.buildingType === TYPES.ELEVATOR_SHAFT) {
+					elev.setParent(parent);
+					elev.setRectBorderRadius(border);
 
-		//add to elefart.screens display list
-		
+					//TODO: draw top of elevator, creating Line children
+
+					//add to elefart.screens display list
+					if(display) {
+						display.addToDisplayList(elev, display.LAYERS.ELEBACK);
+					}
+				}
+			}
+
+		}
 		return elev;
 	}
 
@@ -73,7 +108,15 @@ window.elefart.building = (function () {
 	 * - grandparent: Building
 	 * - children: none
 	 */
-	function ElevatorDoors () {
+	function ElevatorDoors (parent) {
+		if(parent && parent.buildingType === TYPES.BUILDING_FLOOR) {
+				var eDoors = factory.ScreenRect(
+
+			);
+		}
+		else {
+			elefart.showError("Tried to create ElevatorDoors without a parent");
+		}
 
 	}
 
@@ -161,7 +204,25 @@ window.elefart.building = (function () {
 	 * - children: Building
 	 */
 	function World () {
-
+		var r = display.getGameRect();
+		if(r) {
+			var w = factory.ScreenRect(
+			0,
+			0,
+			r.width,
+			r.height,
+			0, 
+			display.COLORS.WHITE, 
+			display.COLORS.BLACK,
+			display.LAYERS.WORLD
+			);
+			if(w) {
+				elev.setRectBorderRadius(border);
+				elev.setOpacity(0.0); //world is invisible
+			}
+		
+		}
+		return false;
 	}
 
 	/* 

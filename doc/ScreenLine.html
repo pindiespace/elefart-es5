@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>DocStrap Source: public/js/elefart-netmessage.js</title>
+	<title>DocStrap Class: ScreenLine</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -560,56 +560,265 @@
 	<div class="row-fluid">
 
 		
-			<div class="span12">
-				
+		<div class="span8">
+			
 				<div id="main">
 					
 
 
-		<h1 class="page-title">Source: public/js/elefart-netmessage.js</h1>
-    
+	<h1 class="page-title">Class: ScreenLine</h1>
 <section>
-	<article>
-		<pre
-			class="sunlight-highlight-javascript linenums">/** 
- * @namespace common
- * @fileoverview common JS object available on client and on server
- * common file between client and server provding
- * a dictionary for decoding messages between user programs
- * each message may be associated with additional data, shown
- * to the right of the message
- * 
- * NOTE: the function is 'wrapped' in an 'exports' object whose 
- * configuration is compatible with what NodeJS needs, and can 
- * also be used by your client. On the browser, the 'common' object
- * is created. On the server, it already exists. Format follows 
- * CommonJS format.
- * 
- * @link http://caolanmcmahon.com/posts/writing_for_node_and_the_browser/
- */
 
-(function(exports){
+<header>
+    <h2>
+    ScreenLine
+    </h2>
+    
+</header>
 
-	exports.portNum = 3000,
+<article>
+    <div class="container-overview">
+    
 
-	exports.NEWS = "NEWS",
+    
+        
+<dt>
+    <h4 class="name" id="ScreenLine"><span class="type-signature"></span>new ScreenLine<span class="signature">(pt1, pt2, strokeWidth, the)</span><span class="type-signature"> &rarr; {<a href="ScreenLine.html">ScreenLine</a>|false}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
 
-	exports.USER_MESSAGE = {
-		USER_JOINED: "USER_JOINED",
-		USER_MOVED: "USER_MOVED",
-		USER_LEFT: "USER_LEFT"
-	};
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
 
-	exports.ELEVATOR_MESSAGE = {
-		ELEVATOR_MOVED: "ELEVATOR_MOVED"
-	};
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
 
-	//the line below is required to export for the web browser
+		<th>Type</th>
 
-}(typeof exports === 'undefined' ? this.common = {} : exports));</pre>
-	</article>
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>pt1</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Point.html">Point</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the first point in the ScreenLine</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>pt2</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Point.html">Point</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the second point in the ScreenLine</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>strokeWidth</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the width of the line stroke</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>the</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#COLORS">COLORS</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>rgb or hex color defined in elefart.display.COLORS</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1323">line 1323</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>if OK, return ScreenLine object, else false</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="ScreenLine.html">ScreenLine</a></span>
+|
+
+<span class="param-type">false</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
 </section>
-
 
 
 
@@ -633,6 +842,10 @@
 				</footer>
 			</div>
 
+			
+			<div class="span3">
+				<div id="toc"></div>
+			</div>
 			
 			<br clear="both">
 		</div>

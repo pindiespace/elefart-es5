@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>DocStrap Source: public/js/elefart-netmessage.js</title>
+	<title>DocStrap Class: Building</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -560,56 +560,128 @@
 	<div class="row-fluid">
 
 		
-			<div class="span12">
-				
+		<div class="span8">
+			
 				<div id="main">
 					
 
 
-		<h1 class="page-title">Source: public/js/elefart-netmessage.js</h1>
-    
+	<h1 class="page-title">Class: Building</h1>
 <section>
-	<article>
-		<pre
-			class="sunlight-highlight-javascript linenums">/** 
- * @namespace common
- * @fileoverview common JS object available on client and on server
- * common file between client and server provding
- * a dictionary for decoding messages between user programs
- * each message may be associated with additional data, shown
- * to the right of the message
- * 
- * NOTE: the function is 'wrapped' in an 'exports' object whose 
- * configuration is compatible with what NodeJS needs, and can 
- * also be used by your client. On the browser, the 'common' object
- * is created. On the server, it already exists. Format follows 
- * CommonJS format.
- * 
- * @link http://caolanmcmahon.com/posts/writing_for_node_and_the_browser/
- */
 
-(function(exports){
+<header>
+    <h2>
+    Building
+    </h2>
+    
+        <div class="class-description"><p>the building where the action happens</p>
+<ul>
+<li>parent: World</li>
+<li>grandparent: none</li>
+<li>children: BuildingFloor(s)</li>
+</ul></div>
+    
+</header>
 
-	exports.portNum = 3000,
+<article>
+    <div class="container-overview">
+    
 
-	exports.NEWS = "NEWS",
+    
+        
+<dt>
+    <h4 class="name" id="Building"><span class="type-signature"></span>new Building<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
 
-	exports.USER_MESSAGE = {
-		USER_JOINED: "USER_JOINED",
-		USER_MOVED: "USER_MOVED",
-		USER_LEFT: "USER_LEFT"
-	};
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+	
 
-	exports.ELEVATOR_MESSAGE = {
-		ELEVATOR_MOVED: "ELEVATOR_MOVED"
-	};
+	
 
-	//the line below is required to export for the web browser
+	
 
-}(typeof exports === 'undefined' ? this.common = {} : exports));</pre>
-	</article>
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-166">line 166</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
 </section>
-
 
 
 
@@ -633,6 +705,10 @@
 				</footer>
 			</div>
 
+			
+			<div class="span3">
+				<div id="toc"></div>
+			</div>
 			
 			<br clear="both">
 		</div>

@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>DocStrap Source: public/js/elefart-netmessage.js</title>
+	<title>DocStrap Class: Elevator</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -560,56 +560,225 @@
 	<div class="row-fluid">
 
 		
-			<div class="span12">
-				
+		<div class="span8">
+			
 				<div id="main">
 					
 
 
-		<h1 class="page-title">Source: public/js/elefart-netmessage.js</h1>
-    
+	<h1 class="page-title">Class: Elevator</h1>
 <section>
-	<article>
-		<pre
-			class="sunlight-highlight-javascript linenums">/** 
- * @namespace common
- * @fileoverview common JS object available on client and on server
- * common file between client and server provding
- * a dictionary for decoding messages between user programs
- * each message may be associated with additional data, shown
- * to the right of the message
- * 
- * NOTE: the function is 'wrapped' in an 'exports' object whose 
- * configuration is compatible with what NodeJS needs, and can 
- * also be used by your client. On the browser, the 'common' object
- * is created. On the server, it already exists. Format follows 
- * CommonJS format.
- * 
- * @link http://caolanmcmahon.com/posts/writing_for_node_and_the_browser/
- */
 
-(function(exports){
+<header>
+    <h2>
+    Elevator
+    </h2>
+    
+        <div class="class-description"><p>an Elevator consists of a single rounded Rect
+representing the elevator, plush some line arcs on top forming 
+the attachment in the shaft. </p>
+<ul>
+<li>parent: ElevatorShaft</li>
+<li>grandparent: Building</li>
+<li>chidren: ElevatorDoors, Person(s)</li>
+</ul></div>
+    
+</header>
 
-	exports.portNum = 3000,
+<article>
+    <div class="container-overview">
+    
 
-	exports.NEWS = "NEWS",
+    
+        
+<dt>
+    <h4 class="name" id="Elevator"><span class="type-signature"></span>new Elevator<span class="signature">(parent, display)</span><span class="type-signature"> &rarr; {<a href="Elevator.html">Elevator</a>}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
 
-	exports.USER_MESSAGE = {
-		USER_JOINED: "USER_JOINED",
-		USER_MOVED: "USER_MOVED",
-		USER_LEFT: "USER_LEFT"
-	};
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
 
-	exports.ELEVATOR_MESSAGE = {
-		ELEVATOR_MOVED: "ELEVATOR_MOVED"
-	};
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
 
-	//the line below is required to export for the web browser
+		<th>Type</th>
 
-}(typeof exports === 'undefined' ? this.common = {} : exports));</pre>
-	</article>
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>parent</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">ScreenObject</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>a parent ScreenObject (can be null)</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>display</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>if true, add to displayList</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-50">line 50</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>if ok, return the Elevator, else false</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="Elevator.html">Elevator</a></span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
 </section>
-
 
 
 
@@ -633,6 +802,10 @@
 				</footer>
 			</div>
 
+			
+			<div class="span3">
+				<div id="toc"></div>
+			</div>
 			
 			<br clear="both">
 		</div>

@@ -26,6 +26,7 @@ window.elefart.factory = (function () {
 	 * @readonly
 	 * @enum {String}
 	 * @typedef TYPES
+	 * @description basic geometry shapes used to create screen objects
 	 */
 	var TYPES = {
 		POINT:"POINT",
@@ -36,9 +37,6 @@ window.elefart.factory = (function () {
 		POLYGON:"POLYGON",
 		SPRITE:"SPRITE"
 	};
-
-	var BLACK = "rgb(0,0,0)",
-	WHITE = "rgb(255,255,255)";
 
 	/* 
 	 * ============================
@@ -143,10 +141,33 @@ window.elefart.factory = (function () {
 		return obj1;
 	}
 
+	/** 
+	 * @method readout
+	 * @descript read out object properties to the Console. Used fore debugging.
+	 * @param {Object} the JS object
+	 */
+	function readout (obj) {
+		var val;
+		for(var i in obj) {
+			if(typeof obj[i] !== "function") {
+				val = obj[i];
+			}
+			else {
+				val = "function";
+			}
+			console.log("key:" + i + " value:" + val);
+		}
+	}
+
 	/* 
 	 * ============================
-	 * GEOMETRY PRIMITIVES, ScreenObjects
+	 * GEOMETRY PRIMITIVES
 	 * ============================
+	 */
+
+	/* 
+	 * Factory objects are variable enough that we don't 
+	 * inherit a base object for all
 	 */
 
 	/**
@@ -196,8 +217,8 @@ window.elefart.factory = (function () {
 		return {
 			type:TYPES.LINE,
 			id:getId(),
-			point1:pt1,
-			point2:pt2,
+			pt1:pt1,
+			pt2:pt2,
 			width:0,
 			valid: function () {
 				if(!pt1 || !pt2 || 
@@ -419,9 +440,196 @@ window.elefart.factory = (function () {
 
 	/* 
 	 * ============================
-	 * OBJECT COLLISION TESTS
+	 * GETTERS AND OBJECT COLLISION TESTS
 	 * ============================
 	 */
+
+	/** 
+	 * @method getX
+	 * @description get the x coordinate of any ScreenObject
+	 * @returns {Number} the x coordinate of the top-left of the 
+	 * ScreenObject's enclosing Rect
+	 */
+	function getX () {
+		if(this.x !== undefined) {
+			return this.x; 
+		} //POINT
+		else if(this.top !== undefined) {
+			return this.top;
+		} //RECT
+		else if(this.pt1 !== undefined && 
+			this.pt1.x !== undefined) {
+			return this.pt1.x; 
+		} //LINE
+		else {
+			elefart.showError(this.TYPE + " doesn't have an X position");
+		}
+	}
+
+	/** 
+	 * @method getY
+	 * @description get the y coordinate of any ScreenObject
+	 * @returns {Number} the y coordinate of the top-left of the 
+	 * ScreenObject's enclosing Rect
+	 */
+	function getY () {
+		if(this.y !== undefined) {
+			return this.y; 
+		} //POINT
+		else if(this.left !== undefined) {
+			return this.left; 
+		} //RECT
+		else if(this.pt1 && this.pt1.y !== undefined) {
+			return this.pt1.y; 
+		} //LINE
+		else { 
+			elefart.showError(this.TYPE + " doesn't have a Y position");
+		}
+	}
+
+	/** 
+	 * @method getWidth
+	 * @description get the width of the object's enclosing Rect
+	 * @returns {Number} the width of the enclosng Rect
+	 */
+	function getWidth () {
+		if(this.type === TYPES.POINT) {
+			console.log("warning: took width of type POINT");
+			return 0;
+		}
+		else if(this.type === TYPES.LINE) {
+			return (this.pt2.x - this.pt1.x); //Line width is extension in x direction
+		}
+		else if(this.width !== undefined) { //Rect
+			return this.width;
+		}
+		else {
+			elefart.showError(this.TYPE + " doesn't have a width");
+		}
+	}
+
+	/** 
+	 * @method getHeight
+	 * @description get the height of the object's enclosing Rect
+	 * @returns {Number} the height of the enclosing Rect
+	 */
+	function getHeight () {
+		if(this.type === TYPES.POINT) {
+			return 0;
+		}
+		else if(this.type === TYPES.LINE) {
+			return (this.pt2.y - this.pt1.y); //line height is extension in y direction
+		}
+		else if(this.width !== undefined) { //Rect
+			return this.height;
+		}
+		else {
+			elefart.showError(this.type + " doesn't have a height");
+		}
+	}
+
+	function getTop () {
+		if(this.type === TYPES.POINT) {
+			console.log("warning: took top of type POINT");
+			return this.y;
+		}
+		else if(this.type === TYPES.LINE) {
+			console.log("warning: took top of type LINE");
+			return this.pt1.y;
+		}
+		else if(this.width !== undefined) {
+			return this.top;
+		}
+		else {
+			elefart.showError(this.type + " doesn't have a top");
+		}
+	}
+
+	function getLeft () {
+		if(this.type === TYPES.POINT) {
+			console.log("warning: took left of type POINT");
+			return this.x;
+		}
+		else if(this.type === TYPES.LINE) {
+			console.log("warning: took left of type LINE");
+			return this.pt1.x;
+		}
+		else if(this.width !== undefined) {
+			return this.left;
+		}
+		else {
+			elefart.showError(this.type + " doesn't have a top");
+		}
+	}
+
+	function getBottom () {
+		if(this.type === TYPES.POINT) {
+			console.log("warning: took bottom of type POINT");
+			return this.y;
+		}
+		else if(this.type === TYPES.LINE) {
+			console.log("warning: took bottom of type LINE");
+			return this.pt2.y;
+		}
+		else if(this.width !== undefined) {
+			return this.bottom;
+		}
+		else {
+			elefart.showError(this.type + " doesn't have a top");
+		}
+	}
+
+	function getRight () {
+		if(this.type === TYPES.POINT) {
+			console.log("warning: took right of type POINT");
+			return this.x;
+		}
+		else if(this.type === TYPES.LINE) {
+			console.log("warning: took right of type LINE");
+			return this.pt2.x;
+		}
+		else if(this.width !== undefined) {
+			return this.right;
+		}
+		else {
+			elefart.showError(this.type + " doesn't have a top");
+		}
+	}
+
+	/** 
+	 * @method getCenter
+	 * @description get the center of an ScreenObject
+	 * @returns {Point|false} the center point, or false
+	 */
+	function getCenter () {
+		if(this.type === TYPES.POINT) {
+			console.log("warning: took center of type POINT");
+			return this;
+		}
+		else if(this.type === TYPES.LINE) {
+			if(pt2.x >= pt1.x) {
+				return {
+					x: this.pt1.x + Math.floor((this.pt2.x - this.pt1.x)/2),
+					y: this.pt1.y + Math.floor((this.pt2.y - this.pt1.y)/2)
+				}
+			}
+			else {
+				return {
+					x: this.pt2.x + Math.floor((this.pt1.x - this.pt2.x)/2),
+					y: this.pt2.y + Math.floor((this.pt1.y - this.pt2.y)/2)
+				}
+			}
+		}
+		//everything else has a Rect, so find center x, y for a rect
+		if(this.top === undefined) {
+			elefart.showError(this.type + " can't get its center");
+			return false;
+		}
+		return {
+			x: this.left + Math.floor((this.right - this.left)/2),
+			y: this.top + Math.floor((this.bottom - this.top)/2)
+		}
+	}
 
 	/** 
 	 * @method ptInside
@@ -448,7 +656,7 @@ window.elefart.factory = (function () {
 	 */
 	function pointInside (pt) {
 		if(this.type === TYPES.POINT || this.type === TYPES.LINE) {
-			elefart.showError("point cannot be inside POINT or LINE objects");
+			elefart.showError("Point object cannot be inside POINT or LINE objects");
 			return false;
 		} 
 		//everything else has a Rect in it
@@ -480,7 +688,7 @@ window.elefart.factory = (function () {
 		}
 		//everything else has a Rect in it
 		if(this.top === undefined) {
-			elefart.showError(this.type + " can't determine if it is inside Rect");
+			elefart.showError(this.type + " undefined internal Rect, can't determine if it is inside Rect");
 			return false;
 		}
 		if(this.top >= rect.top && 
@@ -509,7 +717,7 @@ window.elefart.factory = (function () {
 			return (ptInside(this.pt1, rect) && ptInside(this.pt2, rect));
 		}
 		if(this.top === undefined) {
-			elefart.showError(this.type + " can't get its intersect");
+			elefart.showError(this.type + " undefined internal Rect, can't get its intersect");
 			return false;
 		}
 		return (this.left <= rect.right &&
@@ -518,39 +726,6 @@ window.elefart.factory = (function () {
 			rect.top <= this.bottom);
 	}
 
-	/** 
-	 * @method getCenter
-	 * @description get the center of an ScreenObject
-	 * @returns {Point|false} the center point, or false
-	 */
-	function getCenter () {
-		if(this.type === TYPES.POINT) {
-			return this;
-		}
-		else if(this.type === TYPES.LINE) {
-			if(pt2.x >= pt1.x) {
-				return {
-					x: this.pt1.x + Math.floor((this.pt2.x - this.pt1.x)/2),
-					y: this.pt1.y + Math.floor((this.pt2.y - this.pt1.y)/2)
-				}
-			}
-			else {
-				return {
-					x: this.pt2.x + Math.floor((this.pt1.x - this.pt2.x)/2),
-					y: this.pt2.y + Math.floor((this.pt1.y - this.pt2.y)/2)
-				}
-			}
-		}
-		//everything else has a Rect, so find center x, y for a rect
-		if(this.top === undefined) {
-			elefart.showError(this.type + " can't get its center");
-			return false;
-		}
-		return {
-			x: this.left + Math.floor((this.right - this.left)/2),
-			y: this.top + Math.floor((this.bottom - this.top)/2)
-		}
-	}
 
 	/* 
 	 * ============================
@@ -817,6 +992,31 @@ window.elefart.factory = (function () {
 	 */
 
 	/** 
+	 * @method addParent
+	 * @description add a parent object
+	 * @param {Object} parent the parent object
+	 * @returns {Boolean} if ok, return true, else false
+	 */
+	function addParent(parent) {
+		if(parent) {
+			this.parent = parent;
+		}
+		else {
+			elefart.showError("tried to add non-object parent");
+		}
+		return false;
+	}
+
+	function removeParent() {
+		if(this.parent) {
+			this.parent = null;
+		}
+		else {
+			elefart.showError("tried to remove nonexistend parent");
+		}
+	}
+
+	/** 
 	 * @method addChild
 	 * @description add a child ScreenObject to an Object
 	 * @param {Object} a child object, either Point, Line, 
@@ -911,6 +1111,10 @@ window.elefart.factory = (function () {
 	 * @param {CanvasGradient} grad gradient from canvas.getContext()
 	 */
 	function setGradient(grad) {
+		if(this.type === TYPES.PADDING) {
+			elefart.showError(this.type + " can't apply a width or color");
+			return false;
+		}
 		if(!grad) {
 			elefart.showError("null gradient applied to object");
 			return false;
@@ -924,6 +1128,10 @@ window.elefart.factory = (function () {
 	 * @param {Number} opacity the opacity of the object
 	 */
 	function setOpacity(opacity) {
+		if(this.type === TYPES.PADDING) {
+			elefart.showError(this.type + " can't apply a width or color");
+			return false;
+		}
 		if(!isNumber(opacity || opacity < 0.0 || opacity > 1.0)) {
 			elefart.showError("invalid opacity:" + opacity);
 		}
@@ -937,7 +1145,7 @@ window.elefart.factory = (function () {
 	 * @param {String} rgb() or #rrggbb or #rgb color string
 	 */
 	function setStroke(width, color) {
-		if(this.type === TYPES.POINT || this.type === TYPES.PADDING) {
+		if(this.type === TYPES.PADDING) {
 			elefart.showError(this.type + " can't apply a width or color");
 			return false;
 		}
@@ -959,6 +1167,10 @@ window.elefart.factory = (function () {
 	 * @param {String} color the rgb() or #rrggbb or #rgb color
 	 */
 	function setFill(color) {
+		if(this.type === TYPES.PADDING) {
+			elefart.showError(this.type + " can't apply a width or color");
+			return false;
+		}
 		if(!isRGB(color)) {
 			elefart.showError("invalid RGB color");
 			return false;
@@ -992,7 +1204,7 @@ window.elefart.factory = (function () {
 				this.height = that.height;
 			}
 
-			callback(that); //callback function passed image
+			if(callback) callback(that); //callback function passed image
 		}
 
 		that.img.oneror = function () {
@@ -1038,10 +1250,20 @@ window.elefart.factory = (function () {
 	 * @param {Object} program object
 	 */
 	function addFns (obj) {
+		//getters
+		obj.getX = getX,
+		obj.getY = getY,
+		obj.getWidth = getWidth,
+		obj.getHeight = getHeight,
+		obj.getTop = getTop,
+		obj.getLeft = getLeft,
+		obj.getBottom = getBottom,
+		obj.getRight = getRight,
+		obj.getCenter = getCenter,
 		obj.pointInside = pointInside,
 		obj.insideRect = insideRect,
 		obj.intersectRect = intersectRect,
-		obj.getCenter = getCenter,
+		//setters
 		obj.move = move,
 		obj.moveTo = moveTo,
 		obj.centerOnPoint = centerOnPoint,
@@ -1050,17 +1272,20 @@ window.elefart.factory = (function () {
 		obj.setRectBorderRadius = setRectBorderRadius,
 		obj.setRectPadding = setRectPadding,
 		obj.scale = scale,
-
+		//parents and childen
+		obj.addParent = addParent,
+		obj.removeParent = removeParent,
 		obj.findChild = findChild,
 		obj.addChild = addChild,
 		obj.removeChild = removeChild,
-
+		//visual styles
 		obj.setFilter = setFilter,
 		obj.setGradient = setGradient,
 		obj.setOpacity = setOpacity,
 		obj.setStroke = setStroke,
 		obj.setFill = setFill,
 		obj.setImage = setImage,
+		//drawing layer
 		obj.setLayer = setLayer;
 		return obj;
 	}
@@ -1070,6 +1295,52 @@ window.elefart.factory = (function () {
 	 * CANVAS SHAPES
 	 * ============================
 	 */
+
+	/** 
+	 * @constructor ScreenPoint
+	 * @implements {Point}
+	 * @classdesc create a ScreenPoint object
+	 * @param {Number} x the x position of the Point
+	 * @param {Number} y the y position of the Point
+	 * @param {Number} strokeWidth the width of the stroke
+	 * @param {COLORS} strokeColor the color of the stroke
+	 * @param {LAYERS} the drawing layer for elefart.display to draw the object into
+	 * @returns {ScreenPoint|false} if ok, return ScreenPoint, else false
+	 */
+	function ScreenPoint (x, y, strokeWidth, strokeColor, layer) {
+		var pt = Point(x, y);
+		addFns(pt);
+		if(pt) {
+			if(!strokeWidth) strokeWidth = 1;
+			if(!strokeColor) strokeColor = display.COLORS.BLACK;
+			if(!layer) layer = display.LAYERS.FLOORS;
+			pt.setStroke(strokeWidth, strokeColor);
+			pt.setLayer(layer);
+		}
+		return pt;
+	}
+
+	/** 
+	 * @constructor ScreenLine
+	 * @implements {Line}
+	 * @param {Point} pt1 the first point in the ScreenLine
+	 * @param {Point} pt2 the second point in the ScreenLine
+	 * @param {Number} strokeWidth the width of the line stroke
+	 * @param {COLORS} the rgb or hex color defined in elefart.display.COLORS
+	 * @returns {ScreenLine|false} if OK, return ScreenLine object, else false
+	 */
+	function ScreenLine (pt1, pt2, strokeWidth, strokeColor, layer) {
+		var ln = Line(pt1, pt2);
+		if(ln) {
+			addFns(ln);
+			if(!strokeWidth) strokeWidth = 1; //default
+			if(!strokeColor) strokeColor = display.COLORS.BLACK;
+			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			ln.setStroke(strokeWidth, strokeColor);
+			ln.setLayer(layer);
+		}
+		return ln;
+	}
 
 	/** 
 	 * @constructor ScreenRect
@@ -1082,14 +1353,23 @@ window.elefart.factory = (function () {
 	 * @param {Number} strokeWidth the width of the stroke around the ScreenRect
 	 * @param {String} strokeColor the color (rgb or hex) for the stroke, written as 
 	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
-	 * @param {String} fillColor the color (rgb or hex) for the stroke, written as 
+	 * @param {COLORS} fillColor the color (rgb or hex) for the stroke, written as 
 	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 * @returns {ScreenRect|false} if OK, return ScreenLine object, else false
 	 */
 	function ScreenRect (x, y, width, height, strokeWidth, strokeColor, fillColor, layer) {
 		var r = Rect(x, y, width, height);
-		addFns(r);
-		r.setLayer(layer);
+		if(r) {
+			addFns(r);
+			if(!strokeWidth) strokeWidth = 1;
+			if(!strokeColor) strokeColor = display.COLORS.BLACK;
+			if(!fillColor) fillColor = display.COLORS.WHITE;
+			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			r.setStroke(strokeWidth, strokeColor);
+			r.setFill(fillColor);
+			r.setLayer(layer);
+		}
 		return r;
 	}
 
@@ -1107,11 +1387,20 @@ window.elefart.factory = (function () {
 	 * @param {String} fillColor the color (rgb or hex) for the stroke, written as 
 	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 * @returns {ScreenCircle|false} if ok, return ScreenLine object, else false
 	 */
 	function ScreenCircle (x, y, radius, strokeWidth, strokeColor, fillColor, layer) {
 		var c = Circle(x, y, radius);
-		addFns(c);
-		c.setLayer(layer);
+		if(c) {
+			addFns(c);
+			if(!strokeWidth) strokeWidth = 1;
+			if(!strokeColor) strokeColor = display.COLORS.BLACK;
+			if(!fillColor) fillColor = display.COLORS.WHITE;
+			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			c.setStroke(strokeWidth, strokeColor);
+			c.setFill(fillColor);
+			c.setLayer(layer);
+		}
 		return c;
 	}
 
@@ -1127,11 +1416,21 @@ window.elefart.factory = (function () {
 	 * @param {String} fillColor the color (rgb or hex) for the stroke, written as 
 	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 * @returns {ScreenPoly|false} if ok, return ScreenLine object, else false
 	 */
-	function ScreenPoly(pts, layer, strokeWidth, strokeColor, fillColor, layer) {
+	function ScreenPoly(pts, strokeWidth, strokeColor, fillColor, layer) {
 		var p = Polygon(pts);
-		addFns(r);
-		p.setLayer(layer);
+		if(p) {
+			addFns(r);
+			if(!strokeWidth) strokeWidth = 1;
+			if(!strokeColor) strokeColor = display.COLORS.BLACK;
+			if(!filLColor) fillColor = display.COLORS.WHITE;
+			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			p.setStroke(strokeWidth, strokeColor);
+			p.setFill(fillColor);
+			p.setLayer(layer);
+
+		}
 		return p;
 	}
 
@@ -1144,11 +1443,19 @@ window.elefart.factory = (function () {
 	 * @param {Number} y the y coordinate of the object
 	 * @param {String} src the path to the image file used
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 * @returns {ScreenImage|false} if ok, return ScreenLine object, else false
 	 */
 	function ScreenImage(x, y, src, callback, layer) {
 		var r = Rect(x, y, 0, 0); //zero until image loaded
-		r.setLayer(layer);
-		r.setImage(src, callback);
+		if(r && src) {
+			addFns(r);
+			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			r.setLayer(layer);
+			r.setImage(src, callback);
+		}
+		else {
+			elefart.showError("ScreenImage invalid parameters, src:");
+		}
 		return r;
 	}
 
@@ -1165,20 +1472,25 @@ window.elefart.factory = (function () {
 	 * @param {Function} callback the callback function to call after 
 	 * loading a SpriteBoard image
 	 * @param {LAYERS} layer the layer to draw the sprite into
+	 * @returns {ScreenSprite|false} if ok, return ScreenLine object, else false
 	 */
 	function ScreenSprite (src, types, frames, callback, layer) {
 		var r = Rect(0, 0, 0, 0); //always starts at 0, 0
-		r.setImage(src, callback, false); //load, but don't scale
-		r.setLayer(layer);
-		r.width = r.left = r.img.width;     //adjust based on image size
-		r.height = r.bottom = r.img.height;
-		r.types = types;
-		r.frames = frames;
-		r.currentFrame = 0;
-		r.interval = 0;
-		r.loop = false;
-		r.frameWidth = 0;
-		r.frameHeight = 0;
+
+		if(r) {
+			addFns(r);
+			r.setImage(src, callback, false); //load, but don't scale
+			r.setLayer(layer);
+			r.width = r.left = r.img.width; //adjust based on image size
+			r.height = r.bottom = r.img.height;
+			r.types = types;
+			r.frames = frames;
+			r.currentFrame = 0;
+			r.interval = 0;
+			r.loop = false;
+			r.frameWidth = 0;
+			r.frameHeight = 0;
+		}
 		return r;
 	}
 
@@ -1211,6 +1523,7 @@ window.elefart.factory = (function () {
 
 	//returned object
 	return {
+		TYPES:TYPES,
 		Point:Point,
 		Line:Line,
 		Padding:Padding,
@@ -1223,6 +1536,8 @@ window.elefart.factory = (function () {
 		setStroke:setStroke,
 		setFill:setFill,
 		setLayer:setLayer,
+		ScreenPoint:ScreenPoint,
+		ScreenLine:ScreenLine,
 		ScreenRect:ScreenRect,
 		ScreenCircle:ScreenCircle,
 		ScreenSprite:ScreenSprite,
