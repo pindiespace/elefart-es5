@@ -154,10 +154,6 @@
 						</li>
 						
 						<li>
-							<a href="global.html#addParent">addParent</a>
-						</li>
-						
-						<li>
 							<a href="global.html#addToDisplayList">addToDisplayList</a>
 						</li>
 						
@@ -202,7 +198,7 @@
 						</li>
 						
 						<li>
-							<a href="global.html#drawDisplay">drawDisplay</a>
+							<a href="global.html#drawCircle">drawCircle</a>
 						</li>
 						
 						<li>
@@ -214,11 +210,51 @@
 						</li>
 						
 						<li>
+							<a href="global.html#drawImage">drawImage</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawLine">drawLine</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawPoint">drawPoint</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawPolygon">drawPolygon</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawRect">drawRect</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawRoundedRect">drawRoundedRect</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawSpriteFrame">drawSpriteFrame</a>
+						</li>
+						
+						<li>
 							<a href="global.html#findChild">findChild</a>
 						</li>
 						
 						<li>
 							<a href="global.html#fixScreen">fixScreen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#gameLoop">gameLoop</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getBackgroundCanvas">getBackgroundCanvas</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getBackgroundTexture">getBackgroundTexture</a>
 						</li>
 						
 						<li>
@@ -243,6 +279,10 @@
 						
 						<li>
 							<a href="global.html#getForegroundCanvas">getForegroundCanvas</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getForegroundTexture">getForegroundTexture</a>
 						</li>
 						
 						<li>
@@ -346,7 +386,15 @@
 						</li>
 						
 						<li>
+							<a href="global.html#isFunction">isFunction</a>
+						</li>
+						
+						<li>
 							<a href="global.html#isNumber">isNumber</a>
+						</li>
+						
+						<li>
+							<a href="global.html#isObject">isObject</a>
 						</li>
 						
 						<li>
@@ -530,6 +578,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#setParent">setParent</a>
+						</li>
+						
+						<li>
 							<a href="global.html#setRectPadding">setRectPadding</a>
 						</li>
 						
@@ -547,6 +599,10 @@
 						
 						<li>
 							<a href="global.html#toggle">toggle</a>
+						</li>
+						
+						<li>
+							<a href="global.html#toInt">toInt</a>
 						</li>
 						
 
@@ -585,7 +641,7 @@
     
         
 <dt>
-    <h4 class="name" id="ScreenRect"><span class="type-signature"></span>new ScreenRect<span class="signature">(x, y, width, height, strokeWidth, strokeColor, fillColor, layer)</span><span class="type-signature"> &rarr; {<a href="ScreenRect.html">ScreenRect</a>|false}</span></h4>
+    <h4 class="name" id="ScreenRect"><span class="type-signature"></span>new ScreenRect<span class="signature">(x, y, width, height, strokeWidth, strokeStyle, fillStyle, layer)</span><span class="type-signature"> &rarr; {<a href="ScreenRect.html">ScreenRect</a>|false}</span></h4>
     
     
 </dt>
@@ -738,37 +794,16 @@
 
         <tr>
             
-                <td class="name"><code>strokeColor</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the color (rgb or hex) for the stroke, written as 
-a string, e.g. 'rgb(4,3,3)' or #ddccdd.</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>fillColor</code></td>
+                <td class="name"><code>strokeStyle</code></td>
             
 
             <td class="type">
             
                 
 <span class="param-type"><a href="global.html#COLORS">COLORS</a></span>
+|
+
+<span class="param-type">CanvasGradient</span>
 
 
             
@@ -779,7 +814,34 @@ a string, e.g. 'rgb(4,3,3)' or #ddccdd.</p></td>
             
 
             <td class="description last"><p>the color (rgb or hex) for the stroke, written as 
-a string, e.g. 'rgb(4,3,3)' or #ddccdd.</p></td>
+a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>fillStyle</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#COLORS">COLORS</a></span>
+|
+
+<span class="param-type">CanvasGradient</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the color (rgb or hex) for the stroke, written as 
+a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object</p></td>
         </tr>
 
 	
@@ -839,7 +901,7 @@ a string, e.g. 'rgb(4,3,3)' or #ddccdd.</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1345">line 1345</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1392">line 1392</a>
 			</li>
 		</ul>
 	</dd>
@@ -932,7 +994,7 @@ a string, e.g. 'rgb(4,3,3)' or #ddccdd.</p></td>
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Tue Dec 23rd 2014 using the <a
+		on Thu Dec 25th 2014 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

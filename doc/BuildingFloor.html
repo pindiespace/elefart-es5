@@ -154,10 +154,6 @@
 						</li>
 						
 						<li>
-							<a href="global.html#addParent">addParent</a>
-						</li>
-						
-						<li>
 							<a href="global.html#addToDisplayList">addToDisplayList</a>
 						</li>
 						
@@ -202,7 +198,7 @@
 						</li>
 						
 						<li>
-							<a href="global.html#drawDisplay">drawDisplay</a>
+							<a href="global.html#drawCircle">drawCircle</a>
 						</li>
 						
 						<li>
@@ -214,11 +210,51 @@
 						</li>
 						
 						<li>
+							<a href="global.html#drawImage">drawImage</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawLine">drawLine</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawPoint">drawPoint</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawPolygon">drawPolygon</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawRect">drawRect</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawRoundedRect">drawRoundedRect</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawSpriteFrame">drawSpriteFrame</a>
+						</li>
+						
+						<li>
 							<a href="global.html#findChild">findChild</a>
 						</li>
 						
 						<li>
 							<a href="global.html#fixScreen">fixScreen</a>
+						</li>
+						
+						<li>
+							<a href="global.html#gameLoop">gameLoop</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getBackgroundCanvas">getBackgroundCanvas</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getBackgroundTexture">getBackgroundTexture</a>
 						</li>
 						
 						<li>
@@ -243,6 +279,10 @@
 						
 						<li>
 							<a href="global.html#getForegroundCanvas">getForegroundCanvas</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getForegroundTexture">getForegroundTexture</a>
 						</li>
 						
 						<li>
@@ -346,7 +386,15 @@
 						</li>
 						
 						<li>
+							<a href="global.html#isFunction">isFunction</a>
+						</li>
+						
+						<li>
 							<a href="global.html#isNumber">isNumber</a>
+						</li>
+						
+						<li>
+							<a href="global.html#isObject">isObject</a>
 						</li>
 						
 						<li>
@@ -530,6 +578,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#setParent">setParent</a>
+						</li>
+						
+						<li>
 							<a href="global.html#setRectPadding">setRectPadding</a>
 						</li>
 						
@@ -547,6 +599,10 @@
 						
 						<li>
 							<a href="global.html#toggle">toggle</a>
+						</li>
+						
+						<li>
+							<a href="global.html#toInt">toInt</a>
 						</li>
 						
 
@@ -592,7 +648,7 @@ a ring when an Elevator arrives at a floor)</p>
     
         
 <dt>
-    <h4 class="name" id="BuildingFloor"><span class="type-signature"></span>new BuildingFloor<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="BuildingFloor"><span class="type-signature"></span>new BuildingFloor<span class="signature">(building, floorNum)</span><span class="type-signature"> &rarr; {<a href="BuildingFloor.html">BuildingFloor</a>|false}</span></h4>
     
     
 </dt>
@@ -604,6 +660,78 @@ a ring when an Elevator arrives at a floor)</p>
     
     
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>building</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Building.html">Building</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the parent building object</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>floorNum</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the floor number</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
     
     
     
@@ -634,7 +762,7 @@ a ring when an Elevator arrives at a floor)</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-147">line 147</a>
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-219">line 219</a>
 			</li>
 		</ul>
 	</dd>
@@ -657,6 +785,32 @@ a ring when an Elevator arrives at a floor)</p>
     
     
     
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>a BuildingFloor object, or false</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="BuildingFloor.html">BuildingFloor</a></span>
+|
+
+<span class="param-type">false</span>
+
+
+	</dd>
+</dl>
+
+
+        
     
     
 </dd>
@@ -701,7 +855,7 @@ a ring when an Elevator arrives at a floor)</p>
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Tue Dec 23rd 2014 using the <a
+		on Thu Dec 25th 2014 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

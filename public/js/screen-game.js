@@ -41,15 +41,14 @@ window.elefart.screens['screen-game'] = (function () {
 
 		if(!panel) elefart.showError("game panel (from elefart.screens['screen-game']) didn't initialize");
 
-		//set up game objects
-		elefart.building.run();
 
 		//show the screen
 		dom.showScreenById(id);
 
 		//start the game!
-		elefart.display.run(panel);
-		elefart.controller.run();
+		elefart.display.run(panel); //have to determine bounding Rect for elefart.building
+		elefart.building.run(); //elefart.building calls display for dimensions
+		elefart.controller.run(); //don't activat until prelim draw
 
 	}
 

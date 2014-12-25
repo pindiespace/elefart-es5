@@ -79,6 +79,23 @@ window.elefart.controller = (function () {
 		dom.remove();
 	}
 
+	/**  
+	 * ========================================= 
+	 * GAME LOOP 
+	 * ========================================= 
+	 */
+
+	/** 
+	 * @method gameLoop
+	 * @description regular updates (e.g. screen redraws)
+	 */
+	function gameLoop() {
+
+		display.drawForeground();
+
+		requestAnimationFrame(gameLoop); 
+
+	}
 	/** 
 	 * @method init controller
 	 * @description initialize the controller, including event handlers. Requires 
@@ -104,6 +121,9 @@ window.elefart.controller = (function () {
 		//TODO: probaby need a switch here for other screens
 		//set handlers associate with an active game
 		setGameHandlers(display.getForegroundCanvas());
+
+		display.drawBackground();
+		gameLoop();
 
 	}
 

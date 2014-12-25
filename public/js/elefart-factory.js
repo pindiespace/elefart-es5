@@ -35,8 +35,10 @@ window.elefart.factory = (function () {
 		RECT:"RECT",
 		CIRCLE:"CIRCLE",
 		POLYGON:"POLYGON",
+		IMAGE:"IMAGE",
 		SPRITE:"SPRITE"
 	};
+
 
 	/* 
 	 * ============================
@@ -63,8 +65,20 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
+	 * @method toInt
+	 * @description convert a Number to an integer
+	 * @link http://stackoverflow.com/questions/596467/how-do-i-convert-a-number-to-an-integer-in-javascript
+	 * @param {Number} num
+	 * @returns {Integer} number with float removed
+	 */
+	function toInt(num) {
+		num = Math.floor(num);
+		return ~~num; 
+	}
+
+	/** 
 	 * @method isNumber
-	 * @description confirm an object is a number
+	 * @description confirm an object is a Mumber
 	 * @param {Object} obj the object to test
 	 * @returns {Boolean} if a number, return true, else false
 	 */
@@ -74,7 +88,7 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method isString
-	 * @description confirm an object is a string
+	 * @description confirm an object is a String
 	 * @param {Object} object to test
 	 * @returns {Boolean} if a string, return true, else false
 	 */
@@ -82,28 +96,51 @@ window.elefart.factory = (function () {
 		return ("String" === Object.prototype.toString.call(obj).slice(8, -1));
 	}
 
+	/** 
+	 * @method isFunction
+	 * @description confirm an object is a Function
+	 * @param {Object} object to test
+	 * @returns {Boolean} if an Function, return true, else false
+	 */
 	function isFunction (obj) {
 		return ("Function" === Object.prototype.toString.call(obj).slice(8, -1));
 	}
 
 	/** 
+	 * @method isObject
+	 * @description confirm an object is an objet, but not a JS primitive object 
+	 * like String, Number, Function
+	 * @param {Object} object to test
+	 * @returns {Boolean} if an Object and not a JS primitive, return true, else false
+	 */
+	function isCanvasGradient (obj) {
+		return ("CanvasGradient" === Object.prototype.toString.call(obj).slice(8, -1));
+	}
+
+	/** 
 	 * @method isRGB
-	 * @description confirm a string is valid rgb or #rrggbb or #rgb color
+	 * @description confirm a string is valid rgb or #rrggbb or #rgb color, or 
+	 * an HTML5 CanvasContext gradient.
 	 * @link http://www.mkyong.com/regular-expressions/how-to-validate-hex-color-code-with-regular-expression/
 	 * @param {String} str the color string
 	 * @returns {Boolean} if valid color, return true, else false
 	 */
 	function isRGB (str) {
-		var rgb = str.match(/\d+/g);
-		if(rgb && rgb.length && isNumber(rgb[0]) && isNumber(rgb[1]) && isNumber(rgb[2])) {
+		if(isCanvasGradient(str)) { //CanvasGradient
 			return true;
 		}
-		//check for hex (3 or six digits)
-		var hex = str.match(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/);
-		if(hex) {
-			return true;
+		else if(isString(str)) { //rgb or hex color string
+			var rgb = str.match(/\d+/g);
+			if(rgb && rgb.length && isNumber(rgb[0]) && isNumber(rgb[1]) && isNumber(rgb[2])) {
+				return true;
+			}
+			//check for hex (3 or six digits)
+			var hex = str.match(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/);
+			if(hex) {
+				return true;
+			}
 		}
-		elefart.showError("invalid RGB string:" + str);
+		elefart.showError("invalid RGB string or gradient object:" + str);
 		return false;
 	}
 
@@ -187,8 +224,8 @@ window.elefart.factory = (function () {
 		return {
 			type:TYPES.POINT,
 			id:getId(), //unique
-			x:x,
-			y:y,
+			x:toInt(x),
+			y:toInt(y),
 			valid: function () { 
 				if(!isNumber(this.x) || !isNumber(this.y)) 
 					return false;
@@ -214,6 +251,8 @@ window.elefart.factory = (function () {
 			elefart.showError(this.type + " invalid points, pt1:" + typeof pt1 + " pt2:" + typeof pt2);
 			return false;
 		}
+		pt1.x = toInt(pt1.x);pt2.x = toInt(pt2.x);
+		pt1.y = toInt(pt1.y);pt2.y = toInt(pt2.y);
 		return {
 			type:TYPES.LINE,
 			id:getId(),
@@ -251,10 +290,10 @@ window.elefart.factory = (function () {
 		return {
 			type:TYPES.PADDING,
 			id:getId(),
-			top:top,
-			left:left,
-			bottom:bottom,
-			right:right,
+			top:toInt(top),
+			left:toInt(left),
+			bottom:toInt(bottom),
+			right:toInt(right),
 			valid: function () {
 				if(!isNumber(this.top) || !isNumber(this.right) || 
 					!isNumber(this.bottom) || !isNumber(this.left)) 
@@ -287,12 +326,12 @@ window.elefart.factory = (function () {
 		return {
 			type:TYPES.RECT,
 			id:getId(),
-			top:y,
-			right: x + width,
-			bottom: y + height,
-			left:x,
-			width:width,
-			height:height,
+			top:toInt(y),
+			right: toInt(x + width),
+			bottom: toInt(y + height),
+			left:toInt(x),
+			width:toInt(width),
+			height:toInt(height),
 			opacity:1.0,
 			borderRadius:0,
 			paddingRect:{top:0, left:0, bottom:0, right:0, width:0, height:0},
@@ -330,13 +369,13 @@ window.elefart.factory = (function () {
 		return {
 			type:TYPES.CIRCLE,
 			id:getId(),
-			top:y,
-			right:x + d,
-			bottom:y + d,
-			left:x,
-			width:d,
-			height:d,
-			radius:radius,
+			top:toInt(y),
+			right:toInt(x + d),
+			bottom:toInt(y + d),
+			left:toInt(x),
+			width:toInt(d),
+			height:toInt(d),
+			radius:toInt(radius),
 			opacity:1.0,
 			borderRadius:radius,
 			paddingRadius:0,
@@ -365,9 +404,14 @@ window.elefart.factory = (function () {
 			elefart.showError(this.type + " invalid points:" + pts);
 			return false;
 		}
+		//check for valid points, make integers
 		for(var i = 0; i < pts.length; i++) {
 			if(!pts[i].valid.apply(pts[i],[])) {
 				return false;
+			}
+			else {
+				pts[i].x = toInt(pts[i].x);
+				pts[i].y = toInt(pts[i].y);
 			}
 		}
 		var p = {
@@ -609,14 +653,14 @@ window.elefart.factory = (function () {
 		else if(this.type === TYPES.LINE) {
 			if(pt2.x >= pt1.x) {
 				return {
-					x: this.pt1.x + Math.floor((this.pt2.x - this.pt1.x)/2),
-					y: this.pt1.y + Math.floor((this.pt2.y - this.pt1.y)/2)
+					x: this.pt1.x + toInt((this.pt2.x - this.pt1.x)/2),
+					y: this.pt1.y + toInt((this.pt2.y - this.pt1.y)/2)
 				}
 			}
 			else {
 				return {
-					x: this.pt2.x + Math.floor((this.pt1.x - this.pt2.x)/2),
-					y: this.pt2.y + Math.floor((this.pt1.y - this.pt2.y)/2)
+					x: this.pt2.x + toInt((this.pt1.x - this.pt2.x)/2),
+					y: this.pt2.y + toInt((this.pt1.y - this.pt2.y)/2)
 				}
 			}
 		}
@@ -626,8 +670,8 @@ window.elefart.factory = (function () {
 			return false;
 		}
 		return {
-			x: this.left + Math.floor((this.right - this.left)/2),
-			y: this.top + Math.floor((this.bottom - this.top)/2)
+			x: this.left + toInt((this.right - this.left)/2),
+			y: this.top + toInt((this.bottom - this.top)/2)
 		}
 	}
 
@@ -992,13 +1036,14 @@ window.elefart.factory = (function () {
 	 */
 
 	/** 
-	 * @method addParent
+	 * @method setParent
 	 * @description add a parent object
-	 * @param {Object} parent the parent object
+	 * @param {Object|null} parent the parent object, or JS null if the 
+	 * object has no parent (elefart.building.World)
 	 * @returns {Boolean} if ok, return true, else false
 	 */
-	function addParent(parent) {
-		if(parent) {
+	function setParent(parent) {
+		if(parent || parent === null) {
 			this.parent = parent;
 		}
 		else {
@@ -1007,7 +1052,7 @@ window.elefart.factory = (function () {
 		return false;
 	}
 
-	function removeParent() {
+	function clearParent() {
 		if(this.parent) {
 			this.parent = null;
 		}
@@ -1110,7 +1155,7 @@ window.elefart.factory = (function () {
 	 * @description set an HTML5 canvas gradient object for a ScreenObject
 	 * @param {CanvasGradient} grad gradient from canvas.getContext()
 	 */
-	function setGradient(grad) {
+	function setGradient (grad) {
 		if(this.type === TYPES.PADDING) {
 			elefart.showError(this.type + " can't apply a width or color");
 			return false;
@@ -1127,12 +1172,12 @@ window.elefart.factory = (function () {
 	 * @description set the opacity of a ScreenObject
 	 * @param {Number} opacity the opacity of the object
 	 */
-	function setOpacity(opacity) {
+	function setOpacity (opacity) {
 		if(this.type === TYPES.PADDING) {
 			elefart.showError(this.type + " can't apply a width or color");
 			return false;
 		}
-		if(!isNumber(opacity || opacity < 0.0 || opacity > 1.0)) {
+		if(!isNumber(opacity) || opacity < 0.0 || opacity > 1.0) {
 			elefart.showError("invalid opacity:" + opacity);
 		}
 		this.opacity = opacity;
@@ -1144,7 +1189,7 @@ window.elefart.factory = (function () {
 	 * @param {Number} width the width of the stroke in pixels
 	 * @param {String} rgb() or #rrggbb or #rgb color string
 	 */
-	function setStroke(width, color) {
+	function setStroke (width, color) {
 		if(this.type === TYPES.PADDING) {
 			elefart.showError(this.type + " can't apply a width or color");
 			return false;
@@ -1157,8 +1202,8 @@ window.elefart.factory = (function () {
 			elefart.showError("invalid color string:" + color);
 			return false;
 		}
-		this.borderWidth = width;
-		this.borderColor = color;
+		this.lineWidth = width;
+		this.strokeStyle = color;
 	}
 
 	/** 
@@ -1175,7 +1220,7 @@ window.elefart.factory = (function () {
 			elefart.showError("invalid RGB color");
 			return false;
 		}
-		this.fillColor = color;
+		this.fillStyle = color;
 	}
 
 	/* 
@@ -1273,8 +1318,8 @@ window.elefart.factory = (function () {
 		obj.setRectPadding = setRectPadding,
 		obj.scale = scale,
 		//parents and childen
-		obj.addParent = addParent,
-		obj.removeParent = removeParent,
+		obj.setParent = setParent,
+		obj.clearParent = clearParent,
 		obj.findChild = findChild,
 		obj.addChild = addChild,
 		obj.removeChild = removeChild,
@@ -1303,18 +1348,19 @@ window.elefart.factory = (function () {
 	 * @param {Number} x the x position of the Point
 	 * @param {Number} y the y position of the Point
 	 * @param {Number} strokeWidth the width of the stroke
-	 * @param {COLORS} strokeColor the color of the stroke
+	 * @param {COLORS|CanvasGradient} fillStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
 	 * @param {LAYERS} the drawing layer for elefart.display to draw the object into
 	 * @returns {ScreenPoint|false} if ok, return ScreenPoint, else false
 	 */
-	function ScreenPoint (x, y, strokeWidth, strokeColor, layer) {
+	function ScreenPoint (x, y, strokeWidth, strokeStyle, layer) {
 		var pt = Point(x, y);
 		addFns(pt);
 		if(pt) {
 			if(!strokeWidth) strokeWidth = 1;
-			if(!strokeColor) strokeColor = display.COLORS.BLACK;
+			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!layer) layer = display.LAYERS.FLOORS;
-			pt.setStroke(strokeWidth, strokeColor);
+			pt.setStroke(strokeWidth, strokeStyle);
 			pt.setLayer(layer);
 		}
 		return pt;
@@ -1326,17 +1372,18 @@ window.elefart.factory = (function () {
 	 * @param {Point} pt1 the first point in the ScreenLine
 	 * @param {Point} pt2 the second point in the ScreenLine
 	 * @param {Number} strokeWidth the width of the line stroke
-	 * @param {COLORS} the rgb or hex color defined in elefart.display.COLORS
+	 * @param {COLORS|CanvasGradient} strokeStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
 	 * @returns {ScreenLine|false} if OK, return ScreenLine object, else false
 	 */
-	function ScreenLine (pt1, pt2, strokeWidth, strokeColor, layer) {
+	function ScreenLine (pt1, pt2, strokeWidth, strokeStyle, layer) {
 		var ln = Line(pt1, pt2);
 		if(ln) {
 			addFns(ln);
 			if(!strokeWidth) strokeWidth = 1; //default
-			if(!strokeColor) strokeColor = display.COLORS.BLACK;
+			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
-			ln.setStroke(strokeWidth, strokeColor);
+			ln.setStroke(strokeWidth, strokeStyle);
 			ln.setLayer(layer);
 		}
 		return ln;
@@ -1351,23 +1398,23 @@ window.elefart.factory = (function () {
 	 * @param {Number} width the width of the Rect
 	 * @param {Number} height the height of the Rect
 	 * @param {Number} strokeWidth the width of the stroke around the ScreenRect
-	 * @param {String} strokeColor the color (rgb or hex) for the stroke, written as 
-	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
-	 * @param {COLORS} fillColor the color (rgb or hex) for the stroke, written as 
-	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
+	 * @param {COLORS|CanvasGradient} strokeStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
+	 * @param {COLORS|CanvasGradient} fillStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
 	 * @returns {ScreenRect|false} if OK, return ScreenLine object, else false
 	 */
-	function ScreenRect (x, y, width, height, strokeWidth, strokeColor, fillColor, layer) {
+	function ScreenRect (x, y, width, height, strokeWidth, strokeStyle, fillStyle, layer) {
 		var r = Rect(x, y, width, height);
 		if(r) {
 			addFns(r);
 			if(!strokeWidth) strokeWidth = 1;
-			if(!strokeColor) strokeColor = display.COLORS.BLACK;
-			if(!fillColor) fillColor = display.COLORS.WHITE;
+			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
+			if(!fillStyle) fillStyle = display.COLORS.WHITE;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
-			r.setStroke(strokeWidth, strokeColor);
-			r.setFill(fillColor);
+			r.setStroke(strokeWidth, strokeStyle);
+			r.setFill(fillStyle);
 			r.setLayer(layer);
 		}
 		return r;
@@ -1382,23 +1429,23 @@ window.elefart.factory = (function () {
 	 * @param {Number} width the width of the Rect
 	 * @param {Number} height the height of the Rect
 	 * @param {Number} strokeWidth the width of the stroke around the ScreenRect
-	 * @param {String} strokeColor the color (rgb or hex) for the stroke, written as 
-	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
-	 * @param {String} fillColor the color (rgb or hex) for the stroke, written as 
-	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
+	 * @param {COLORS|CanvasGradient} strokeStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
+	 * @param {COLORS|CanvasGradient} fillStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
 	 * @returns {ScreenCircle|false} if ok, return ScreenLine object, else false
 	 */
-	function ScreenCircle (x, y, radius, strokeWidth, strokeColor, fillColor, layer) {
+	function ScreenCircle (x, y, radius, strokeWidth, strokeStyle, fillStyle, layer) {
 		var c = Circle(x, y, radius);
 		if(c) {
 			addFns(c);
 			if(!strokeWidth) strokeWidth = 1;
-			if(!strokeColor) strokeColor = display.COLORS.BLACK;
-			if(!fillColor) fillColor = display.COLORS.WHITE;
+			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
+			if(!fillStyle) fillStyle = display.COLORS.WHITE;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
-			c.setStroke(strokeWidth, strokeColor);
-			c.setFill(fillColor);
+			c.setStroke(strokeWidth, strokeStyle);
+			c.setFill(fillStyle);
 			c.setLayer(layer);
 		}
 		return c;
@@ -1411,25 +1458,24 @@ window.elefart.factory = (function () {
 	 * @param {Array} a set of Point objects with x and y coordinates for the 
 	 * sides of the Polygon.
 	 * @param {Number} strokeWidth the width of the stroke around the ScreenRect
-	 * @param {String} strokeColor the color (rgb or hex) for the stroke, written as 
-	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
-	 * @param {String} fillColor the color (rgb or hex) for the stroke, written as 
-	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd.
+	 * @param {COLORS|CanvasGradient} strokeStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
+	 * @param {COLORS|CanvasGradient} fillStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
 	 * @returns {ScreenPoly|false} if ok, return ScreenLine object, else false
 	 */
-	function ScreenPoly(pts, strokeWidth, strokeColor, fillColor, layer) {
+	function ScreenPoly(pts, strokeWidth, strokeStyle, fillStyle, layer) {
 		var p = Polygon(pts);
 		if(p) {
 			addFns(r);
 			if(!strokeWidth) strokeWidth = 1;
-			if(!strokeColor) strokeColor = display.COLORS.BLACK;
-			if(!filLColor) fillColor = display.COLORS.WHITE;
+			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
+			if(!fillStyle) fillStyle = display.COLORS.WHITE;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
-			p.setStroke(strokeWidth, strokeColor);
-			p.setFill(fillColor);
+			p.setStroke(strokeWidth, strokeStyle);
+			p.setFill(fillStyle);
 			p.setLayer(layer);
-
 		}
 		return p;
 	}
@@ -1450,6 +1496,7 @@ window.elefart.factory = (function () {
 		if(r && src) {
 			addFns(r);
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			r.type = TYPES.IMAGE; //modified from type RECT
 			r.setLayer(layer);
 			r.setImage(src, callback);
 		}
@@ -1481,6 +1528,7 @@ window.elefart.factory = (function () {
 			addFns(r);
 			r.setImage(src, callback, false); //load, but don't scale
 			r.setLayer(layer);
+			r.type = TYPES.SPRITE; //modified from type RECT
 			r.width = r.left = r.img.width; //adjust based on image size
 			r.height = r.bottom = r.img.height;
 			r.types = types;
@@ -1524,6 +1572,7 @@ window.elefart.factory = (function () {
 	//returned object
 	return {
 		TYPES:TYPES,
+		toInt:toInt, //convert to integer floor
 		Point:Point,
 		Line:Line,
 		Padding:Padding,
