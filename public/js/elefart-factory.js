@@ -218,7 +218,7 @@ window.elefart.factory = (function () {
 	 */
 	function Point (x, y) {
 		if(!isNumber(x) || !isNumber(y)) {
-			elefart.showError(this.type + " not defined, x:" + x + " y:" + y);
+			elefart.showError(this.type + " in Point, not defined, x:" + x + " y:" + y);
 			return false;
 		}
 		return {
@@ -248,7 +248,7 @@ window.elefart.factory = (function () {
 		if(pt1 === undefined || pt2 === undefined || 
 			!isNumber(pt1.x) || !isNumber(pt1.y) || 
 			!isNumber(pt2.x) || !isNumber(pt2.y)) {
-			elefart.showError(this.type + " invalid points, pt1:" + typeof pt1 + " pt2:" + typeof pt2);
+			elefart.showError(this.type + " in Line, invalid points, pt1:" + typeof pt1 + " pt2:" + typeof pt2);
 			return false;
 		}
 		pt1.x = toInt(pt1.x);pt2.x = toInt(pt2.x);
@@ -284,7 +284,7 @@ window.elefart.factory = (function () {
 		if(!isNumber(top) || !isNumber(right) || !isNumber(bottom) || !isNumber(left) || 
 			bottom + top > this.height || 
 			right + left > this.width) {
-			elefart.showError(this.type + " invalid: top:"+ top + " left:" + left + " bottom:" + bottom + " right:" + right);
+			elefart.showError(this.type + " in Padding, invalid: top:"+ top + " left:" + left + " bottom:" + bottom + " right:" + right);
 			return false;
 		}
 		return {
@@ -320,7 +320,7 @@ window.elefart.factory = (function () {
 	function Rect (x, y, width, height) {
 		if(!isNumber(x) || !isNumber(y) || !isNumber(width) || 
 			!isNumber(height) || width < 0 || y < 0) {
-			elefart.showError(this.type + " invalid dimensions x:" + x + " y:" + y + " w:" + width + " h:" + height)
+			elefart.showError(this.type + " in Rect, invalid dimensions x:" + x + " y:" + y + " w:" + width + " h:" + height)
 			return false;
 		}
 		return {
@@ -362,7 +362,7 @@ window.elefart.factory = (function () {
 	function Circle (x, y, radius) {
 		if(!isNumber(x) || !isNumber(y) || 
 			!isNumber(radius) || radius < 0) {
-			elefart.showError(this.type + " invalid dmensions x:" + x + " y:" + y + " radius:" + radius);
+			elefart.showError(this.type + " in Circle, invalid dmensions x:" + x + " y:" + y + " radius:" + radius);
 			return false;
 		}
 		var d = 2 * radius;
@@ -401,7 +401,7 @@ window.elefart.factory = (function () {
 	 */
 	function Polygon (pts) {
 		if(pts === undefined || !pts.length) {
-			elefart.showError(this.type + " invalid points:" + pts);
+			elefart.showError(this.type + " in Polygon, invalid points:" + pts);
 			return false;
 		}
 		//check for valid points, make integers
@@ -994,8 +994,87 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
+	 * @method shrink
+	 * @descripion integer-based centered shrinking of an object. The pixel 
+	 * value is applied on ALL SIDES of the object. This allows objects with 
+	 * a border to have their overall size shrunk so it does not include the border.
+	 * @param {Number} pixels the number of pixels to take off each side of the 
+	 * Rect.
+	 */
+	function shrink (pixels) {
+		if(!isNumber(pixels) || pixels < 0) {
+			elefart.showError(this.type + " invalid shrink:" + pixels);
+			return false;
+		}
+		if(this.width) { //enclosing Rect
+			this.left += pixels; this.right -= pixels;
+			this.top += pixels;this.bottom -= pixels;
+			this.width -= (2 * pixels);
+			this.height -= (2 * pixels);
+		}
+		//switch through types
+		if(this.type === TYPES.LINE) {
+			if(this.pt2.x > this.pt1.x) {
+				this.pt1.x += pixels; this.pt2.x -= pixels;
+			}
+			else {
+				this.pt2.x += pixels; this.pt1.x -= pixels;
+			}
+			if(this.pt2.y > this.pt1.y) {
+				this.pt1.y += pixels; this.pt2.y -= pixels;
+			}
+			else {
+				this.pt2.y += pixels; this.pt1.y -= pixels;
+			}
+		}
+		else if(this.type === TYPES.RECT) {
+			//nothing to do
+		}
+		else if(this.type === TYPES.CIRCLE) {
+			this.radius -= pixels;
+		}
+		else if(this.type === TYPES.IMAGE) {
+			this.img.width -= (2 * pixels);
+			this.img.height += (2 * pixels);
+		}
+		else {
+			elefart.showError(this.type + " shrinkRect doesn't support this type");
+			return false;
+		}
+
+		return true;
+	}
+
+	/** 
+	 * @method sizeRelative
+	 * resize an object relative to another object, allowing a scene
+	 * to be built with relative sizes applied.
+	 * @param {ScreenObject} parent the parent object
+	 * @param {ScreenObject} child the child object
+	 * @param {Object} childVals an object with the properties that need to 
+	 * be scaled. If a property isn't available, then the parent's equivalent 
+	 * size is used directly
+	 */
+	function sizeRelative(parent, child, childVals) {
+		for(var i in child) {
+			if(childVals[i] && parent[i]) {
+				child[i] = parent[i] * childVals;
+				//test for max, min, encoded as MAX_property and MIN_property
+				//TODO: write
+			}
+			else if(parent[i]) {
+				child[i] = parent[i];
+			}
+			else {
+				//do nothing
+			}
+		}
+	}
+
+	/** 
 	 * @method scale
-	 * @description scale an ScreenObject's size, while keeping integer values
+	 * @description floating-point scale an ScreenObject's size, while 
+	 * while returnng integer values
 	 * @param {Number} scale the scale value. 1.0 = no change
 	 * @param {Boolean} recurse if true, scale child objects
 	 * @returns {Boolean} if set, return true, else false
@@ -1069,9 +1148,9 @@ window.elefart.factory = (function () {
 	 */
 	function addChild(child) {
 		if(this.children) {
-			if(child === undefined || !child.type === undefined || 
-				child.type === TYPES.PADDING) {
-				elefart.showError(child.type + " cannot add as child");
+			if(child === undefined || child.id === undefined || 
+				child.type === undefined || child.type === TYPES.PADDING) {
+				elefart.showError(child.type + "(" + typeof child + ") cannot add as child");
 				return false;
 			}
 			//don't let child be added twice
@@ -1288,7 +1367,9 @@ window.elefart.factory = (function () {
 
 	/** 
 	 * @method addFns
-	 * @description add common methods to a ScreenObject. 
+	 * @description add common methods to convert a geometry primitive , 
+	 * (Point, Line, Rect, Circle) into a ScreenObject (ScreenPoint, ScreenLine, 
+	 * ScreenCircle, ScreenPoly, ScreenImage, ScreenSprite). 
 	 * Methods are typically called as from the object, rather than
 	 * globally from this library, which keeps 'this' working correctly. 
 	 * Use the JS .apply for methods calling each other in the object context
@@ -1316,6 +1397,8 @@ window.elefart.factory = (function () {
 		obj.setDimensions = setDimensions,
 		obj.setRectBorderRadius = setRectBorderRadius,
 		obj.setRectPadding = setRectPadding,
+		obj.shrink = shrink,
+		obj.sizeRelative = sizeRelative,
 		obj.scale = scale,
 		//parents and childen
 		obj.setParent = setParent,
@@ -1355,12 +1438,14 @@ window.elefart.factory = (function () {
 	 */
 	function ScreenPoint (x, y, strokeWidth, strokeStyle, layer) {
 		var pt = Point(x, y);
-		addFns(pt);
+		addFns(pt); //convert to ScreenObject
 		if(pt) {
 			if(!strokeWidth) strokeWidth = 1;
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
+
 			if(!layer) layer = display.LAYERS.FLOORS;
 			pt.setStroke(strokeWidth, strokeStyle);
+			pt.setFill(strokeStyle); //stroke == fill for a ScreenPoint
 			pt.setLayer(layer);
 		}
 		return pt;
@@ -1379,7 +1464,7 @@ window.elefart.factory = (function () {
 	function ScreenLine (pt1, pt2, strokeWidth, strokeStyle, layer) {
 		var ln = Line(pt1, pt2);
 		if(ln) {
-			addFns(ln);
+			addFns(ln); //convert to ScreenObject
 			if(!strokeWidth) strokeWidth = 1; //default
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
@@ -1408,7 +1493,7 @@ window.elefart.factory = (function () {
 	function ScreenRect (x, y, width, height, strokeWidth, strokeStyle, fillStyle, layer) {
 		var r = Rect(x, y, width, height);
 		if(r) {
-			addFns(r);
+			addFns(r); //convert to ScreenObject
 			if(!strokeWidth) strokeWidth = 1;
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!fillStyle) fillStyle = display.COLORS.WHITE;
@@ -1439,7 +1524,7 @@ window.elefart.factory = (function () {
 	function ScreenCircle (x, y, radius, strokeWidth, strokeStyle, fillStyle, layer) {
 		var c = Circle(x, y, radius);
 		if(c) {
-			addFns(c);
+			addFns(c); //convert to ScreenObject
 			if(!strokeWidth) strokeWidth = 1;
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!fillStyle) fillStyle = display.COLORS.WHITE;
@@ -1468,7 +1553,7 @@ window.elefart.factory = (function () {
 	function ScreenPoly(pts, strokeWidth, strokeStyle, fillStyle, layer) {
 		var p = Polygon(pts);
 		if(p) {
-			addFns(r);
+			addFns(r); //convert to ScreenObject
 			if(!strokeWidth) strokeWidth = 1;
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!fillStyle) fillStyle = display.COLORS.WHITE;
@@ -1491,10 +1576,10 @@ window.elefart.factory = (function () {
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
 	 * @returns {ScreenImage|false} if ok, return ScreenLine object, else false
 	 */
-	function ScreenImage(x, y, src, callback, layer) {
+	function ScreenImage(x, y, src, strokeWidth, strokeStyle, callback, layer) {
 		var r = Rect(x, y, 0, 0); //zero until image loaded
 		if(r && src) {
-			addFns(r);
+			addFns(r); //convert to ScreenObject
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
 			r.type = TYPES.IMAGE; //modified from type RECT
 			r.setLayer(layer);
@@ -1525,7 +1610,7 @@ window.elefart.factory = (function () {
 		var r = Rect(0, 0, 0, 0); //always starts at 0, 0
 
 		if(r) {
-			addFns(r);
+			addFns(r); //convert to ScreenObject
 			r.setImage(src, callback, false); //load, but don't scale
 			r.setLayer(layer);
 			r.type = TYPES.SPRITE; //modified from type RECT

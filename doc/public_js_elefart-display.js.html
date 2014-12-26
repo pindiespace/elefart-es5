@@ -598,6 +598,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#shrink">shrink</a>
+						</li>
+						
+						<li>
 							<a href="global.html#toggle">toggle</a>
 						</li>
 						
@@ -878,7 +882,12 @@ window.elefart.display = (function () {
 	 * @param {LAYERS} layer the layer to draw in
 	 */
 	function addToDisplayList (obj, layer) {
-		displayList[layer].push(obj);
+		if(obj &amp;&amp; obj.type &amp;&amp; layer) {
+			displayList[layer].push(obj);
+		}
+		else {
+			elefart.showError("addToDisplayList invalid params obj:" + typeof obj + " layer:" + layer);
+		}
 	}
 
 	/** 
@@ -889,7 +898,10 @@ window.elefart.display = (function () {
 	 */
 	function removeFromDisplayList (obj, layer) {
 		var pos;
-		if(layer) {
+		if(!obj) {
+			elefart.showError("removeFromDisplayList invalid object:" + typeof obj);
+		}
+		else if(layer) {
 			pos = checkIfInLayer(obj);
 			if(pos) {
 				displayList[layer].splice(pos, 1); //remove element
@@ -898,7 +910,7 @@ window.elefart.display = (function () {
 		else {
 			pos = checkIfInList(obj);
 			if(pos) {
-				displayList[pos.layer].splice(pos, 1);
+				displayList[pos.layer].splice(pos, 1); //remove element
 			}
 		}
 	}
@@ -922,33 +934,53 @@ window.elefart.display = (function () {
 		//create the linear gradient
 		switch(material) {
 			case MATERIALS.GRADIENT_SKY:
-				//add color stops
 				grd = bctx.createLinearGradient(
 					x, y,  //starting coordinates of gradient
 					x2, y2 //ending coordinates of gradient
 					);
-				grd.addColorStop(0.000, 'rgba(34,133,232,1)');
-				grd.addColorStop(0.180, 'rgba(71,151,211,1)');
-				grd.addColorStop(0.400, 'rgba(102,164,214,1)');
-				grd.addColorStop(1.000, 'rgba(227,238,247,1)');
+				grd.addColorStop(0.000, 'rgb(34,133,232)');
+				grd.addColorStop(0.180, 'rgb(71,151,211)');
+				grd.addColorStop(0.400, 'rgb(102,164,214)');
+				grd.addColorStop(0.900, 'rgb(227,238,247)');
+				grd.addColorStop(1.000, 'rgb(240,255,250)');
+				bctx.fillStyle = grd;
 				break;
 			case MATERIALS.GRADIENT_SUN:
-
 				grd = bctx.createRadialGradient(
-					x, y,   //starting circle x and y coordinate
-					5.000,  //starting circle radius
-					x2, y2, //ending circle x and y coordinate
-					(y2 - y)/2 //ending circle radius
+					x, y, //starting circle x and y coordinate
+					x2,   //starting circle radius
+					x, y, //ending circle x and y coordinate
+					y2    //ending circle radius
 					);
-				grd.addColorStop(0.000, 'rgba(255, 255, 255, 1.000)');
-				grd.addColorStop(0.050, 'rgba(255, 255, 0, 1.000)');
-				grd.addColorStop(0.390, 'rgba(255, 212, 170, 1.000)');
-				grd.addColorStop(1.000, 'rgba(255, 127, 0, 1.000)');
+				grd.addColorStop(0.050, 'rgb(255, 255, 0)');
+				grd.addColorStop(0.390, 'rgb(255, 212, 170)');
+				grd.addColorStop(1.000, 'rgb(255, 127, 0)');
+				bctx.fillStyle = grd;
 				break;
 			default:
 				elefart.showError("setBackGroundGradient received invalid CanvasGradient index");
 				break;
 			}
+		return grd;
+	}
+
+	/** 
+	 * @method getForegroundTexture
+	 * @description create and/or get a specific background 
+	 * gradient. Gradients are identified by ther MATERIALS 
+	 * naming.
+	 * @param {MATERIALS} material the gradient to use
+	 * @returns {CanvasGradient} the CanvasGradient reference
+	 */
+	function getForegroundTexture (material, x, y, x2, y2) {
+		var grd;
+			var grd = null;
+		switch(material) {
+			//TODO: foreground textures
+			default:
+				elefart.showError("no foreground textures exist!");
+				break;
+		}
 		return grd;
 	}
 
@@ -960,44 +992,44 @@ window.elefart.display = (function () {
 
 	/** 
 	 * @method drawPoint
+	 * @description draw a Point as a tiny Circle
+	 * @param {CanvasContext} ctx the current drawing context
+	 * @param {ScreenObject} the ScreenObject (type ScreenPoint) to draw
 	 */
 	function drawPoint (ctx, obj) {
 		ctx.save();
 		ctx.beginPath();
-		ctx.arc(obj.x, obj.y, 1, 0, 2 * Math.PI, true);
+		ctx.fillStyle = obj.fillStyle;
+		ctx.globalAlpha = obj.opacity;
+		ctx.arc(obj.x, obj.y, 1, 0, 2 * Math.PI, true); //stroke a tiny Circle
 		ctx.fill();
 		ctx.restore();
-		//TODO: complete
-		elefart.showError("drawPoint not implemented");
 	}
 
 	/** 
 	 * @method drawLine
+	 * @description draw a line with a stroke (no fill)
+	 * @param {CanvasContext} ctx the current drawing context
+	 * @param {ScreenObject} obj the ScreenObject (type ScreenLine) to draw
 	 */
 	function drawLine (ctx, obj) {
 		ctx.save();
 		ctx.lineWidth = obj.lineWidth;
 		ctx.strokeStyle = obj.strokeStyle;
 		ctx.globalAlpha = obj.opacity;
+		ctx.beginPath();
 		ctx.moveTo(obj.pt1.x, obj.pt1.y);
 		ctx.lineTo(obj.pt2.x, obj.pt2.y);
-		ctx.stroke();
+		if(obj.lineWidth &amp;&amp; obj.strokeStyle) ctx.stroke();
 		ctx.restore();
-		//TODO: complete
-		elefart.showError("drawLine not implemented");
 	}
 
 	/** 
 	 * @method drawRect
-	 * @description draw a square rectangle
+	 * @description draw a square rectangle with stroke and fill. ScreenRects 
+	 * are drawn with this method if their borderRadius == 0.
 	 * @param {CanvasContext} ctx the current drawing context
-	 * @param {Number} x topleft x position
-	 * @param {Number} y topleft y position
-	 * @param {Number} w the width of the Rect
-	 * @param {Number} h the height of the Rect
-	 * @param {CanvasStyle} fillStyle style for fill (color or gradient)
-	 * @param {CanvasStyle} strokeStyle style for stroke (color)
-	 * @param {Number} opacity the opacity of the object
+	 * @param {ScreenObject} the ScreenObject (ScreenRect) to draw
 	 */
 	function drawRect(ctx, obj) {
 		ctx.save();
@@ -1006,23 +1038,18 @@ window.elefart.display = (function () {
 		ctx.fillStyle = obj.fillStyle;
 		ctx.globalAlpha = obj.opacity;
 		if(obj.fillStyle) ctx.fillRect(obj.left, obj.top, obj.width, obj.height);
-		if(obj.strokeStyle) ctx.strokeRect(obj.left, obj.top, obj.width, obj.height);
+		if(obj.lineWidth &amp;&amp; obj.strokeStyle) ctx.strokeRect(obj.left, obj.top, obj.width, obj.height);
 		ctx.restore();
 	}
 
 	/** 
 	 * @method drawRoundedRect
-	 * @description since rounded rects aren't part of the HTML5 spec, create with arcs
+	 * @description since rounded rects aren't part of the HTML5 spec, create one 
+	 * as a polygon with arcs forming the rounded corners. ScreenRect is drawn with 
+	 * this method if obj.borderRadius > 0.
 	 * @link https://sites.google.com/a/rdaemon.com/rdaemon/home/html5-canvas-rounded-rectangle
 	 * @param {CanvasContext} ctx current drawing context
-	 * @param {Number} x topleft x position
-	 * @param {Number} y topleft y position
-	 * @param {Number} w width of Rect
-	 * @param {Number} h height of Rect
-	 * @param {Number} r the radius of the rounding
-	 * @param {CanvasStyle} fillStyle style for fill (color or gradient)
-	 * @param {CanvasStyle} strokeStyle the style (width) for stroke (color)
-	 * @param {Number} opacity opacity of the Rect
+	 * @param {ScreenObject} the ScreenObject (type ScreenRect) to draw
 	 */
 	function drawRoundedRect(ctx, obj) {
 		ctx.save();
@@ -1046,9 +1073,9 @@ window.elefart.display = (function () {
 		ctx.quadraticCurveTo(x, y+h, x, y+h-r);
 		ctx.lineTo(obj.left, y+r);
 		ctx.quadraticCurveTo(obj.left, y, x+r, y);
-		if(obj.fillStyle) ctx.fill();
-		if(obj.strokeStyle) ctx.stroke();
 		ctx.closePath();
+		if(obj.fillStyle) ctx.fill();
+		if(obj.lineWidth &amp;&amp; obj.strokeStyle) ctx.stroke();
 		ctx.restore();
 	}
 
@@ -1056,12 +1083,7 @@ window.elefart.display = (function () {
 	 * @method drawCircle
 	 * @description draw a circle with a specific stroke and fill
 	 * @param {CanvasContext} ctx current drawing context
-	 * @param {Number} x position of circle
-	 * @param {Number} y position of circle
-	 * @param {Number} radius size of circle
-	 * @param {Number} lineWidth the width of the stroke around circle
-	 * @param {CanvasStyle} fillStyle fill style, which may be a gradient object
-	 * @param {CanvasStyle} stroke style
+	 * @param {ScreenObject} the ScreenObject (type ScreenCircle) to draw
 	 */
 	function drawCircle (ctx, obj) {
 		ctx.save();
@@ -1070,9 +1092,11 @@ window.elefart.display = (function () {
 		ctx.fillStyle = obj.fillstyle;
 		ctx.globalAlpha = obj.opacity;
 		ctx.beginPath();
-		ctx.arc(obj.left, obj.top, obj.radius, 0, 2 * Math.PI);
+		ctx.arc(obj.left+obj.radius, obj.top+obj.radius, obj.radius, 0, 2 * Math.PI);
+		//ctx.rect(obj.left, obj.top, obj.width, obj.height); //enclosing Rect
+		ctx.closePath();
 		if(obj.fillStyle) ctx.fill();
-		if(obj.strokeStyle) ctx.stroke();
+		if(obj.lineWidth &amp;&amp; obj.strokeStyle) ctx.stroke();
 		ctx.restore();
 	}
 
@@ -1081,7 +1105,7 @@ window.elefart.display = (function () {
 	 * @description draw a closed Polygon
 	 * @linkhttp://www.arungudelli.com/html5/html5-canvas-polygon/
 	 * @param {CanvasContext} ctx the canvas context to use
-	 * @param {Array} pts an array of Point objects
+	 * @param {ScreenObject} obj the ScreenObject (type ScreenPoly} to draw
 	 */
 	function drawPolygon (ctx, obj) {
 		ctx.save();
@@ -1098,7 +1122,7 @@ window.elefart.display = (function () {
 		}
 		ctx.closePath();
 		if(obj.fillStyle) ctx.fill();
-		if(obj.strokeStyle) ctx.stroke();
+		if(obj.lineWidth &amp;&amp; obj.strokeStyle) ctx.stroke();
 		ctx.restore();
 		elefart.showError("drawPolygon not implemented yet");
 	}
@@ -1107,9 +1131,7 @@ window.elefart.display = (function () {
 	 * @method drawImage
 	 * @description draw an image at a specific location in the canvas
 	 * @param {CanvasContext} ctx the current drawing context
-	 * @param {img} a standard JS Image object
-	 * @param {Rect} destRect the coordinates to draw the image at
-	 * @param {Number} opacity the opacity of the drawn image
+	 * @param {ScreenObject} the ScreenObject (type ScreenImage) to draw
 	 */
 	function drawImage (ctx, obj) {
 		//TODO: complete
@@ -1123,6 +1145,7 @@ window.elefart.display = (function () {
 			obj.width,
 			obj.height
 			);
+		if(obj.lineWidth &amp;&amp; obj.strokeStyle) ctx.stroke();
 		ctx.restore();
 	}
 
@@ -1131,10 +1154,7 @@ window.elefart.display = (function () {
 	 * @description grab an image from a larger sprite image, part of animation sequence
 	 * more specific functions grab specific images from specific sprites.
 	 * @param {CanvasContext} ctx current drawing context
-	 * @param {Image} img a standard JS Image object
-	 * @param {Rect} captRect the Rect to capture from the SpriteBoard
-	 * @param {Rect} destRect the Rect to draw into on the game canvas
-	 * @param {Number} opacity the opacity of the drawn image
+	 * @param {ScreenObject} the ScreenObject (type ScreenSprite) to draw
 	 */
 	function drawSpriteFrame (ctx, obj) {
 		var captRect = {
@@ -1158,28 +1178,10 @@ window.elefart.display = (function () {
 			obj.width, 
 			obj.height
 			);
+		if(obj.lineWidth &amp;&amp; obj.strokeStyle) ctx.stroke();
 		ctx.restore();
 	}
 
-	/** 
-	 * @method getForegroundTexture
-	 * @description create and/or get a specific background 
-	 * gradient. Gradients are identified by ther MATERIALS 
-	 * naming.
-	 * @param {MATERIALS} material the gradient to use
-	 * @returns {CanvasGradient} the CanvasGradient reference
-	 */
-	function getForegroundTexture (material, x, y, x2, y2) {
-		var grd;
-			var grd = null;
-		switch(material) {
-			//TODO: foreground textures
-			default:
-				elefart.showError("no foreground textures exist!");
-				break;
-		}
-		return grd;
-	}
 
 	/* 
 	 * =========================================
@@ -1191,15 +1193,14 @@ window.elefart.display = (function () {
 		var len = layer.length;
 		for(var i = 0; i &lt; len; i++) {
 			var obj = layer[i];
-			console.log("obj is:" + obj);
-			console.log("obj.type is:" + obj.type);
 			switch(obj.type) {
 				case factory.TYPES.POINT:
+					drawPoint(ctx, obj);
 					break;
 				case factory.TYPES.LINE:
+					drawLine(ctx, obj);
 					break;
 				case factory.TYPES.RECT:
-				console.log("drawing ScrenRect");
 					if(obj.borderRadius === 0) {
 						drawRect(ctx, obj);
 					}
@@ -1208,12 +1209,16 @@ window.elefart.display = (function () {
 					}
 					break;
 				case factory.TYPES.CIRCLE:
+					drawCircle(ctx, obj);
 					break;
 				case factory.TYPES.POLYGON:
+					drawPolygon(ctx, obj);
 					break;
 				case factory.TYPES.IMAGE:
+					drawImage(ctx, obj);
 					break;
 				case factory.TYPES.SPRITE:
+					drawSpriteFrame(ctx, obj); //which frame set in Model
 					break;
 				default:
 					console.log("drawLayer unknown type:" + obj.type);
@@ -1247,12 +1252,13 @@ window.elefart.display = (function () {
 	 */
 	function drawBackground () {
 		bctx.save();
-		//yellow background
-		bctx.fillStyle = "rgba(248, 237, 29, 1.0)";
-		bctx.rect(0, 0, rect.width, rect.height);
-		bctx.fill();
 
-		//TODO: EXECUTE THE DISPLAY LIST
+		//yellow background
+		//bctx.fillStyle = "rgba(248, 237, 29, 1.0)";
+		//bctx.rect(0, 0, rect.width, rect.height);
+		//bctx.fill();
+
+		//execute the display list
 		drawLayer(bctx, displayList[LAYERS.WORLD]);
 		drawLayer(bctx, displayList[LAYERS.BUILDING]);
 
@@ -1284,7 +1290,7 @@ window.elefart.display = (function () {
 		fctx.save();
 
 		//clear the foreground
-		fctx.clearRect(0, 0, foreground.width, foreground.height);
+		//fctx.clearRect(0, 0, foreground.width, foreground.height);
 
 		/*
 		drawLayer(fctx, displayList[LAYERS.SHAFTS]);

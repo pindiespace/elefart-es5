@@ -598,6 +598,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#shrink">shrink</a>
+						</li>
+						
+						<li>
 							<a href="global.html#toggle">toggle</a>
 						</li>
 						
@@ -1091,7 +1095,7 @@ Rect, Circle, Polygon</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1064">line 1064</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1116">line 1116</a>
 			</li>
 		</ul>
 	</dd>
@@ -1401,7 +1405,9 @@ is false, use bubbling phase)</p></td>
     
     
     <div class="description">
-        <p>add common methods to a ScreenObject. 
+        <p>add common methods to convert a geometry primitive , 
+(Point, Line, Rect, Circle) into a ScreenObject (ScreenPoint, ScreenLine, 
+ScreenCircle, ScreenPoly, ScreenImage, ScreenSprite). 
 Methods are typically called as from the object, rather than
 globally from this library, which keeps 'this' working correctly. 
 Use the JS .apply for methods calling each other in the object context</p>
@@ -1491,7 +1497,7 @@ Use the JS .apply for methods calling each other in the object context</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1289">line 1289</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1341">line 1341</a>
 			</li>
 		</ul>
 	</dd>
@@ -1905,7 +1911,7 @@ elefart.screens displayList</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-500">line 500</a>
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-524">line 524</a>
 			</li>
 		</ul>
 	</dd>
@@ -2914,7 +2920,7 @@ otherwise return false</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-613">line 613</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-614">line 614</a>
 			</li>
 		</ul>
 	</dd>
@@ -2944,7 +2950,7 @@ otherwise return false</p>
         
             
 <dt>
-    <h4 class="name" id="drawCircle"><span class="type-signature"></span>drawCircle<span class="signature">(ctx, x, y, radius, lineWidth, fillStyle, stroke)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="drawCircle"><span class="type-signature"></span>drawCircle<span class="signature">(ctx, the)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -3009,13 +3015,13 @@ otherwise return false</p>
 
         <tr>
             
-                <td class="name"><code>x</code></td>
+                <td class="name"><code>the</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">ScreenObject</span>
 
 
             
@@ -3025,122 +3031,7 @@ otherwise return false</p>
 
             
 
-            <td class="description last"><p>position of circle</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>y</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>position of circle</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>radius</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>size of circle</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>lineWidth</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the width of the stroke around circle</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>fillStyle</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">CanvasStyle</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>fill style, which may be a gradient object</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>stroke</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">CanvasStyle</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>style</p></td>
+            <td class="description last"><p>ScreenObject (type ScreenCircle) to draw</p></td>
         </tr>
 
 	
@@ -3177,7 +3068,7 @@ otherwise return false</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-426">line 426</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-449">line 449</a>
 			</li>
 		</ul>
 	</dd>
@@ -3254,7 +3145,7 @@ error and exit screen for the user</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-682">line 682</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-684">line 684</a>
 			</li>
 		</ul>
 	</dd>
@@ -3330,7 +3221,7 @@ error and exit screen for the user</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-649">line 649</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-651">line 651</a>
 			</li>
 		</ul>
 	</dd>
@@ -3360,7 +3251,7 @@ error and exit screen for the user</p>
         
             
 <dt>
-    <h4 class="name" id="drawImage"><span class="type-signature"></span>drawImage<span class="signature">(ctx, a, destRect, opacity)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="drawImage"><span class="type-signature"></span>drawImage<span class="signature">(ctx, the)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -3425,13 +3316,13 @@ error and exit screen for the user</p>
 
         <tr>
             
-                <td class="name"><code>a</code></td>
+                <td class="name"><code>the</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">img</span>
+<span class="param-type">ScreenObject</span>
 
 
             
@@ -3441,53 +3332,7 @@ error and exit screen for the user</p>
 
             
 
-            <td class="description last"><p>standard JS Image object</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>destRect</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="Rect.html">Rect</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the coordinates to draw the image at</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>opacity</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the opacity of the drawn image</p></td>
+            <td class="description last"><p>ScreenObject (type ScreenImage) to draw</p></td>
         </tr>
 
 	
@@ -3524,7 +3369,7 @@ error and exit screen for the user</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-477">line 477</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-497">line 497</a>
 			</li>
 		</ul>
 	</dd>
@@ -3554,18 +3399,94 @@ error and exit screen for the user</p>
         
             
 <dt>
-    <h4 class="name" id="drawLine"><span class="type-signature"></span>drawLine<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="drawLine"><span class="type-signature"></span>drawLine<span class="signature">(ctx, obj)</span><span class="type-signature"></span></h4>
     
     
 </dt>
 <dd>
     
     
+    <div class="description">
+        <p>draw a line with a stroke (no fill)</p>
+    </div>
+    
 
     
     
     
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>ctx</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">CanvasContext</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the current drawing context</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>obj</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">ScreenObject</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the ScreenObject (type ScreenLine) to draw</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
     
     
     
@@ -3596,7 +3517,7 @@ error and exit screen for the user</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-345">line 345</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-376">line 376</a>
 			</li>
 		</ul>
 	</dd>
@@ -3626,18 +3547,94 @@ error and exit screen for the user</p>
         
             
 <dt>
-    <h4 class="name" id="drawPoint"><span class="type-signature"></span>drawPoint<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="drawPoint"><span class="type-signature"></span>drawPoint<span class="signature">(ctx, the)</span><span class="type-signature"></span></h4>
     
     
 </dt>
 <dd>
     
     
+    <div class="description">
+        <p>draw a Point as a tiny Circle</p>
+    </div>
+    
 
     
     
     
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>ctx</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">CanvasContext</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the current drawing context</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>the</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">ScreenObject</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>ScreenObject (type ScreenPoint) to draw</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
     
     
     
@@ -3668,7 +3665,7 @@ error and exit screen for the user</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-332">line 332</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-360">line 360</a>
 			</li>
 		</ul>
 	</dd>
@@ -3698,7 +3695,7 @@ error and exit screen for the user</p>
         
             
 <dt>
-    <h4 class="name" id="drawPolygon"><span class="type-signature"></span>drawPolygon<span class="signature">(ctx, pts)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="drawPolygon"><span class="type-signature"></span>drawPolygon<span class="signature">(ctx, obj)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -3763,13 +3760,13 @@ error and exit screen for the user</p>
 
         <tr>
             
-                <td class="name"><code>pts</code></td>
+                <td class="name"><code>obj</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array</span>
+<span class="param-type">ScreenObject</span>
 
 
             
@@ -3779,7 +3776,7 @@ error and exit screen for the user</p>
 
             
 
-            <td class="description last"><p>an array of Point objects</p></td>
+            <td class="description last"><p>the ScreenObject (type ScreenPoly} to draw</p></td>
         </tr>
 
 	
@@ -3816,7 +3813,7 @@ error and exit screen for the user</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-450">line 450</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-470">line 470</a>
 			</li>
 		</ul>
 	</dd>
@@ -3846,7 +3843,7 @@ error and exit screen for the user</p>
         
             
 <dt>
-    <h4 class="name" id="drawRect"><span class="type-signature"></span>drawRect<span class="signature">(ctx, x, y, w, h, fillStyle, strokeStyle, opacity)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="drawRect"><span class="type-signature"></span>drawRect<span class="signature">(ctx, the)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -3854,7 +3851,8 @@ error and exit screen for the user</p>
     
     
     <div class="description">
-        <p>draw a square rectangle</p>
+        <p>draw a square rectangle with stroke and fill. ScreenRects 
+are drawn with this method if their borderRadius == 0.</p>
     </div>
     
 
@@ -3911,13 +3909,13 @@ error and exit screen for the user</p>
 
         <tr>
             
-                <td class="name"><code>x</code></td>
+                <td class="name"><code>the</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">ScreenObject</span>
 
 
             
@@ -3927,145 +3925,7 @@ error and exit screen for the user</p>
 
             
 
-            <td class="description last"><p>topleft x position</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>y</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>topleft y position</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>w</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the width of the Rect</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>h</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the height of the Rect</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>fillStyle</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">CanvasStyle</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>style for fill (color or gradient)</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>strokeStyle</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">CanvasStyle</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>style for stroke (color)</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>opacity</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the opacity of the object</p></td>
+            <td class="description last"><p>ScreenObject (ScreenRect) to draw</p></td>
         </tr>
 
 	
@@ -4102,7 +3962,7 @@ error and exit screen for the user</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-361">line 361</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-394">line 394</a>
 			</li>
 		</ul>
 	</dd>
@@ -4132,7 +3992,7 @@ error and exit screen for the user</p>
         
             
 <dt>
-    <h4 class="name" id="drawRoundedRect"><span class="type-signature"></span>drawRoundedRect<span class="signature">(ctx, x, y, w, h, r, fillStyle, strokeStyle, opacity)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="drawRoundedRect"><span class="type-signature"></span>drawRoundedRect<span class="signature">(ctx, the)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -4140,7 +4000,9 @@ error and exit screen for the user</p>
     
     
     <div class="description">
-        <p>since rounded rects aren't part of the HTML5 spec, create with arcs</p>
+        <p>since rounded rects aren't part of the HTML5 spec, create one 
+as a polygon with arcs forming the rounded corners. ScreenRect is drawn with 
+this method if obj.borderRadius &gt; 0.</p>
     </div>
     
 
@@ -4197,13 +4059,13 @@ error and exit screen for the user</p>
 
         <tr>
             
-                <td class="name"><code>x</code></td>
+                <td class="name"><code>the</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Number</span>
+<span class="param-type">ScreenObject</span>
 
 
             
@@ -4213,168 +4075,7 @@ error and exit screen for the user</p>
 
             
 
-            <td class="description last"><p>topleft x position</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>y</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>topleft y position</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>w</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>width of Rect</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>h</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>height of Rect</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>r</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the radius of the rounding</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>fillStyle</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">CanvasStyle</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>style for fill (color or gradient)</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>strokeStyle</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">CanvasStyle</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the style (width) for stroke (color)</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>opacity</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>opacity of the Rect</p></td>
+            <td class="description last"><p>ScreenObject (type ScreenRect) to draw</p></td>
         </tr>
 
 	
@@ -4411,7 +4112,7 @@ error and exit screen for the user</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-384">line 384</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-412">line 412</a>
 			</li>
 		</ul>
 	</dd>
@@ -4441,7 +4142,7 @@ error and exit screen for the user</p>
         
             
 <dt>
-    <h4 class="name" id="drawSpriteFrame"><span class="type-signature"></span>drawSpriteFrame<span class="signature">(ctx, img, captRect, destRect, opacity)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="drawSpriteFrame"><span class="type-signature"></span>drawSpriteFrame<span class="signature">(ctx, the)</span><span class="type-signature"></span></h4>
     
     
 </dt>
@@ -4507,13 +4208,13 @@ more specific functions grab specific images from specific sprites.</p>
 
         <tr>
             
-                <td class="name"><code>img</code></td>
+                <td class="name"><code>the</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Image</span>
+<span class="param-type">ScreenObject</span>
 
 
             
@@ -4523,76 +4224,7 @@ more specific functions grab specific images from specific sprites.</p>
 
             
 
-            <td class="description last"><p>a standard JS Image object</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>captRect</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="Rect.html">Rect</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the Rect to capture from the SpriteBoard</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>destRect</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="Rect.html">Rect</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the Rect to draw into on the game canvas</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>opacity</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the opacity of the drawn image</p></td>
+            <td class="description last"><p>ScreenObject (type ScreenSprite) to draw</p></td>
         </tr>
 
 	
@@ -4629,7 +4261,7 @@ more specific functions grab specific images from specific sprites.</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-500">line 500</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-519">line 519</a>
 			</li>
 		</ul>
 	</dd>
@@ -4754,7 +4386,7 @@ more specific functions grab specific images from specific sprites.</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1092">line 1092</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1144">line 1144</a>
 			</li>
 		</ul>
 	</dd>
@@ -5011,7 +4643,7 @@ HTML5 Games BOOK: Listing 3-26, p. 71</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-602">line 602</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-603">line 603</a>
 			</li>
 		</ul>
 	</dd>
@@ -5138,7 +4770,7 @@ naming.</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-283">line 283</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-291">line 291</a>
 			</li>
 		</ul>
 	</dd>
@@ -5908,7 +5540,7 @@ getElementsByClassName for non-supporting browsers</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-640">line 640</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-642">line 642</a>
 			</li>
 		</ul>
 	</dd>
@@ -6035,7 +5667,7 @@ naming.</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-535">line 535</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-334">line 334</a>
 			</li>
 		</ul>
 	</dd>
@@ -7036,7 +6668,7 @@ on a touch-sensitive screen.</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-524">line 524</a>
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-548">line 548</a>
 			</li>
 		</ul>
 	</dd>
@@ -7265,7 +6897,7 @@ access to elefart.dom.</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-704">line 704</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-706">line 706</a>
 			</li>
 		</ul>
 	</dd>
@@ -7570,7 +7202,7 @@ by the game to draw to HTML5 canvas.</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1551">line 1551</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1608">line 1608</a>
 			</li>
 		</ul>
 	</dd>
@@ -10375,131 +10007,6 @@ otherwise just move the chidren with their newly centered parent</p></td>
         
             
 <dt>
-    <h4 class="name" id="remove"><span class="type-signature"></span>remove<span class="signature">(clsName)</span><span class="type-signature"></span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>remove a class</p>
-    </div>
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>clsName</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the class to remove from a DOMElement</p></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-	<dt class="tag-source">Source:</dt>
-	<dd class="tag-source">
-		<ul class="dummy">
-			<li>
-				<a href="public_js_elefart-dom.js.html">public/js/elefart-dom.js</a>,
-				 <a href="public_js_elefart-dom.js.html#sunlight-1-line-81">line 81</a>
-			</li>
-		</ul>
-	</dd>
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-</dd>
-
-        
-            
-<dt>
     <h4 class="name" id="remove"><span class="type-signature"></span>remove<span class="signature">(elm, evt, callback)</span><span class="type-signature"></span></h4>
     
     
@@ -10674,6 +10181,131 @@ otherwise just move the chidren with their newly centered parent</p></td>
         
             
 <dt>
+    <h4 class="name" id="remove"><span class="type-signature"></span>remove<span class="signature">(clsName)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>remove a class</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>clsName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the class to remove from a DOMElement</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-dom.js.html">public/js/elefart-dom.js</a>,
+				 <a href="public_js_elefart-dom.js.html#sunlight-1-line-81">line 81</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
     <h4 class="name" id="removeChild"><span class="type-signature"></span>removeChild<span class="signature">(childId)</span><span class="type-signature"> &rarr; {Object|false}</span></h4>
     
     
@@ -10769,7 +10401,7 @@ otherwise just move the chidren with their newly centered parent</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1114">line 1114</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1166">line 1166</a>
 			</li>
 		</ul>
 	</dd>
@@ -11153,7 +10785,7 @@ is false, use bubbling phase)</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-255">line 255</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-260">line 260</a>
 			</li>
 		</ul>
 	</dd>
@@ -11430,7 +11062,7 @@ is false, use bubbling phase)</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-537">line 537</a>
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-561">line 561</a>
 			</li>
 		</ul>
 	</dd>
@@ -11659,7 +11291,7 @@ canvas.</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-display.js.html">public/js/elefart-display.js</a>,
-				 <a href="public_js_elefart-display.js.html#sunlight-1-line-741">line 741</a>
+				 <a href="public_js_elefart-display.js.html#sunlight-1-line-743">line 743</a>
 			</li>
 		</ul>
 	</dd>
@@ -11964,7 +11596,7 @@ current state into HTML5 canvas</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1561">line 1561</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1618">line 1618</a>
 			</li>
 		</ul>
 	</dd>
@@ -12459,7 +12091,8 @@ desktop.</p>
     
     
     <div class="description">
-        <p>scale an ScreenObject's size, while keeping integer values</p>
+        <p>floating-point scale an ScreenObject's size, while 
+while returnng integer values</p>
     </div>
     
 
@@ -12569,7 +12202,7 @@ desktop.</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-996">line 996</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1047">line 1047</a>
 			</li>
 		</ul>
 	</dd>
@@ -12967,7 +12600,7 @@ a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object</p></
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1454">line 1454</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1511">line 1511</a>
 			</li>
 		</ul>
 	</dd>
@@ -13210,7 +12843,7 @@ loading a SpriteBoard image</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1509">line 1509</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1566">line 1566</a>
 			</li>
 		</ul>
 	</dd>
@@ -13659,7 +13292,7 @@ but should be set using setters attached to ScreenObject</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1209">line 1209</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1261">line 1261</a>
 			</li>
 		</ul>
 	</dd>
@@ -13784,7 +13417,7 @@ but should be set using setters attached to ScreenObject</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1137">line 1137</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1189">line 1189</a>
 			</li>
 		</ul>
 	</dd>
@@ -14111,7 +13744,7 @@ DOM element the HTML5 Canvas object is attached to.</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1153">line 1153</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1205">line 1205</a>
 			</li>
 		</ul>
 	</dd>
@@ -14284,7 +13917,7 @@ Rect object inside this object</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1232">line 1232</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1284">line 1284</a>
 			</li>
 		</ul>
 	</dd>
@@ -14411,7 +14044,7 @@ defined in elefart.display.LAYERS</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1269">line 1269</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1321">line 1321</a>
 			</li>
 		</ul>
 	</dd>
@@ -14536,7 +14169,7 @@ defined in elefart.display.LAYERS</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1170">line 1170</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1222">line 1222</a>
 			</li>
 		</ul>
 	</dd>
@@ -14665,7 +14298,7 @@ object has no parent (elefart.building.World)</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1038">line 1038</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1090">line 1090</a>
 			</li>
 		</ul>
 	</dd>
@@ -14986,7 +14619,7 @@ top, right, bottom, left</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1186">line 1186</a>
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-1238">line 1238</a>
 			</li>
 		</ul>
 	</dd>
@@ -15342,6 +14975,128 @@ defines the main screens of the application</p>
         
             
 <dt>
+    <h4 class="name" id="shrink"><span class="type-signature"></span>shrink<span class="signature">(pixels)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>pixels</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the number of pixels to take off each side of the 
+Rect.</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-996">line 996</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
     <h4 class="name" id="toggle"><span class="type-signature"></span>toggle<span class="signature">(clsName)</span><span class="type-signature"></span></h4>
     
     
@@ -15666,7 +15421,7 @@ elefart.factory.Padding object.</p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-51">line 51</a>
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-58">line 58</a>
 			</li>
 		</ul>
 	</dd>
