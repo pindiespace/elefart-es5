@@ -59,7 +59,8 @@ window.elefart.display = (function () {
 		LIGHT_GREY:"rgb(128,128,128)",
 		DARK_GREY:"rgb(64,64,64)",
 		YELLOW:"rgb(248, 237, 29)",
-		BROWN:"rgb(139,69,19)"
+		BROWN:"rgb(139,69,19)",
+		PINK: "rgb(190, 30, 45)" //TODO: convert to RGBA (e.g. rgba from rgb)
 	};
 
 	/** 
@@ -408,7 +409,7 @@ window.elefart.display = (function () {
 		if(obj.lineWidth && obj.strokeStyle) ctx.strokeRect(obj.left, obj.top, obj.width, obj.height);
 		ctx.restore();
 	}
-
+ 
 	/** 
 	 * @method drawRoundedRect
 	 * @description since rounded rects aren't part of the HTML5 spec, create one 
@@ -556,7 +557,7 @@ window.elefart.display = (function () {
 	 * =========================================
 	 */
 	function drawLayer(ctx, layer) {
-		console.log("Layer is:" + layer + " and length:" + layer.length);
+		////////////////////console.log("Layer is:" + layer + " and length:" + layer.length);
 		var len = layer.length;
 		for(var i = 0; i < len; i++) {
 			var obj = layer[i];
@@ -657,11 +658,11 @@ window.elefart.display = (function () {
 		fctx.save();
 
 		//clear the foreground
-		//fctx.clearRect(0, 0, foreground.width, foreground.height);
+		fctx.clearRect(0, 0, foreground.width, foreground.height);
 
-		/*
+
 		drawLayer(fctx, displayList[LAYERS.SHAFTS]);
-		drawLayer(fctx, displayList[LAYERS.ELEBACK]);
+		/*		drawLayer(fctx, displayList[LAYERS.ELEBACK]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE1]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE2]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE3]);

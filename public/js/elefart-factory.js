@@ -96,6 +96,10 @@ window.elefart.factory = (function () {
 		return ("String" === Object.prototype.toString.call(obj).slice(8, -1));
 	}
 
+	function isArray (obj) {
+		return ("Array" === Object.prototype.toString.call(obj).slice(8, -1));
+	}
+
 	/** 
 	 * @method isFunction
 	 * @description confirm an object is a Function
@@ -118,6 +122,59 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
+	 * @method getRGB
+	 * @description get the RGB values form an RGB or #rrggbb or #rgb color
+	 * @param {String} the RGB string
+	 * @returns {Array|false} an array with the r = array[0], g = array[1], b = array[2], 
+	 * or false if the string can't be parsed
+	 */
+	function getRGB(str) {
+		//RGB string
+		var rgb = str.match(/\d+/g);
+		if(rgb && rgb.length && isNumber(rgb[0]) && isNumber(rgb[1]) && isNumber(rgb[2])) {
+			return rgb;
+		} else { //HEX string
+			var expand = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+			str = str.replace(expand, function(m, r, g, b) {
+				return r + r + g + g + b + b;
+ 			});
+			var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(str);
+			if(result) {
+				return [
+					parseInt(result[1], 16),
+					parseInt(result[2], 16),
+					parseInt(result[3], 16)
+				]
+			}
+		}
+		return false;
+	}
+
+	/** 
+	 * @method getRGBAFromRGB
+	 * @description, create a CSS and HTML5 Canvas-compatible rgba() 
+	 * string, using either an array with RGB values, or an existing
+	 * rgb() string
+	 * @param {String|Array} rgb either an Array with r, g, b values, or 
+	 * an rgb()
+	 * @param {Number} opacity the opacity to set the string at
+	 * @returns {String} an rgba() string with the opacity
+	 */
+	function getRGBAFromRGB(rgb, opacity) {
+		if(rgb === undefined) {
+			elefart.showError("missing rgb value to convert to rgba:" + rgb);
+		}
+		if(opacity === undefined || opacity < 0.0 || opacity > 1.0) {
+			elefart.showError("incorrect opacity for creating rgba:" + opacity);
+			return false;
+		}
+		if(!isArray(rgb)) { //not already an array
+			rgb = getRGB(rgb);
+		}
+		return "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + opacity + ")";
+	}
+
+	/** 
 	 * @method isRGB
 	 * @description confirm a string is valid rgb or #rrggbb or #rgb color, or 
 	 * an HTML5 CanvasContext gradient.
@@ -130,15 +187,7 @@ window.elefart.factory = (function () {
 			return true;
 		}
 		else if(isString(str)) { //rgb or hex color string
-			var rgb = str.match(/\d+/g);
-			if(rgb && rgb.length && isNumber(rgb[0]) && isNumber(rgb[1]) && isNumber(rgb[2])) {
-				return true;
-			}
-			//check for hex (3 or six digits)
-			var hex = str.match(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/);
-			if(hex) {
-				return true;
-			}
+			if(getRGB(str)) return true;
 		}
 		elefart.showError("invalid RGB string or gradient object:" + str);
 		return false;
@@ -327,8 +376,8 @@ window.elefart.factory = (function () {
 			type:TYPES.RECT,
 			id:getId(),
 			top:toInt(y),
-			right: toInt(x + width),
-			bottom: toInt(y + height),
+			right:toInt(x + width),
+			bottom:toInt(y + height),
 			left:toInt(x),
 			width:toInt(width),
 			height:toInt(height),
@@ -1046,32 +1095,6 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
-	 * @method sizeRelative
-	 * resize an object relative to another object, allowing a scene
-	 * to be built with relative sizes applied.
-	 * @param {ScreenObject} parent the parent object
-	 * @param {ScreenObject} child the child object
-	 * @param {Object} childVals an object with the properties that need to 
-	 * be scaled. If a property isn't available, then the parent's equivalent 
-	 * size is used directly
-	 */
-	function sizeRelative(parent, child, childVals) {
-		for(var i in child) {
-			if(childVals[i] && parent[i]) {
-				child[i] = parent[i] * childVals;
-				//test for max, min, encoded as MAX_property and MIN_property
-				//TODO: write
-			}
-			else if(parent[i]) {
-				child[i] = parent[i];
-			}
-			else {
-				//do nothing
-			}
-		}
-	}
-
-	/** 
 	 * @method scale
 	 * @description floating-point scale an ScreenObject's size, while 
 	 * while returnng integer values
@@ -1398,7 +1421,6 @@ window.elefart.factory = (function () {
 		obj.setRectBorderRadius = setRectBorderRadius,
 		obj.setRectPadding = setRectPadding,
 		obj.shrink = shrink,
-		obj.sizeRelative = sizeRelative,
 		obj.scale = scale,
 		//parents and childen
 		obj.setParent = setParent,
@@ -1440,9 +1462,8 @@ window.elefart.factory = (function () {
 		var pt = Point(x, y);
 		addFns(pt); //convert to ScreenObject
 		if(pt) {
-			if(!strokeWidth) strokeWidth = 1;
+			if(!strokeWidth) strokeWidth = 0;
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
-
 			if(!layer) layer = display.LAYERS.FLOORS;
 			pt.setStroke(strokeWidth, strokeStyle);
 			pt.setFill(strokeStyle); //stroke == fill for a ScreenPoint
@@ -1465,7 +1486,7 @@ window.elefart.factory = (function () {
 		var ln = Line(pt1, pt2);
 		if(ln) {
 			addFns(ln); //convert to ScreenObject
-			if(!strokeWidth) strokeWidth = 1; //default
+			if(!strokeWidth) strokeWidth = 1; //default for line since no fill
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
 			ln.setStroke(strokeWidth, strokeStyle);
@@ -1494,7 +1515,7 @@ window.elefart.factory = (function () {
 		var r = Rect(x, y, width, height);
 		if(r) {
 			addFns(r); //convert to ScreenObject
-			if(!strokeWidth) strokeWidth = 1;
+			if(!strokeWidth) strokeWidth = 0;
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!fillStyle) fillStyle = display.COLORS.WHITE;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
@@ -1525,7 +1546,7 @@ window.elefart.factory = (function () {
 		var c = Circle(x, y, radius);
 		if(c) {
 			addFns(c); //convert to ScreenObject
-			if(!strokeWidth) strokeWidth = 1;
+			if(!strokeWidth) strokeWidth = 0;
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!fillStyle) fillStyle = display.COLORS.WHITE;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
@@ -1554,10 +1575,10 @@ window.elefart.factory = (function () {
 		var p = Polygon(pts);
 		if(p) {
 			addFns(r); //convert to ScreenObject
-			if(!strokeWidth) strokeWidth = 1;
+			if(!strokeWidth) strokeWidth = 0;
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!fillStyle) fillStyle = display.COLORS.WHITE;
-			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			if(!layer) this.layer = display.LAYERS.FLOORS; //top layer
 			p.setStroke(strokeWidth, strokeStyle);
 			p.setFill(fillStyle);
 			p.setLayer(layer);
@@ -1580,9 +1601,12 @@ window.elefart.factory = (function () {
 		var r = Rect(x, y, 0, 0); //zero until image loaded
 		if(r && src) {
 			addFns(r); //convert to ScreenObject
+			if(!strokeWidth) strokeWidth = 0;
+			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
 			r.type = TYPES.IMAGE; //modified from type RECT
 			r.setLayer(layer);
+			//don't set fill
 			r.setImage(src, callback);
 		}
 		else {
@@ -1611,6 +1635,8 @@ window.elefart.factory = (function () {
 
 		if(r) {
 			addFns(r); //convert to ScreenObject
+			//no stroke or fill
+			if(!layer) layer = display.LAYERS.FLOORS; //top layer
 			r.setImage(src, callback, false); //load, but don't scale
 			r.setLayer(layer);
 			r.type = TYPES.SPRITE; //modified from type RECT
@@ -1658,19 +1684,20 @@ window.elefart.factory = (function () {
 	return {
 		TYPES:TYPES,
 		toInt:toInt, //convert to integer floor
-		Point:Point,
+		getRGBAfromRGB:getRGBAFromRGB, //make rgb() strings with opacity
+		Point:Point, //Shape Primitive Constructors
 		Line:Line,
 		Padding:Padding,
 		Rect:Rect,
 		Circle:Circle,
 		Polygon:Polygon,
-		setFilter:setFilter,
+		setFilter:setFilter, //Member functions
 		setGradient:setGradient,
 		setOpacity:setOpacity,
 		setStroke:setStroke,
 		setFill:setFill,
 		setLayer:setLayer,
-		ScreenPoint:ScreenPoint,
+		ScreenPoint:ScreenPoint, //ScreenObjects
 		ScreenLine:ScreenLine,
 		ScreenRect:ScreenRect,
 		ScreenCircle:ScreenCircle,

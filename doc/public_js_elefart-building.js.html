@@ -298,6 +298,14 @@
 						</li>
 						
 						<li>
+							<a href="global.html#getRGB">getRGB</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getRGBAFromRGB">getRGBAFromRGB</a>
+						</li>
+						
+						<li>
 							<a href="global.html#getWidth">getWidth</a>
 						</li>
 						
@@ -654,10 +662,16 @@ window.elefart.building = (function () {
 	firstTime = true;
 
 	/** 
-	 * @readonly MAX_WALLS
+	 * @readonly
 	 * @description max width of building walls and walking floorBase
 	 */
 	var MAX_WALLS = 10;
+
+	/** 
+	 * @readonly
+	 * @description minimum height of building floors
+	 */
+	var MIN_FLOOR = 60;
 
 	/**
 	 * @readonly
@@ -669,6 +683,7 @@ window.elefart.building = (function () {
 		ELEVATOR:"ELEVATOR",
 		ELEVATOR_DOORS:"ELEVATOR_DOORS",
 		ELEVATOR_SHAFT:"ELEVATOR_SHAFT",
+		ELEVATOR_SUBSHAFT:"ELEVATOR_SUBSHAFT",
 		BUILDING_FLOOR:"BUILDING_FLOOR",
 		BUILDING_FLOORBASE:"BUILDING_FLOORBASE",
 		BUILDING:"BUILDING",
@@ -718,16 +733,18 @@ window.elefart.building = (function () {
 		wallSize:0.01 //size of walls (related to height)
 	},
 	DIMENSIONS[TYPES.BUILDING_FLOOR] = {
-		width:1.0, //width of entire floor
 		height:0.1, //height of entire floor
 	},
 	DIMENSIONS[TYPES.BUILDING_FLOORBASE] = {
-		height:0.02 //horizontal band at bottom of floor (walking surface)
+		height:0.01 //height of walking surface at bottom BuildingFloor
 	},
 	DIMENSIONS[TYPES.ELEVATOR_SHAFT] = {
-		top:0.1,
-		bottom:0.8,
-		shaftWidth:0.2
+		width:0.1, //the entire shaft
+		subWidth:0.06, //the visible shaft rect
+		subOpacity:0.4 //opacity of central colored region of shaft
+	},
+	DIMENSIONS[TYPES.ELEVATOR_SUBSHAFT] = {
+		//nothing inherited at this point
 	},
 	DIMENSIONS[TYPES.ELEVATOR] = {
 		elevatorWidth:0.1,
@@ -740,6 +757,11 @@ window.elefart.building = (function () {
 		right:1.0
 	};
 
+	/*
+	 * ===========================
+	 * UTILITIES
+	 * ===========================
+	 */
 
 	/* 
 	 * Using Decorator pattern to augment 
@@ -838,19 +860,80 @@ window.elefart.building = (function () {
 	 * ============================
  	 */
 
- 	/**
+	/**
  	 * @constructor ElevatorShaft
  	 * @classdesc the elevator is a long Rect column running vertically 
  	 * in the building.
  	 * - parent: Building
  	 * - grandparent: World
  	 * - children: Elevator(s)
+ 	 * @param {Building} building the game building
+ 	 * @param {Number} shaftNum the number of the elevator shaft (left to right)
+ 	 * @param {Number} numShafts the total number of elevator shafts
+ 	 * @param {Boolean} hasShaftTop if true, there is a shaft top that should 
+ 	 * punch through the Building
  	 * @returns {ElevatorShaft|false} an ElevatorShaft object, or false
  	 */
- 	function ElevatorShaft () {
- 		//TODO: ElevatorShaft
- 		return false;
- 	}
+	function ElevatorShaft (building, shaftNum, numShafts, hasShaftTop) {
+		if(building) {
+			var shaftWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.width * building.width);
+			var shaftSubWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.subWidth * building.width);
+			var shaftOffset = factory.toInt((shaftWidth - shaftSubWidth)/2);
+
+			var ww = building.lineWidth/2; //control how shafts overlap building walls
+
+			var t = building.top - ww;
+			var l = building.left + (shaftWidth * shaftNum);
+			var w = building.width;
+			var h = building.height;
+			var s = factory.ScreenRect(
+				l,
+				t,
+				w,
+				h, //we don't include the walking surface
+				0,
+				display.COLORS.BROWN,
+				display.COLORS.YELLOW, //TODO: OVERLAPPING FLOORS, PARTIALLY OPAQUE
+				display.LAYERS.SHAFTS
+				);
+			if(s) {
+				console.log("created shaft #" + shaftNum);
+				s.setParent(building);
+				s.name = TYPES.ELEVATOR_SHAFT;
+				s.instanceName = "Shaft #:" + shaftNum;
+				s.shaftNum = shaftNum;
+				//draw the visible shaft as another Rect, partly transparent
+				//TODO: sub-sub shaft
+				//TODO: ShaftTop on a shaft
+				var rgbaColor = factory.getRGBAfromRGB(
+					display.COLORS.PINK, 
+					DIMENSIONS.ELEVATOR_SHAFT.subOpacity
+					);
+				console.log("RGBAColor:" + rgbaColor);
+				console.log(rgbaColor)
+				var sb = factory.ScreenRect(
+						l + shaftOffset,
+						t,
+						shaftSubWidth,
+						h,
+						0,
+						display.COLORS.BLACK,
+						rgbaColor,
+						display.LAYERS.SHAFTS
+					);
+				if(sb) {
+					s.name = TYPES.ELEVATOR.SUBSHAFT;
+					console.log('created subshaft:' + shaftNum)
+					console.log('lineWidth:' + sb.lineWidth)
+					sb.setParent(s);
+					display.addToDisplayList(sb, display.LAYERS.SHAFTS);
+					return s;
+				}
+				
+			}
+		}
+		return false;
+	}
 
 	/* 
 	 * ============================
@@ -871,27 +954,29 @@ window.elefart.building = (function () {
 	 */
 	function BuildingFloor (building, floorNum, numFloors) {
 		if(building) {
-			var h = DIMENSIONS.BUILDING_FLOOR.height * building.height;
-			var t = building.top + (floorNum * h);
+			var baseHeight = factory.toInt(DIMENSIONS.BUILDING_FLOORBASE.height * building.height);
+			if(baseHeight > MAX_WALLS) baseHeight = MAX_WALLS;
+			var h = factory.toInt(DIMENSIONS.BUILDING_FLOOR.height * building.height);
+			var t = factory.toInt(building.top + (floorNum * h));
 			var l = building.left;
 			var w = building.width;
 			var f = factory.ScreenRect(
 				l,
 				t,
 				w,
-				h,
+				h - baseHeight, //we don't include the walking surface
 				0,
 				display.COLORS.BROWN,
 				display.COLORS.YELLOW, //TODO: NOTE: THIS SHOULD BE AN IMAGE TEXTURE
 				display.LAYERS.BUILDING
 				);
-			console.log("new floor, top:" + f.top + " bottom:" + f.bottom);
 			if(f) {
 				f.setParent(building);
 				f.name = TYPES.BUILDING_FLOOR;
 				f.floorNum = (numFloors - floorNum);
-				var baseHeight = DIMENSIONS.BUILDING_FLOORBASE.height * building.height;
-				t = f.bottom - baseHeight;
+				f.instanceName = "Floor #" + f.floorNum;
+				f.walkLine = f.bottom; //where Players should put their .bottom
+				t = f.bottom; //inside the floor
 				h = baseHeight;
 				//always add a floorbase (the walking layer at the bottom of the BuildingFloor)
 				var fb = factory.ScreenRect(
@@ -904,12 +989,12 @@ window.elefart.building = (function () {
 					display.COLORS.BROWN,
 					display.LAYERS.BUILDING
 					);
-				console.log("new floorbase, top:" + fb.top + " bottom:" + fb.bottom);
 				//display.addToDisplayList(floor, display.LAYERS.BUILDING);
 				//TODO: also add elevator doors where shafts are
 				if(fb) {
 					fb.setParent(f);
 					fb.name = TYPES.BUILDING_FLOORBASE;
+					fb.instanceName = "FloorBase #" + f.floorNum;
 					f.addChild(fb);
 					display.addToDisplayList(fb, display.LAYERS.BUILDING);
 					return f;
@@ -935,6 +1020,7 @@ window.elefart.building = (function () {
 	 * @returns {Building|false} a Building object, or false
 	 */
 	function Building (world) {
+		var i; //counter
 		//compute sizes
 		var l = DIMENSIONS.BUILDING.left * world.width;
 		var t = DIMENSIONS.BUILDING.top * world.height;
@@ -942,7 +1028,9 @@ window.elefart.building = (function () {
 		if(w > 1000) {
 			w--;
 		}
+		//building
 		var h = DIMENSIONS.BUILDING.height * world.height;
+		//building walls
 		var ww = DIMENSIONS.BUILDING.wallSize * world.height;
 		if(ww > MAX_WALLS) ww = MAX_WALLS;
 		var b = factory.ScreenRect(
@@ -953,18 +1041,29 @@ window.elefart.building = (function () {
 				display.LAYERS.WORLD
 			);
 		if(b) {
+			//shrink the selectable area of the building so its stroke is visible
 			b.shrink(ww/2);
 			b.name = TYPES.BUILDING;
+			b.instanceName = "GasLight Building";
 			b.setParent(world);
 			//add to displayList BEFORE floors
 			display.addToDisplayList(b, display.LAYERS.BUILDING);
+
 			//add floors
+			var floorHeight = DIMENSIONS.BUILDING_FLOOR.height;
+			//if(floorHeight &lt; MIN_FLOOR)
 			var numFloors = factory.toInt(DIMENSIONS.BUILDING.height/DIMENSIONS.BUILDING_FLOOR.height);
 			console.log("NUMFLOORS:" + numFloors);
-			for(var i = 0; i &lt; numFloors; i++) {
+			for(i = 0; i &lt; numFloors; i++) {
 				b.addChild(BuildingFloor(b, i, numFloors));
 			}
 
+			//add elevator shafts
+			var numShafts = factory.toInt(DIMENSIONS.BUILDING.width/DIMENSIONS.ELEVATOR_SHAFT.width);
+			console.log("NUMSHAFTS:" + numShafts);
+			for(i = 0; i &lt; numShafts; i++) {
+				b.addChild(ElevatorShaft(b, i, numShafts));
+			}
 		}
 		if(!b) {
 			elefart.showError("failed to create Building");
@@ -1241,7 +1340,7 @@ window.elefart.building = (function () {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Thu Dec 25th 2014 using the <a
+		on Fri Dec 26th 2014 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

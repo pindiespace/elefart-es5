@@ -1,8 +1,7 @@
 /** 
- * karma unit tests for Elefart
+ * @namespace karma
+ * description karma unit tests for Elefart
  * @link http://osintegrators.com/node/322
- * 
- * Command list
  * @link http://evanhahn.com/how-do-i-jasmine/
  */
 
@@ -72,7 +71,23 @@ describe('Elefart factory', function () {
 
 	it('should have ScreenObjects', function () {
 
-		/**
+		/* 
+		 * ============================
+		 * INTEGER CONVERTERS
+		 * ============================
+		 */
+		var myInt = elefart.factory.toInt(2.3989);
+		expect(myInt).toBe(2);
+
+		/* 
+		 * ============================
+		 * RGB CONVERTERS
+		 * ============================
+		 */
+		var rgba = elefart.factory.getRGBAfromRGB('rgb(33, 55, 66)', 0.5);
+		expect(rgba).toBe('rgba(33,55,66,0.5)');
+
+		/*
 		 * ============================
 		 * BASIC GEOMETRIC SHAPES
 		 * ============================
@@ -128,11 +143,13 @@ describe('Elefart factory', function () {
 		expect(typeof b).toBe('object');
 		expect(b.top).toBe(2);
 
-		/**
+		/*
 		 * ============================
 		 * ScreenObjects
 		 * ============================
 		 */
+
+		//TODO: test that objects all have correct sub-properties
 
 		var inside;
 		var BLACK = "rgb(0,0,0)",
@@ -214,7 +231,7 @@ describe('Elefart factory', function () {
 		expect(mv.left).toBe(150);
 		expect(mv.top).toBe(300);
 
-		/**
+		/*
 		 * ============================
 		 * CHECK SETTER METHODS
 		 * ============================
@@ -258,7 +275,7 @@ describe('Elefart factory', function () {
 		//check setRectBorderRadius
 		mv.setRectBorderRadius(4);
 
-		/**
+		/*
 		 * ============================
 		 * CHECK ADD/REMOVE CHILD OBJECTS
 		 * ============================
@@ -282,7 +299,7 @@ describe('Elefart factory', function () {
 		expect(foundChild.id).toBe(childId);
 		expect(mv.children.length).toBe(2);
 
-		/**
+		/*
 		 * ============================
 		 * CHECK VISUAL METHODS
 		 * ============================
@@ -334,7 +351,7 @@ describe('Elefart factory', function () {
 			console.log('sprite callback')
 		})
 
-		/**
+		/*
 		 * ============================
 		 * TESTS COMPLETE
 		 * ============================
