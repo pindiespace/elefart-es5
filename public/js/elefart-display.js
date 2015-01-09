@@ -14,17 +14,18 @@ window.elefart.display = (function () {
 	var building,
 	dom,
 	controller,
-	factory,
-	panel,       //game DOM panel
-	rect,        //game Rect
-	fctx,        //foreground context
-	bctx,        //background context
-	foreground,  //foreground canvas
-	background,  //background canvas
+	factory,       //builds basic display objects
+	panel,         //game DOM panel
+	rect,          //game Rect
+	fctx,          //foreground context
+	bctx,          //background context
+	foreground,    //foreground canvas
+	background,    //background canvas
 	displayList = {}, //multi-dimensional array with drawing objects
-	hotelWalls,  //hotel walls
-	hotelSign,   //hotel sign
-	spriteBoard, //images of users for animation
+	hotelWalls,    //hotel walls
+	hotelSign,     //hotel sign
+	spriteBoard,   //images of users for animation
+	cssBreakpoint, //keep track of current CSS breakpoint in getCSSBreakpoint
 	firstTime = true;
 
 	/**
@@ -79,6 +80,35 @@ window.elefart.display = (function () {
 	 * SPECIAL PRELOADS AND UTILITIES
 	 * =========================================
 	 */
+
+	/** 
+	 * @method getCSSBreakpoint
+	 * @description read the current CSS breakpoint from 
+	 * the CSS. Allows JS to respond to events in CSS 
+	 * (e.g., responsive design changes). The function returns the 
+	 * value inserted in the before: pseudo-query in the CSS file, typically 
+	 * named screen or device breakpoints ('cellphone', 'tablet', 'desktop')
+	 * CSS code:
+	 * body:before { content: 'iphone'; display: none; }
+	 * this should be added to each breakpoint. this function will read 
+	 * the content: value
+	 * @link http://demosthenes.info/blog/948/Triggering-JavaScript-Actions-With-CSS-Media-Queries
+	 * @returns {String|Boolean} if there is a new breakpoint, return its name as 
+	 * defined in the body:before element (invisible), otherwise return false if 
+	 * we are in the same CSS breakpoint.
+	 */
+	function getCSSBreakpoint () {
+		var state = window.getComputedStyle(document.body,':before').content;
+		state = state || "";
+		if (state != cssBreakpoint) {
+			console.log("new CSS breakpoint:" + state);
+			// do something when viewport moves out of tablet mode
+			return (cssBreakpoint = state);
+		}
+		else {
+			return false;
+		}
+	}
 
 	/** 
 	 * @method getGameRect
@@ -787,6 +817,7 @@ window.elefart.display = (function () {
 		LAYERS:LAYERS,
 		COLORS:COLORS,
 		MATERIALS:MATERIALS,
+		getCSSBreakpoint:getCSSBreakpoint,
 		getGameRect:getGameRect,
 		setGameRect:setGameRect,
 		addToDisplayList:addToDisplayList,

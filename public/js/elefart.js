@@ -147,6 +147,11 @@ window.elefart = (function () {
 		
 	} //end of fixScreen
 
+	/** 
+	 * @method CSSBreak
+	 * @description tests in (mostly) cross-compatible way for screen size, 
+	 * https://gist.github.com/nzakas/08602e7d2ee448be834c
+	 */
 
 	/**
 	 * @method canRun

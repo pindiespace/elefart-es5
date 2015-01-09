@@ -8,6 +8,7 @@
 	#screen-game {
 		width:100%;
 	}
+	body:before { content: 'featurephone'; display: none; }
 }
 
 /* old iPhone */
@@ -15,6 +16,7 @@
 	#screen-game {
 		width:100%;
 	}
+	body:before { content: 'smartphone'; display: none; }
 }
 
 /* Larger than small mobile */
@@ -22,6 +24,7 @@
 	#screen-game {
 		width:100%;
 	}
+	body:before { content: 'subtablet'; display: none; }
 }
 
 /* larger than small tablet */
@@ -29,6 +32,7 @@
 	#screen-game {
 		width:100%;
 	}
+	body:before { content: 'tablet'; display: none; }
 }
 
 /* Larger than tablet */
@@ -36,6 +40,7 @@
 	#screen-game {
 		width:100%;
 	}
+	body:before { content: 'laptop'; display: none; }
 }
 
 /* small desktop */
@@ -43,12 +48,14 @@
 	#screen-game {
 		width:95%;
 	}
+	body:before { content: 'desktop'; display: none; }
 }
 
 @media (min-width: 1200px) {
 	#screen-game {
 		width:90%;
 	}
+	body:before { content: 'desktop2'; display: none; }
 }
 
 /* Larger than Desktop HD */
@@ -56,10 +63,12 @@
 	#screen-game {
 		width:80%;
 	}
+	body:before { content: 'desktop3'; display: none; }
 }
 
 @media (min-width: 1980px) {
 	#screen-game {
 		width:75%;
 	}
+	body:before { content: 'digitaltv'; display: none; }
 }

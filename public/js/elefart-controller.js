@@ -23,13 +23,26 @@ window.elefart.controller = (function () {
 	dashboard, 
 	firstTime = true;
 
+	/** 
+	 * @method handleResize
+	 * @description handling a change in the window size
+	 */
+	function handleResize () {
+		var breakPt = display.getCSSBreakpoint();
+		if(breakPt) {
+			switch (breakPt) {
+				default:
+					break;
+			}
+		}
+	}
 
 	/** 
 	 * @method handleKeypress
 	 * @description branch program execution based on the key pressed by a user.
 	 * @param {Number} keyCode the keycode returned by the event handler.
 	 */
-	function handleKeypress(keyCode) {
+	function handleKeypress (keyCode) {
 		console.log("key pressed:" + keyCode);
 	}
 
@@ -39,7 +52,7 @@ window.elefart.controller = (function () {
 	 * on a touch-sensitive screen.
 	 * @param {Object} touchPoint a JS objec with the x and y coordinates of the touch.
 	 */
-	function handleTouchPoint(touchPoint) {
+	function handleTouchPoint (touchPoint) {
 		console.log("touch:" + touchPoint.x + "," + touchPoint.y);
 	}
 
@@ -50,17 +63,26 @@ window.elefart.controller = (function () {
 	 */
 	function setGameHandlers (gameCanvas) {
 
+		//window resizing events (redraw world)
+		dom.bind(window, "resize", function (e) {
+			//resize at CSS breakpoints for responsive design
+			handleResize();
+		})
+
+		//key press events
 		dom.bind(document, "keypress", function (e) {
 			var unicode = e.keyCode? e.keyCode : e.charCode
 			handleKeypress(unicode);
 		});
 
+		//mouse click events
 		dom.bind(gameCanvas, "click", function (e) {
 			handleTouchPoint({x:e.clientX, y:e.clientY});
 			e.preventDefault();
 			e.stopPropagation();
 		});
 
+		//touch events
 		dom.bind(gameCanvas, "touchmove", function (e) {
 			handleTouchPoint({x:e.clientX, y:e.clientY});
 			e.preventDefault();

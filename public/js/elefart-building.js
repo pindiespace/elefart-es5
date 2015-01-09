@@ -66,10 +66,12 @@ window.elefart.building = (function () {
 	 * @readony
 	 * @typedef (DIMENSIONS) 
 	 * @description list of relative and absolute dimensions for 
-	 * building objects. If relative, sizes are relative to the 
+	 * building objects in the ENTIRE screen region devoted to the 
+	 * game. If relative, sizes are relative to the 
 	 * size of the World object. Dimensions are in a Rect-like 
-	 * format, but are NOT an elefart.factory.ScreenRect (more like 
-	 * elefart.factory.Padding object. 
+	 * format, but are NOT an elefart.factory.ScreenRect. 
+	 * On a resizable window, the DIMENSIONS may be altered if 
+	 * the screen size changes.
 	 */
 	var DIMENSIONS = {};
 	DIMENSIONS[TYPES.SUN] = {
@@ -121,6 +123,14 @@ window.elefart.building = (function () {
 	 * UTILITIES
 	 * ===========================
 	 */
+
+	function getNumFloors () {
+
+	}
+
+	function getNumShafts () {
+
+	}
 
 	/* 
 	 * Using Decorator pattern to augment 
@@ -380,6 +390,7 @@ window.elefart.building = (function () {
 	 */
 	function Building (world) {
 		var i; //counter
+
 		//compute sizes
 		var l = DIMENSIONS.BUILDING.left * world.width;
 		var t = DIMENSIONS.BUILDING.top * world.height;
@@ -387,8 +398,10 @@ window.elefart.building = (function () {
 		if(w > 1000) {
 			w--;
 		}
-		//building
+
+		//building height
 		var h = DIMENSIONS.BUILDING.height * world.height;
+
 		//building walls
 		var ww = DIMENSIONS.BUILDING.wallSize * world.height;
 		if(ww > MAX_WALLS) ww = MAX_WALLS;
