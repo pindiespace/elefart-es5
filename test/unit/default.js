@@ -71,6 +71,8 @@ describe('Elefart factory', function () {
 
 	it('should have ScreenObjects', function () {
 
+		expect(typeof elefart.factory).toBe('object');
+
 		/* 
 		 * ============================
 		 * INTEGER CONVERTERS
@@ -92,8 +94,6 @@ describe('Elefart factory', function () {
 		 * BASIC GEOMETRIC SHAPES
 		 * ============================
 		 */
-
-		expect(typeof elefart.factory).toBe('object');
 
 		//Point and Line tests
 		var p = new elefart.factory.Point(10, 10);
@@ -145,7 +145,7 @@ describe('Elefart factory', function () {
 
 		/*
 		 * ============================
-		 * ScreenObjects
+		 * PROPERTIES OF ScreenObjects
 		 * ============================
 		 */
 
@@ -233,7 +233,7 @@ describe('Elefart factory', function () {
 
 		/*
 		 * ============================
-		 * CHECK SETTER METHODS
+		 * CHECK GEOMETRY SETTER METHODS IN ScreenObjects
 		 * ============================
 		 */
 
@@ -349,7 +349,14 @@ describe('Elefart factory', function () {
 		var frames = 10; //number of frames to use
 		var sprite = elefart.factory.ScreenSprite(path, type, frames, function () {
 			console.log('sprite callback')
-		})
+		});
+
+		//add to display list
+		elefart.display.addToDisplayList(sprite, elefart.display.LAYERS.ELESPACE1);
+
+		//remove from display list
+		elefart.display.removeFromDisplayList(sprite);
+
 
 		/*
 		 * ============================

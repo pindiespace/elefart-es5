@@ -1,7 +1,6 @@
 /** 
- * @namespace elefart.screens['screen-menu']
- * @fileoverview display menu options at game startup. Displays a screen 
- * with buttons for loading the game, help screens, and exiting.
+ * @namespace
+ * @fileoverview display menu options at game startup. 
  * @requires elefart
  * @requires elefart.dom
  * @version 0.1.1

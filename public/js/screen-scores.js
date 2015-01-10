@@ -1,5 +1,5 @@
 /** 
- * @namespace elefart.screens['screen-scores']
+ * @namespace
  * @fileoverview elefart score screen, shows high scores for users.
  * @requires elefart
  * @requires elefart.dom

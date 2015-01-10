@@ -1,5 +1,5 @@
 /** 
- * @namespace elefart
+ * @namespace
  * @fileoverview main game object for elefart application. Contains
  * initialization code and some factory functions for common objects. 
  * Also does feature detection and loading of individual game screen 

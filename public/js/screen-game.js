@@ -1,6 +1,7 @@
 /** 
- * @namespace elefart.screens['screen-game']
- * @fileoverview wrapper for game, which is created entirely in HTML5 canvas
+ * @namespace
+ * @fileoverview create the game object, which is created entirely in HTML5 canvas embedded 
+ * in the default HTML file.
  * @requires elefart
  * @requires elefart.dom
  * @requires elefart.factory

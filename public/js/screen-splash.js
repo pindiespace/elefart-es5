@@ -1,11 +1,9 @@
 /** 
- * @namespace elefart.screens['screen-splash']
- * @fileoverview splash or loader screen for the game, when there is an option 
- * to save the game with an icon to the user's desktop. Actually acts as the second 
- * splash, since iOS will display a bitmap loader screen 
- * during the early phases of the app load.
+ * @namespace
+ * @fileoverview methods for loading screen when initial JS and 
+ * asset loads are complete
  * @requires elefart
- * @requires elefart.com
+ * @requires elefart.dom
  * @version 0.1.1
  * @author Pete Markeiwicz
  * @license MIT

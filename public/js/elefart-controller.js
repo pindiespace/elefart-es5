@@ -28,31 +28,24 @@ window.elefart.controller = (function () {
 	 * @description handling a change in the window size. Elefart.display 
 	 * has a function that, when the window is resized, checks if it has 
 	 * changed the css breakpoint listed in the css file. If so, it returns 
-	 * a name for the breakpoint, encoded in the body:before invisible 
-	 * element set up in the css for each breakpoint, e.g.,
-	 * body:before { content: 'iphone'; display: none; }
+	 * a name for the breakpoint, encoded in the body:before invisible body:before
+	 * element set up in the css for each breakpoint as JSON, e.g.,
+	 * '{"name":"featurephone1","floors":"3","shafts":"3"}'
 	 * NOTE: the listed test strings in the switch() statement below MUST 
 	 * match those in the CSS file for this function to work
-	 * 1/2015
-	 * 'featurephone':
-	 * 'smartphone':
-	 * 'subtablet':
-	 * 'tablet':
-	 * 'laptop':
-	 * 'desktop1':
-	 * 'desktop2':
-	 * 'desktop3':
-	 * 'digitaltv2k':
-	 * 'digitaltv4k':
 	 */
 	function handleResize () {
-		//set x dimensions on CSS breakpoints
+		//see if we had a change in breakpoint due to viewport resize
 		var breakPt = display.getCSSBreakpoint();
 		if(breakPt) {
+			//set number of ElevatorShafts (x axis) only if CSS breakpoint changed
 			building.setDimensions(breakPt);
 		}
-		building.setFloors();
+		//set number of floors (y axis) on any resize
+		building.setFloors(); 
+		//rebuild the Model
 		building.buildWorld();
+		//redraw the View
 		display.drawBackground();
 		display.drawForeground();
 	}

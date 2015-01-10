@@ -1,9 +1,10 @@
 /** 
- * @namespace elefart.factory
+ * @namespace
  * @fileoverview factory function for elefart. Makes common objects
  * used on the screen. Objects are scaled via 'mobile first', meaning
  * that constant sizes are defined for small screens, and scaled for 
- * larger ones.
+ * larger ones.Also utility methods for testing JS object type, and 
+ * converting object type.
  * @requires elefart
  * @requires elefart.display
  * @version 0.1.1

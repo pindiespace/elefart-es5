@@ -1,5 +1,5 @@
 /** 
- * @namespace elefart.dashboard
+ * @namespace
  * @fileoverview elefart.dashboard provides definitions for dashboard controls and HUD screens 
  * used by the application. Equivalent to elefart.building for game objects. Generic objects are 
  * created in elefart.factory.

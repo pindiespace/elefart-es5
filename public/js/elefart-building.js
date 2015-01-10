@@ -1,5 +1,5 @@
 /** 
- * @namespace elefart.building
+ * @namespace
  * @fileoverview elefart.building (Model) creates the game objects (building, shafts, elevators, 
  * users, goodies, gas) used during gameplay.
  * @requires elefart
@@ -128,7 +128,9 @@ window.elefart.building = (function () {
 	 * @method getCSSvalues
 	 * @description get the CSS values from an incoming JSON string. Expect the 
 	 * following format:
-	 * {"name":"smartphone","floors":"5","shafts":"4"}
+	 * {"name":"smartphone","floors":"5","shafts":"4"}.
+	 * NOTE: the incoming CSS string (from elefart.display.getCSSBreakpoint()) 
+	 * may have appended quotes, which are removed by a regular expression
 	 * @param {String} breakPt the JSON string
 	 * @returns {Object|false} if a valid JSON string, return the object, else false
 	 */
@@ -160,7 +162,7 @@ window.elefart.building = (function () {
 	 */
 	function setDimensions (breakPt) {
 
-		console.log("New device size:" + breakPt);
+		console.log("New CSS breakpoint:" + breakPt);
 
 		var dim = getCSSValues(breakPt);
 

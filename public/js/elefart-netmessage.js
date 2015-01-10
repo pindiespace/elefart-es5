@@ -1,6 +1,6 @@
 /** 
- * @namespace common
- * @fileoverview common JS object available on client and on server
+ * @namespace
+ * @fileoverview CommonJS object available on client and on server
  * common file between client and server provding
  * a dictionary for decoding messages between user programs
  * each message may be associated with additional data, shown

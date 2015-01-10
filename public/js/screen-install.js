@@ -1,6 +1,7 @@
 /** 
- * @namespace elefarts.screens['screen-install']
- * @fileoverview option to install to desktop
+ * @namespace
+ * @fileoverview option to install the game to desktop, on devices (e.g. iOS)  
+ * which have an "install to desktop" option for web apps.
  * @requires elefart
  * @requires elefart.dom
  * @version 0.1.1

@@ -1,5 +1,5 @@
 /** 
- * @namespace elefart.dom
+ * @namespace
  * @fileoverview JavaScript DOM manipulation (classes, ids, event binding). Contains 
  * mini-ClassList polyfill, and wrapper functions for events for cross-browser compatibility.
  * @requires elefart

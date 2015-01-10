@@ -1,5 +1,5 @@
 /** 
- * @namespace elefart.display
+ * @namespace
  * @fileoverview elefart.display (the View object) for the application. 
  * Contains the HTML5 Canvas drawing routines for game.
  * @requires elefart
@@ -302,7 +302,7 @@ window.elefart.display = (function () {
 	 * @method removeFromDisplayList
 	 * @description remove an object from drawing display list
 	 * @param {Point|Line|Rect|Circle|Polygon|SpriteBoard} obj the object to draw
-	 * @param {LAYERS} layer the layer to draw in (optional)
+	 * @param {LAYERS} layer (optional) the display list layer to draw in (optional)
 	 */
 	function removeFromDisplayList (obj, layer) {
 		var pos;
@@ -764,7 +764,7 @@ window.elefart.display = (function () {
 		//start images loading
 		preload();
 
-		//initialize our display list
+		//initialize our display list as a multi-dimensional array
 		initDisplayList();
 
 		//initialize canvas for foreground

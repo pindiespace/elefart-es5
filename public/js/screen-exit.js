@@ -1,5 +1,5 @@
 /** 
- * @namespace elefart.screens['screen-exit']
+ * @namespace
  * @fileoverview quit screen (a dialog) for the game.
  * @requires elefart
  * @requires elefart.dom

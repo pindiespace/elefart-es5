@@ -1,5 +1,5 @@
 /** 
- * @namespace elefart.screens['screen-about']
+ * @namespace
  * @fileoverview Creates a screen which displays online documentation for the game.
  * @requires elefart
  * @requires elefart.dom

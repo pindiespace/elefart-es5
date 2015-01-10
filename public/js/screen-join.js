@@ -1,5 +1,5 @@
 /** 
- * @namespace elefart.screens['screen-join']
+ * @namespace
  * @fileoverview login system for joining multi-user elefart
  * @requires elefart
  * @requires elefart.dom
