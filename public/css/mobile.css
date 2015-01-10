@@ -1,6 +1,10 @@
 /* 
  * mobile.css, responsive changes in display and typeface
  * override default styles
+ *
+ * NOTE: we are embedding JSON strings into the web page to control the number of 
+ * elevator shafts and floors shown in the game. This allows the values to be adjusted 
+ * independently of JS at the CSS level.
  */
 
 /* featurephones */
@@ -8,15 +12,16 @@
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: 'featurephone'; display: none; }
+	body:before { content: '{"name":"featurephone1","floors":"3","shafts":"3"}'; display: none; }
 }
+
 
 /* old iPhone */
 @media (min-width: 320px) {
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: 'smartphone'; display: none; }
+	body:before { content: '{"name":"smartphone","floors":"5","shafts":"4"}'; display: none; }
 }
 
 /* Larger than small mobile */
@@ -24,7 +29,7 @@
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: 'subtablet'; display: none; }
+	body:before { content: '{"name":"tablet1","floors":"6","shafts":"5"}'; display: none; }
 }
 
 /* larger than small tablet */
@@ -32,7 +37,7 @@
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: 'tablet'; display: none; }
+	body:before { content: '{"name":"tablet2","floors":"8","shafts":"6"}'; display: none; }
 }
 
 /* Larger than tablet */
@@ -40,7 +45,7 @@
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: 'laptop'; display: none; }
+	body:before { content: '{"name":"laptop","floors":"8","shafts":"7"}'; display: none; }
 }
 
 /* small desktop */
@@ -48,14 +53,14 @@
 	#screen-game {
 		width:95%;
 	}
-	body:before { content: 'desktop'; display: none; }
+	body:before { content: '{"name":"desktop1","floors":"8","shafts":"8"}'; display: none; }
 }
 
 @media (min-width: 1200px) {
 	#screen-game {
 		width:90%;
 	}
-	body:before { content: 'desktop2'; display: none; }
+	body:before { content: '{"name":"desktop2","floors":"8","shafts":"9"}'; display: none; }
 }
 
 /* Larger than Desktop HD */
@@ -63,12 +68,19 @@
 	#screen-game {
 		width:80%;
 	}
-	body:before { content: 'desktop3'; display: none; }
+	body:before { content: '{"name":"desktop3","floors":"8","shafts":"10"}'; display: none; }
 }
 
 @media (min-width: 1980px) {
 	#screen-game {
 		width:75%;
 	}
-	body:before { content: 'digitaltv'; display: none; }
+	body:before { content: '{"name":"digitaltv2k","floors":"8","shafts":"12"}'; display: none; }
+}
+
+@media (min-width: 3960px) {
+	#screen-game {
+		width:75%;
+	}
+	body:before { content: '{"name":"digitaltv4k","floors":"10","shafts":"16"}'; display: none; }
 }

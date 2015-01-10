@@ -48,8 +48,8 @@ window.elefart.screens['screen-game'] = (function () {
 		//start the game!
 		elefart.display.run(panel); //have to determine bounding Rect for elefart.building
 		elefart.building.run(); //elefart.building calls display for dimensions
-		elefart.controller.run(); //don't activat until prelim draw
-
+		elefart.display.drawBackground();
+		elefart.controller.run(); //don't activate until prelim draw
 	}
 
 	//returned object

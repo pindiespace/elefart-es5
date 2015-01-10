@@ -93,16 +93,15 @@ window.elefart.display = (function () {
 	 * this should be added to each breakpoint. this function will read 
 	 * the content: value
 	 * @link http://demosthenes.info/blog/948/Triggering-JavaScript-Actions-With-CSS-Media-Queries
-	 * @returns {String|Boolean} if there is a new breakpoint, return its name as 
+	 * @returns {String|false} if there is a new breakpoint, return its name as 
 	 * defined in the body:before element (invisible), otherwise return false if 
 	 * we are in the same CSS breakpoint.
 	 */
 	function getCSSBreakpoint () {
 		var state = window.getComputedStyle(document.body,':before').content;
-		state = state || "";
-		if (state != cssBreakpoint) {
-			console.log("new CSS breakpoint:" + state);
-			// do something when viewport moves out of tablet mode
+		state = state || false;
+		if (state !== cssBreakpoint) {
+			// do something when viewport moves out of its last breakpoint
 			return (cssBreakpoint = state);
 		}
 		else {
@@ -127,7 +126,18 @@ window.elefart.display = (function () {
 	 * DOM element the HTML5 Canvas object is attached to.
 	 */
 	function setGameRect () {
+		console.log("body width:"+ document.getElementsByTagName('body')[0].getBoundingClientRect().width);
+		console.log("panel width:"+ panel.getBoundingClientRect().width);
 		rect = panel.getBoundingClientRect();
+		if(background) {
+			background.width = rect.width;
+			background.height = rect.height;
+		}
+		if(foreground) {
+			foreground.width = rect.width;
+			foreground.height = rect.height;
+		}
+
 		return rect;
 	}
 
@@ -650,7 +660,7 @@ window.elefart.display = (function () {
 	 */
 	function drawBackground () {
 		bctx.save();
-
+		bctx.clearRect(0, 0, background.width, background.height)
 		//yellow background
 		//bctx.fillStyle = "rgba(248, 237, 29, 1.0)";
 		//bctx.rect(0, 0, rect.width, rect.height);
@@ -690,7 +700,7 @@ window.elefart.display = (function () {
 		//clear the foreground
 		fctx.clearRect(0, 0, foreground.width, foreground.height);
 
-
+		//elevator shafts are in the foreground
 		drawLayer(fctx, displayList[LAYERS.SHAFTS]);
 		/*		drawLayer(fctx, displayList[LAYERS.ELEBACK]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE1]);
@@ -788,21 +798,15 @@ window.elefart.display = (function () {
 		panel = gamePanel;
 
 		//set the dimensions of our game from the panel (also called on resize event)
-		setGameRect();
-
 		if(foreground && background && panel) {
 
-			background.width = rect.width;
-			background.height = rect.height;
-			foreground.width = rect.width;
-			foreground.height = rect.height;
+			//compute the current screen size
+			setGameRect();
 
+			//add our foreground and background canvas to the HTML panel
 			panel.appendChild(background);
 			panel.appendChild(foreground);
 
-			//we draw once here, before letting elefart.controller take over
-			//drawBackground();
-			//drawDisplay();
 		}
 		else {
 			console.log("ERROR: failed to make canvas objects, foreground:" + 
@@ -820,6 +824,7 @@ window.elefart.display = (function () {
 		getCSSBreakpoint:getCSSBreakpoint,
 		getGameRect:getGameRect,
 		setGameRect:setGameRect,
+		initDisplayList:initDisplayList,
 		addToDisplayList:addToDisplayList,
 		removeFromDisplayList:removeFromDisplayList,
 		getBackgroundCanvas:getBackgroundCanvas,

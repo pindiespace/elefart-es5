@@ -190,6 +190,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#CSSBreak">CSSBreak</a>
+						</li>
+						
+						<li>
 							<a href="global.html#DisplayList">DisplayList</a>
 						</li>
 						
@@ -266,6 +270,14 @@
 						</li>
 						
 						<li>
+							<a href="global.html#getCSSBreakpoint">getCSSBreakpoint</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getCSSvalues">getCSSvalues</a>
+						</li>
+						
+						<li>
 							<a href="global.html#getElement">getElement</a>
 						</li>
 						
@@ -319,6 +331,10 @@
 						
 						<li>
 							<a href="global.html#handleKeypress">handleKeypress</a>
+						</li>
+						
+						<li>
+							<a href="global.html#handleResize">handleResize</a>
 						</li>
 						
 						<li>
@@ -562,6 +578,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#setFloors">setFloors</a>
+						</li>
+						
+						<li>
 							<a href="global.html#setGameHandlers">setGameHandlers</a>
 						</li>
 						
@@ -655,17 +675,18 @@ window.elefart.display = (function () {
 	var building,
 	dom,
 	controller,
-	factory,
-	panel,       //game DOM panel
-	rect,        //game Rect
-	fctx,        //foreground context
-	bctx,        //background context
-	foreground,  //foreground canvas
-	background,  //background canvas
+	factory,       //builds basic display objects
+	panel,         //game DOM panel
+	rect,          //game Rect
+	fctx,          //foreground context
+	bctx,          //background context
+	foreground,    //foreground canvas
+	background,    //background canvas
 	displayList = {}, //multi-dimensional array with drawing objects
-	hotelWalls,  //hotel walls
-	hotelSign,   //hotel sign
-	spriteBoard, //images of users for animation
+	hotelWalls,    //hotel walls
+	hotelSign,     //hotel sign
+	spriteBoard,   //images of users for animation
+	cssBreakpoint, //keep track of current CSS breakpoint in getCSSBreakpoint
 	firstTime = true;
 
 	/**
@@ -722,6 +743,34 @@ window.elefart.display = (function () {
 	 */
 
 	/** 
+	 * @method getCSSBreakpoint
+	 * @description read the current CSS breakpoint from 
+	 * the CSS. Allows JS to respond to events in CSS 
+	 * (e.g., responsive design changes). The function returns the 
+	 * value inserted in the before: pseudo-query in the CSS file, typically 
+	 * named screen or device breakpoints ('cellphone', 'tablet', 'desktop')
+	 * CSS code:
+	 * body:before { content: 'iphone'; display: none; }
+	 * this should be added to each breakpoint. this function will read 
+	 * the content: value
+	 * @link http://demosthenes.info/blog/948/Triggering-JavaScript-Actions-With-CSS-Media-Queries
+	 * @returns {String|false} if there is a new breakpoint, return its name as 
+	 * defined in the body:before element (invisible), otherwise return false if 
+	 * we are in the same CSS breakpoint.
+	 */
+	function getCSSBreakpoint () {
+		var state = window.getComputedStyle(document.body,':before').content;
+		state = state || false;
+		if (state !== cssBreakpoint) {
+			// do something when viewport moves out of its last breakpoint
+			return (cssBreakpoint = state);
+		}
+		else {
+			return false;
+		}
+	}
+
+	/** 
 	 * @method getGameRect
 	 * @description get the current dimensions of the game
 	 * NOTE: have to fire it when the screen size changes!
@@ -738,7 +787,18 @@ window.elefart.display = (function () {
 	 * DOM element the HTML5 Canvas object is attached to.
 	 */
 	function setGameRect () {
+		console.log("body width:"+ document.getElementsByTagName('body')[0].getBoundingClientRect().width);
+		console.log("panel width:"+ panel.getBoundingClientRect().width);
 		rect = panel.getBoundingClientRect();
+		if(background) {
+			background.width = rect.width;
+			background.height = rect.height;
+		}
+		if(foreground) {
+			foreground.width = rect.width;
+			foreground.height = rect.height;
+		}
+
 		return rect;
 	}
 
@@ -1261,7 +1321,7 @@ window.elefart.display = (function () {
 	 */
 	function drawBackground () {
 		bctx.save();
-
+		bctx.clearRect(0, 0, background.width, background.height)
 		//yellow background
 		//bctx.fillStyle = "rgba(248, 237, 29, 1.0)";
 		//bctx.rect(0, 0, rect.width, rect.height);
@@ -1301,7 +1361,7 @@ window.elefart.display = (function () {
 		//clear the foreground
 		fctx.clearRect(0, 0, foreground.width, foreground.height);
 
-
+		//elevator shafts are in the foreground
 		drawLayer(fctx, displayList[LAYERS.SHAFTS]);
 		/*		drawLayer(fctx, displayList[LAYERS.ELEBACK]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE1]);
@@ -1399,21 +1459,15 @@ window.elefart.display = (function () {
 		panel = gamePanel;
 
 		//set the dimensions of our game from the panel (also called on resize event)
-		setGameRect();
-
 		if(foreground &amp;&amp; background &amp;&amp; panel) {
 
-			background.width = rect.width;
-			background.height = rect.height;
-			foreground.width = rect.width;
-			foreground.height = rect.height;
+			//compute the current screen size
+			setGameRect();
 
+			//add our foreground and background canvas to the HTML panel
 			panel.appendChild(background);
 			panel.appendChild(foreground);
 
-			//we draw once here, before letting elefart.controller take over
-			//drawBackground();
-			//drawDisplay();
 		}
 		else {
 			console.log("ERROR: failed to make canvas objects, foreground:" + 
@@ -1428,8 +1482,10 @@ window.elefart.display = (function () {
 		LAYERS:LAYERS,
 		COLORS:COLORS,
 		MATERIALS:MATERIALS,
+		getCSSBreakpoint:getCSSBreakpoint,
 		getGameRect:getGameRect,
 		setGameRect:setGameRect,
+		initDisplayList:initDisplayList,
 		addToDisplayList:addToDisplayList,
 		removeFromDisplayList:removeFromDisplayList,
 		getBackgroundCanvas:getBackgroundCanvas,
@@ -1471,7 +1527,7 @@ window.elefart.display = (function () {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Fri Dec 26th 2014 using the <a
+		on Fri Jan 9th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

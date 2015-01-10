@@ -124,12 +124,69 @@ window.elefart.building = (function () {
 	 * ===========================
 	 */
 
-	function getNumFloors () {
-
+	/** 
+	 * @method getCSSvalues
+	 * @description get the CSS values from an incoming JSON string. Expect the 
+	 * following format:
+	 * {"name":"smartphone","floors":"5","shafts":"4"}
+	 * @param {String} breakPt the JSON string
+	 * @returns {Object|false} if a valid JSON string, return the object, else false
+	 */
+	function getCSSValues(breakPt) {
+		if(factory.isString(breakPt)) {
+			breakPt = breakPt.replace(/(^['"])|(['"]$)/g,'');
+			return JSON.parse(breakPt);
+		}
+		return false;
 	}
 
-	function getNumShafts () {
+	/** 
+	 * @method setDimensions
+	 * @description (re) set the dimensions of the building
+	 * using CSS media breakpoints defined in css file
+	 * called by Elefart.controller.handleResize(). If the user 
+	 * resizes the screen and a new CSS breakpoint is crossed, the 
+	 * entire building redraws to adjust. The dimensions of key 
+	 * elements (e.g. elevators and shafts) are changed in the 
+	 * DISPLAY {} lists of this object. Redefines occur in:
+	 * - DIMENSIONS[TYPES.ELEVATOR_SHAFT] 
+	 * - DIMENSIONS[TYPES.BUILDING_FLOOR] 
+	 * NOTE: dimensions are set for min-width and max-width CSS 
+	 * breakpoints. The setFloors() function adjusts for very elongated 
+	 * portrait displays (e.g. Kindle Fire).
+	 * @param {String|false} breakPt a string matching a string 
+	 * added to the body:before element in the CSS file, e.g.
+	 * body:before { content: 'iphone'; display: none; }
+	 */
+	function setDimensions (breakPt) {
 
+		console.log("New device size:" + breakPt);
+
+		var dim = getCSSValues(breakPt);
+
+		//compute ratios
+		if(dim) {
+
+			DIMENSIONS.ELEVATOR_SHAFT.width = 1/dim.shafts;
+			DIMENSIONS.ELEVATOR_SHAFT.subWidth = DIMENSIONS.ELEVATOR_SHAFT.width * 0.6;
+			DIMENSIONS.BUILDING_FLOOR.height = 1/dim.floors;
+		}
+		else {
+			console.log("ERROR: elefart.building, invalid dimensions from CSS");
+		}
+	}
+
+
+	/** 
+	 * @method setFloors
+	 * @description adjusts for portraits with narrow width (e.g. Kindle). CSS sets a standard 
+	 * width and height in the setDimensions() function, but if the display is very long, 
+	 * this routine adds a few floors
+	 */
+	function setFloors () {
+		var r = display.getGameRect();
+		var ratio = r.height/r.width;
+		DIMENSIONS.BUILDING_FLOOR.height = DIMENSIONS.ELEVATOR_SHAFT.width / ratio;
 	}
 
 	/* 
@@ -248,12 +305,12 @@ window.elefart.building = (function () {
 			var shaftWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.width * building.width);
 			var shaftSubWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.subWidth * building.width);
 			var shaftOffset = factory.toInt((shaftWidth - shaftSubWidth)/2);
-
 			var ww = building.lineWidth/2; //control how shafts overlap building walls
 
-			var t = building.top - ww;
-			var l = building.left + (shaftWidth * shaftNum);
-			var w = building.width;
+			//compute shaft dimensions
+			var t = building.top - ww; //offset so overlaps roof, doesn't overlap bottom floor
+			var l = building.left + (shaftWidth * shaftNum); //zero-based
+			var w = shaftWidth;
 			var h = building.height;
 			var s = factory.ScreenRect(
 				l,
@@ -266,7 +323,7 @@ window.elefart.building = (function () {
 				display.LAYERS.SHAFTS
 				);
 			if(s) {
-				console.log("created shaft #" + shaftNum);
+				//////////////////////////console.log("created shaft #" + shaftNum);
 				s.setParent(building);
 				s.name = TYPES.ELEVATOR_SHAFT;
 				s.instanceName = "Shaft #:" + shaftNum;
@@ -278,8 +335,7 @@ window.elefart.building = (function () {
 					display.COLORS.PINK, 
 					DIMENSIONS.ELEVATOR_SHAFT.subOpacity
 					);
-				console.log("RGBAColor:" + rgbaColor);
-				console.log(rgbaColor)
+
 				var sb = factory.ScreenRect(
 						l + shaftOffset,
 						t,
@@ -292,8 +348,6 @@ window.elefart.building = (function () {
 					);
 				if(sb) {
 					s.name = TYPES.ELEVATOR.SUBSHAFT;
-					console.log('created subshaft:' + shaftNum)
-					console.log('lineWidth:' + sb.lineWidth)
 					sb.setParent(s);
 					display.addToDisplayList(sb, display.LAYERS.SHAFTS);
 					return s;
@@ -396,7 +450,7 @@ window.elefart.building = (function () {
 		var t = DIMENSIONS.BUILDING.top * world.height;
 		var w = DIMENSIONS.BUILDING.width * world.width;
 		if(w > 1000) {
-			w--;
+			w--; //KLUDGE FOR ALIGNMENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		}
 
 		//building height
@@ -512,7 +566,10 @@ window.elefart.building = (function () {
 		if(grd) {
 			//create the Sky
 			s = factory.ScreenRect(
-				l, t, w, h,
+				l, 
+				t, 
+				w, 
+				h,
 				0, display.COLORS.BLACK, //stroke
 				grd,                     //fill
 				display.LAYERS.WORLD
@@ -542,6 +599,9 @@ window.elefart.building = (function () {
 		var r = display.getGameRect();
 		var w = r.right - r.left;
 		var h = r.bottom - r.top;
+
+		console.log("World computed width:" + w); ////////////////
+
 		if(r) {
 			//World is a ScreenRect
 			w = factory.ScreenRect(
@@ -631,16 +691,25 @@ window.elefart.building = (function () {
 	 * elefart.screens displayList
 	 */
 	function buildWorld () {
-		var w = World();
-		console.log("SETTING w AS WORLD IN WINDOW:w");
-		window.w = w;
-		if(w) {
-			w.addChild(Sky(w));
-			w.addChild(Sun(w));
-			w.addChild(Building(w));
+		console.log("In buildWorld");
 
-			//once we're done, start the event loop
-		}
+		//kill the old world display list
+		display.initDisplayList();
+
+		//(re)set dimensions
+		var disp = display.getCSSBreakpoint();
+		setDimensions(disp);
+
+			//reset the world
+			var w = World();
+			console.log("SETTING w AS WORLD IN WINDOW:w");
+			if(w) {
+				w.addChild(Sky(w));
+				w.addChild(Sun(w));
+				w.addChild(Building(w));
+				//once we're done, start the event loop
+			} //end of if w
+
 	}
 
 	/* 
@@ -667,8 +736,10 @@ window.elefart.building = (function () {
 	 * @description activate the building for display and updating in the game.
 	 */
 	function run () {
+		console.log("in elefart.building.run()");
 		if(firstTime) {
 			init();
+			firstTime = false;
 		}
 
 		//create the World
@@ -677,6 +748,8 @@ window.elefart.building = (function () {
 
 	//returned object
 	return {
+		setDimensions:setDimensions,
+		setFloors:setFloors,
 		Elevator:Elevator, //constructorss
 		ElevatorDoors:ElevatorDoors,
 		ElevatorShaft:ElevatorShaft,
@@ -687,6 +760,7 @@ window.elefart.building = (function () {
 		Goodie:Goodie,
 		Person:Person,
 		world:world, //the hierarchical world object
+		buildWorld:buildWorld,
 		init:init,
 		run:run
 	};

@@ -25,16 +25,36 @@ window.elefart.controller = (function () {
 
 	/** 
 	 * @method handleResize
-	 * @description handling a change in the window size
+	 * @description handling a change in the window size. Elefart.display 
+	 * has a function that, when the window is resized, checks if it has 
+	 * changed the css breakpoint listed in the css file. If so, it returns 
+	 * a name for the breakpoint, encoded in the body:before invisible 
+	 * element set up in the css for each breakpoint, e.g.,
+	 * body:before { content: 'iphone'; display: none; }
+	 * NOTE: the listed test strings in the switch() statement below MUST 
+	 * match those in the CSS file for this function to work
+	 * 1/2015
+	 * 'featurephone':
+	 * 'smartphone':
+	 * 'subtablet':
+	 * 'tablet':
+	 * 'laptop':
+	 * 'desktop1':
+	 * 'desktop2':
+	 * 'desktop3':
+	 * 'digitaltv2k':
+	 * 'digitaltv4k':
 	 */
 	function handleResize () {
+		//set x dimensions on CSS breakpoints
 		var breakPt = display.getCSSBreakpoint();
 		if(breakPt) {
-			switch (breakPt) {
-				default:
-					break;
-			}
+			building.setDimensions(breakPt);
 		}
+		building.setFloors();
+		building.buildWorld();
+		display.drawBackground();
+		display.drawForeground();
 	}
 
 	/** 
@@ -124,7 +144,7 @@ window.elefart.controller = (function () {
 	 * access to elefart.dom.
 	 */
 	function init () {
-		board = elefart.building,
+		building = elefart.building,
 		display = elefart.display,
 		dashboard = elefart.dashboard;
 		firstTime = false;
@@ -143,8 +163,6 @@ window.elefart.controller = (function () {
 		//TODO: probaby need a switch here for other screens
 		//set handlers associate with an active game
 		setGameHandlers(display.getForegroundCanvas());
-
-		display.drawBackground();
 		gameLoop();
 
 	}

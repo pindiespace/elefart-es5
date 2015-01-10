@@ -1683,6 +1683,11 @@ window.elefart.factory = (function () {
 	//returned object
 	return {
 		TYPES:TYPES,
+		isNumber:isNumber,
+		isString:isString,
+		isArray:isArray,
+		isFunction:isFunction,
+		isCanvasGradient:isCanvasGradient,
 		toInt:toInt, //convert to integer floor
 		getRGBAfromRGB:getRGBAFromRGB, //make rgb() strings with opacity
 		Point:Point, //Shape Primitive Constructors
