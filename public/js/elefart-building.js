@@ -43,9 +43,10 @@ window.elefart.building = (function () {
 		ELEVATOR_DOORS:"ELEVATOR_DOORS",
 		ELEVATOR_SHAFT:"ELEVATOR_SHAFT",
 		ELEVATOR_SUBSHAFT:"ELEVATOR_SUBSHAFT",
+		BUILDING:"BUILDING",
+		BUILDING_SIGN: "BUILDING_SIGN",
 		BUILDING_FLOOR:"BUILDING_FLOOR",
 		BUILDING_FLOORBASE:"BUILDING_FLOORBASE",
-		BUILDING:"BUILDING",
 		SUN:"SUN",
 		SKY:"SKY",
 		WORLD:"WORLD",
@@ -91,7 +92,14 @@ window.elefart.building = (function () {
 		left:0.0,
 		width:1.0,
 		height:0.8,
-		wallSize:0.01 //size of walls (related to height)
+		wallSize:0.01, //size of walls (related to height)
+		MIN_WALL:6
+	},
+	DIMENSIONS[TYPES.BUILDING_SIGN] = {
+		top:0.04,
+		left:0.07,
+		width:0.3,
+		height:0.05
 	},
 	DIMENSIONS[TYPES.BUILDING_FLOOR] = {
 		height:0.1, //height of entire floor
@@ -102,7 +110,7 @@ window.elefart.building = (function () {
 	DIMENSIONS[TYPES.ELEVATOR_SHAFT] = {
 		width:0.1, //the entire shaft
 		subWidth:0.06, //the visible shaft rect
-		subOpacity:0.4 //opacity of central colored region of shaft
+		subOpacity:0.3 //opacity of central colored region of shaft
 	},
 	DIMENSIONS[TYPES.ELEVATOR_SUBSHAFT] = {
 		//nothing inherited at this point
@@ -186,9 +194,28 @@ window.elefart.building = (function () {
 	 * this routine adds a few floors
 	 */
 	function setFloors () {
-		var r = display.getGameRect();
-		var ratio = r.height/r.width;
-		DIMENSIONS.BUILDING_FLOOR.height = DIMENSIONS.ELEVATOR_SHAFT.width / ratio;
+		var gh = display.getGameRect().height;
+		var h = gh.height * (1 - DIMENSIONS.BUILDING.HEIGHT);
+
+		if(gh < 100) {
+			DIMENSIONS.BUILDING_FLOOR.height = 0.5;
+		}
+		else if(gh < 240) {
+			DIMENSIONS.BUILDING_FLOOR.height = 0.3333;
+		}
+		else if(gh < 320) {
+			DIMENSIONS.BUILDING_FLOOR.height = 0.25;
+		}
+		else if(gh < 480) {
+			DIMENSIONS.BUILDING_FLOOR.height = 0.20;
+		}
+		else if(gh < 760) {
+			DIMENSIONS.BUILDING_FLOOR.height = 0.15;
+		}
+		else {
+			DIMENSIONS.BUILDING_FLOOR.height = 0.10;
+		}
+		console.log("DIMENSIONS.BUILDING_FLOOR.height set to:"+DIMENSIONS.BUILDING_FLOOR.height)
 	}
 
 	/* 
@@ -234,7 +261,7 @@ window.elefart.building = (function () {
 				elev.buildingType = TYPES.ELEVATOR;
 				//visual features
 				if(parent.buildingType === TYPES.ELEVATOR_SHAFT) {
-					elev.setParent(parent);
+					parent.addChild(elev);
 					elev.setRectBorderRadius(border);
 
 					//TODO: draw top of elevator, creating Line children
@@ -307,13 +334,14 @@ window.elefart.building = (function () {
 			var shaftWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.width * building.width);
 			var shaftSubWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.subWidth * building.width);
 			var shaftOffset = factory.toInt((shaftWidth - shaftSubWidth)/2);
-			var ww = building.lineWidth/2; //control how shafts overlap building walls
+			var ww = building.lineWidth; //control how shafts overlap building walls
 
 			//compute shaft dimensions
-			var t = building.top - ww; //offset so overlaps roof, doesn't overlap bottom floor
+			var t = building.top; //offset so overlaps roof, doesn't overlap bottom floor
 			var l = building.left + (shaftWidth * shaftNum); //zero-based
 			var w = shaftWidth;
 			var h = building.height;
+
 			var s = factory.ScreenRect(
 				l,
 				t,
@@ -324,14 +352,12 @@ window.elefart.building = (function () {
 				display.COLORS.YELLOW, //TODO: OVERLAPPING FLOORS, PARTIALLY OPAQUE
 				display.LAYERS.SHAFTS
 				);
+
 			if(s) {
-				//////////////////////////console.log("created shaft #" + shaftNum);
-				s.setParent(building);
 				s.name = TYPES.ELEVATOR_SHAFT;
 				s.instanceName = "Shaft #:" + shaftNum;
 				s.shaftNum = shaftNum;
 				//draw the visible shaft as another Rect, partly transparent
-				//TODO: sub-sub shaft
 				//TODO: ShaftTop on a shaft
 				var rgbaColor = factory.getRGBAfromRGB(
 					display.COLORS.PINK, 
@@ -349,8 +375,9 @@ window.elefart.building = (function () {
 						display.LAYERS.SHAFTS
 					);
 				if(sb) {
-					s.name = TYPES.ELEVATOR.SUBSHAFT;
-					sb.setParent(s);
+					sb.name = TYPES.ELEVATOR.SUBSHAFT;
+					sb.instanceName = "Elevator Shaft #:" + shaftNum + "subshaft"
+					s.addChild(sb);
 					display.addToDisplayList(sb, display.LAYERS.SHAFTS);
 					return s;
 				}
@@ -379,45 +406,54 @@ window.elefart.building = (function () {
 	 */
 	function BuildingFloor (building, floorNum, numFloors) {
 		if(building) {
-			var baseHeight = factory.toInt(DIMENSIONS.BUILDING_FLOORBASE.height * building.height);
+			var baseHeight = DIMENSIONS.BUILDING.wallSize * building.height;
 			if(baseHeight > MAX_WALLS) baseHeight = MAX_WALLS;
-			var h = factory.toInt(DIMENSIONS.BUILDING_FLOOR.height * building.height);
-			var t = factory.toInt(building.top + (floorNum * h));
+			var h = building.height/numFloors;
+			var t = building.top + (floorNum * h);
 			var l = building.left;
 			var w = building.width;
+
 			var f = factory.ScreenRect(
 				l,
 				t,
 				w,
-				h - baseHeight, //we don't include the walking surface
+				h, //we don't include the walking surface
 				0,
 				display.COLORS.BROWN,
-				display.COLORS.YELLOW, //TODO: NOTE: THIS SHOULD BE AN IMAGE TEXTURE
-				display.LAYERS.BUILDING
+				display.COLORS.YELLOW, 
+				display.LAYERS.BUILDING,
+				display.getHotelWalls()//, //NOTE: ADDING AN IMAGE
+				//function () {console.log("loading hotel walls in floor");}
 				);
+
 			if(f) {
-				f.setParent(building);
 				f.name = TYPES.BUILDING_FLOOR;
 				f.floorNum = (numFloors - floorNum);
 				f.instanceName = "Floor #" + f.floorNum;
-				f.walkLine = f.bottom; //where Players should put their .bottom
-				t = f.bottom; //inside the floor
-				h = baseHeight;
+				f.walkLine = f.bottom; //where Players should put the .bottom of their enclosing Rect
+				f.setOpacity(1.0, 0.5); //object opaque, image faded
+				f.setSpriteCoords({ //where to sample when drawing image
+					rows:13,
+					cols:1,
+					currRow:floorNum,
+					currCol:0
+				});
+				display.addToDisplayList(f, display.LAYERS.BUILDING);
+
+				//floorbase
 				//always add a floorbase (the walking layer at the bottom of the BuildingFloor)
 				var fb = factory.ScreenRect(
 					l,
 					t,
 					w,
-					h,
-					0,
+					baseHeight, //drawn downwards into lower floor
+					5,
 					display.COLORS.BROWN,
 					display.COLORS.BROWN,
 					display.LAYERS.BUILDING
 					);
-				//display.addToDisplayList(floor, display.LAYERS.BUILDING);
 				//TODO: also add elevator doors where shafts are
 				if(fb) {
-					fb.setParent(f);
 					fb.name = TYPES.BUILDING_FLOORBASE;
 					fb.instanceName = "FloorBase #" + f.floorNum;
 					f.addChild(fb);
@@ -448,39 +484,72 @@ window.elefart.building = (function () {
 		var i; //counter
 
 		//compute sizes
-		var l = DIMENSIONS.BUILDING.left * world.width;
-		var t = DIMENSIONS.BUILDING.top * world.height;
-		var w = DIMENSIONS.BUILDING.width * world.width;
+		//building wall width
+		var ww = DIMENSIONS.BUILDING.wallSize * world.width;
+		var l = (DIMENSIONS.BUILDING.left * world.width);
+		var t = (DIMENSIONS.BUILDING.top * world.height);
+		var w = (DIMENSIONS.BUILDING.width * world.width);
+
 		if(w > 1000) {
 			w--; //KLUDGE FOR ALIGNMENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		}
+		w--;
 
 		//building height
 		var h = DIMENSIONS.BUILDING.height * world.height;
 
-		//building walls
-		var ww = DIMENSIONS.BUILDING.wallSize * world.height;
-		if(ww > MAX_WALLS) ww = MAX_WALLS;
+		//create building
 		var b = factory.ScreenRect(
-				l, t, w, h,
-				ww,
+				l, 
+				t, 
+				w, 
+				h,
+				ww, //stroke
 				display.COLORS.BROWN, 
 				display.COLORS.YELLOW,
 				display.LAYERS.WORLD
 			);
+
 		if(b) {
-			//shrink the selectable area of the building so its stroke is visible
-			b.shrink(ww/2);
+			b.shrink((ww/2)-1);
 			b.name = TYPES.BUILDING;
 			b.instanceName = "GasLight Building";
-			b.setParent(world);
+			world.addChild(b);
+
 			//add to displayList BEFORE floors
 			display.addToDisplayList(b, display.LAYERS.BUILDING);
 
-			//add floors
-			var floorHeight = DIMENSIONS.BUILDING_FLOOR.height;
-			//if(floorHeight < MIN_FLOOR)
-			var numFloors = factory.toInt(DIMENSIONS.BUILDING.height/DIMENSIONS.BUILDING_FLOOR.height);
+			//add sign at top of Building
+			var st = (DIMENSIONS.BUILDING_SIGN.top * b.height); //top of sign
+			var sh = b.top - st - ww; //height of sign
+
+			var s = factory.ScreenRect(
+				DIMENSIONS.BUILDING_SIGN.left * b.width, 
+				st, 
+				DIMENSIONS.BUILDING_SIGN.width * b.width, 
+				sh, 
+				0, 
+				null, 
+				null, 
+				display.LAYERS.BUILDING, 
+				display.getHotelSign()
+				);
+
+			if(s) {
+				s.name = TYPES.BUILDING_SIGN;
+				s.instanceName = "GasLight Building Sign";
+				b.addChild(s);
+				display.addToDisplayList(s, display.LAYERS.BUILDING);
+			}
+
+			//add top floor opening on roof
+			var floorHeight = DIMENSIONS.BUILDING_FLOOR.height * b.height;
+			//var numFloors = b.height/floorHeight;
+			var numFloors = Math.ceil(1/DIMENSIONS.BUILDING_FLOOR.height);
+			floorHeight = b.height/numFloors;
+			var floorDiff = b.height - (numFloors * floorHeight);
+			console.log("bldg height:" + b.height + " floor height:" + floorHeight + " numFloors:" + numFloors + " floorDiff:" + floorDiff)
+
 			console.log("NUMFLOORS:" + numFloors);
 			for(i = 0; i < numFloors; i++) {
 				b.addChild(BuildingFloor(b, i, numFloors));
@@ -531,7 +600,7 @@ window.elefart.building = (function () {
 				);
 			if(s) {
 				s.name = TYPES.SUN;
-				s.setParent(world);
+				s.instanceName = "Sun";
 				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
 			}
 		}
@@ -578,7 +647,8 @@ window.elefart.building = (function () {
 			);
 			if(s) {
 				s.name = TYPES.SKY;
-				s.setParent(world);
+				s.instanceName = "Sky";
+				///////////////////////////world.addChild(s);
 				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
 			}
 		}
@@ -615,7 +685,8 @@ window.elefart.building = (function () {
 			//set World propeties
 			if(w) {
 				w.name = TYPES.WORLD;
-				w.setParent(null);
+				w.instanceName = "World of Elefart";
+				w.parent = null; //world has not parent
 				w.setRectBorderRadius(0); //no border
 				w.setOpacity(0.0); //World is invisible
 				//we don't add World to display list
@@ -699,19 +770,19 @@ window.elefart.building = (function () {
 		display.initDisplayList();
 
 		//(re)set dimensions
-		var disp = display.getCSSBreakpoint();
-		setDimensions(disp);
+		setDimensions(display.getCSSBreakpoint());
 
-			//reset the world
-			var w = World();
-			console.log("SETTING w AS WORLD IN WINDOW:w");
-			if(w) {
-				w.addChild(Sky(w));
-				w.addChild(Sun(w));
-				w.addChild(Building(w));
-				//once we're done, start the event loop
-			} //end of if w
+		setFloors();
 
+		//reset the world
+		w = World();
+		console.log("SETTING w AS WORLD IN WINDOW:w");
+		if(w) {
+			w.addChild(Sky(w));
+			w.addChild(Sun(w));
+			w.addChild(Building(w));
+			//once we're done, start the event loop
+		} //end of if w
 	}
 
 	/* 

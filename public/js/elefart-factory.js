@@ -36,8 +36,7 @@ window.elefart.factory = (function () {
 		RECT:"RECT",
 		CIRCLE:"CIRCLE",
 		POLYGON:"POLYGON",
-		IMAGE:"IMAGE",
-		SPRITE:"SPRITE"
+		IMAGE:"IMAGE"
 	};
 
 
@@ -99,6 +98,10 @@ window.elefart.factory = (function () {
 
 	function isArray (obj) {
 		return ("Array" === Object.prototype.toString.call(obj).slice(8, -1));
+	}
+
+	function isImage (obj) {
+		return ("HTMLImageElement" === Object.prototype.toString.call(obj).slice(8, -1));
 	}
 
 	/** 
@@ -1079,6 +1082,12 @@ window.elefart.factory = (function () {
 		}
 		else if(this.type === TYPES.RECT) {
 			//nothing to do
+			this.top += pixels;
+			this.left += pixels;
+			this.bottom -= pixels;
+			this.right -= pixels;
+			this.width -= (2 * pixels);
+			this.height -= (2 * pixels);
 		}
 		else if(this.type === TYPES.CIRCLE) {
 			this.radius -= pixels;
@@ -1139,60 +1148,6 @@ window.elefart.factory = (function () {
 	 */
 
 	/** 
-	 * @method setParent
-	 * @description add a parent object
-	 * @param {Object|null} parent the parent object, or JS null if the 
-	 * object has no parent (elefart.building.World)
-	 * @returns {Boolean} if ok, return true, else false
-	 */
-	function setParent(parent) {
-		if(parent || parent === null) {
-			this.parent = parent;
-		}
-		else {
-			elefart.showError("tried to add non-object parent");
-		}
-		return false;
-	}
-
-	function clearParent() {
-		if(this.parent) {
-			this.parent = null;
-		}
-		else {
-			elefart.showError("tried to remove nonexistend parent");
-		}
-	}
-
-	/** 
-	 * @method addChild
-	 * @description add a child ScreenObject to an Object
-	 * @param {Object} a child object, either Point, Line, 
-	 * Rect, Circle, Polygon
-	 */
-	function addChild(child) {
-		if(this.children) {
-			if(child === undefined || child.id === undefined || 
-				child.type === undefined || child.type === TYPES.PADDING) {
-				elefart.showError(child.type + "(" + typeof child + ") cannot add as child");
-				return false;
-			}
-			//don't let child be added twice
-			for(var i = 0; i < this.children.length; i++) {
-				if(child === this.children[i]) {
-					elefart.showError("addChild, tried to add child that is already present in this object" + child);
-					return false;
-				}
-			}
-			//add to array
-			this.children.push(child);
-			return true;
-		}
-		elefart.showError(child.type + " cannot have children");
-		return false;
-	}
-
-	/** 
 	 * @method findChild
 	 * @description find a ScreenObject child by its id
 	 * @param {Number} childId the id of the object
@@ -1200,17 +1155,51 @@ window.elefart.factory = (function () {
 	 */
 	function findChild(childId) {
 		if(this.children) {
-			if(childId === undefined || !isNumber(childId)) {
+			if(!isNumber(childId)) {
 				elefart.showError("findChild, invalid childId:" + childId);
 				return false;
 			}
 			for(var i = 0; i < this.children.length; i++) {
-				if(this.children[i].id === childId) {
-					return this.children[i];
+				var child = this.children[i];
+				if(child.id === childId) {
+					console.log("findChild found child childId:" + childId + " instanceName:" + child.instanceName);
+					return child;
 				}
 			}
 		}
-		elefart.showError(this.type + " cannot add children");
+		else {
+			elefart.showError(this.type + "(" + this.instanceName + ") findChild() children array undefined");
+		}
+
+		return false;
+	}
+
+	/** 
+	 * @method addChild
+	 * @description add a child ScreenObject to an parent Object
+	 * @param {Object} a child object, either Point, Line, 
+	 * Rect, Circle, Polygon
+	 */
+	function addChild(child) {
+		if(this.children) {
+			if(child === undefined || !isNumber(child.id) || 
+				child.type === undefined || child.type === TYPES.PADDING) {
+				elefart.showError(child.type + "(" + child.instanceName + ") cannot add as child");
+				return false;
+			}
+			//add to array
+			if(this.findChild(child.id)) {
+				elefart.showError("addChild, tried to add child that is already present in this object:" + child.id + "(" + child.instanceName + ")");
+				return false;
+			}
+			child.parent = this;
+			this.children.push(child);
+			return true;
+		}
+		else {
+			elefart.showError(child.type + " addChild() children array undefined");
+		}
+		
 		return false;
 	}
 
@@ -1228,12 +1217,16 @@ window.elefart.factory = (function () {
 			}
 			for(var i = 0; i < this.children.length; i++) {
 				var child = this.children[i];
-				if(this.children[i].id === childId) {
+				if(child.id === childId) {
+					child.parent = null;
 					return this.children.splice(i, 1)[0]; //return child outside array .splice() array
 				}
 			}
 		}
-		elefart.showError(this.type + " cannot add children");
+		else {
+			elefart.showError(this.type + " removeChild() children array undefined");
+		}
+
 		return false;
 	}
 
@@ -1274,23 +1267,37 @@ window.elefart.factory = (function () {
 	 * @method setOpacity
 	 * @description set the opacity of a ScreenObject
 	 * @param {Number} opacity the opacity of the object
+	 * @param {Number} (optional) imageOpacity the opacity of an image fill, if present
 	 */
-	function setOpacity (opacity) {
+	function setOpacity (opacity, imageOpacity) {
+
 		if(this.type === TYPES.PADDING) {
 			elefart.showError(this.type + " can't apply a width or color");
 			return false;
 		}
-		if(!isNumber(opacity) || opacity < 0.0 || opacity > 1.0) {
-			elefart.showError("invalid opacity:" + opacity);
+
+		//object opacity
+		if(isNumber(opacity) && 
+			opacity >= 0.0 || opacity <= 1.0) {
+				this.opacity = opacity;
+
+			//image fill opacity
+			if(this.img && this.imageOpacity && isNumber(imageOpacity) && 
+				imageOpacity >= 0.0 || imageOpacity <= 1.0) {
+					this.imageOpacity = imageOpacity;
+			}
 		}
-		this.opacity = opacity;
+		else {
+			elefart.showError("invalid opacity:" + opacity + " imageOpacity:" + imageOpacity);
+		}
+
 	}
 
 	/** 
 	 * @method setStroke
 	 * @description set the stroke around an ScreenObject
 	 * @param {Number} width the width of the stroke in pixels
-	 * @param {String} rgb() or #rrggbb or #rgb color string
+	 * @param {String} color (optional) rgb() or #rrggbb or #rgb color string
 	 */
 	function setStroke (width, color) {
 		if(this.type === TYPES.PADDING) {
@@ -1301,12 +1308,16 @@ window.elefart.factory = (function () {
 			elefart.showError(this.type + " invalid stroke");
 			return false;
 		}
-		if(!isRGB(color)) {
+		if(color) {
+				if(!isRGB(color)) {
 			elefart.showError("invalid color string:" + color);
 			return false;
+			}
+			this.strokeStyle = color;
 		}
+
 		this.lineWidth = width;
-		this.strokeStyle = color;
+
 	}
 
 	/** 
@@ -1315,8 +1326,8 @@ window.elefart.factory = (function () {
 	 * @param {String} color the rgb() or #rrggbb or #rgb color
 	 */
 	function setFill(color) {
-		if(this.type === TYPES.PADDING) {
-			elefart.showError(this.type + " can't apply a width or color");
+		if(this.type === TYPES.POINT || this.type === TYPES.LINE || this.type === TYPES.PADDING) {
+			elefart.showError(this.type + " can't apply a width or color to this type:" + this.type);
 			return false;
 		}
 		if(!isRGB(color)) {
@@ -1336,31 +1347,119 @@ window.elefart.factory = (function () {
 	 * @method setImage
 	 * @description replace background fill with image pixels in a Screen Object. 
 	 * Includes a callback for images that are dynamically loaded
-	 * @param {String} src the file path to the image
+	 * @param {String} src the file path to the image. If an existing JS Image object 
+	 * is passed, it is used as is.
 	 * @param {Function} callback function after the image is loaded
-	 * @param {Boolean} scaleToRect if true, scale the image to the defined 
-	 * Rect object inside this object
+	 * @param {Boolean} scaleToRect if true, scale the image to the defined Rect object inside this object
+	 * @param {Number} opacity (optional) if present, draw the image at a different 
+	 * opacity than its parent object
 	 */
-	function setImage(src, callback, scaleToRect) {
-		var that = this;
-		that.img = new Image();
+	function setImage(src, callback, scaleToRect, opacity) {
+		if(this.type === TYPES.POINT || this.type === TYPES.LINE || this.type === TYPES.PADDING) {
+			elefart.showError(this.type + " can't apply a width or color to this type:" + this.type);
+			return false;
+		}
 
-		that.img.onload = function () {
-			//shrink image to size of object
-			if(scaleToRect) {
-				this.width = that.width;
-				this.height = that.height;
+		var that = this;
+
+		if(isImage(src)) { //src is a JS Image object
+			that.img = src;
+			if(callback) callback(that);
+		}
+		else { //src is a path to an image file
+			that.img = new Image();
+
+			if(isNumber(opacity) && opacity >= 0 && opacity <= 1.0) {
+				that.imgOpacity = opacity;
 			}
 
-			if(callback) callback(that); //callback function passed image
-		}
+			that.img.onload = function () {
+				//shrink image to size of object
+				if(scaleToRect) {
+					this.width = that.width;
+					this.height = that.height;
+				}
 
-		that.img.oneror = function () {
-			elefart.showError("image " + src + "failed to load");
-		}
+				if(callback) callback(that); //callback function passed image
+			}
 
-		//start loading the image
-		that.img.src = src;
+			that.img.oneror = function () {
+				elefart.showError("image " + src + "failed to load");
+			}
+
+			//start loading the image
+			that.img.src = src;
+		}
+	}
+
+	/** 
+	 * @method setSpriteCoords
+	 * @description given an image, set coordinates for timelines (rows) and 
+	 * individual image subframes to draw (columns) in an JS Image
+	 * creates a coordinate object with:
+	 * -rows: rows in sprite
+	 * -cols: columns in sprite
+	 * -currRow: the current row in the sprite being drawn
+	 * -currCol: the current column in teh sprite being drawn
+	 * -cellWidth: the width of a sprite frame in pixels
+	 * -cellHeight: the height of a sprite frame in pixels
+	 * -getCellRect: function returning a Rect with coordinates for canvas drawing
+	 * -nextCellRect: function returning the next frame in the animation
+	 * @param {Object} coordsObj a coordinate object with row and column data 
+	 * - { rows:Number, cols:Number }
+	 * defining individual frames of a Sprite
+	 * @returns {Boolean} if coordinates OK, return true, else false
+	 */
+	function setSpriteCoords (coordsObj) {
+		if(!this.img || !coordsObj || 
+			!coordsObj.rows || !coordsObj.cols) {
+			elefart.showError("can't set sprite coordinates on a non-image object:" + coordsObj);
+		}
+		this.spriteCoords = {
+			rows:coordsObj.rows,
+			cols:coordsObj.cols,
+			currRow:coordsObj.currRow,
+			currCol:coordsObj.currCol,
+			cellWidth:this.img.width/(coordsObj.cols),
+			cellHeight:this.img.height/(coordsObj.rows),
+			getCellRect:function (row, col) {
+				if(!row) {
+					row = this.currRow;
+					} 
+				else {
+					if(row < 0 || row > currRow) {
+						elefart.showError("Invalid Sprite row:" + row + " rows:" );
+						return false;
+					}
+					currRow = row;
+				}
+				if(!col) {
+					col = this.currCol; 
+				}
+				else {
+					if(col < 0 || col > currCol) {
+						elefart.showError("Invalid Sprite column");
+						return false
+					}
+					currCol = col;
+				}
+
+				return {
+					top:row * this.cellHeight,
+					left:col * this.cellWidth,
+					bottom:(row) * this.cellHeight,
+					right:(col) * this.cellWidth,
+					width:this.cellWidth,
+					height:this.cellHeight
+				}
+			},
+			nextCellRect:function () {
+				currRow += 1;if(currRow > rows) currRow = 0;
+				currCol += 1;if(currCol > cols) currCol = 0;
+				getCellRect(currRow, currCol);
+			}
+		};
+		return true;
 	}
 
 	/* 
@@ -1424,8 +1523,6 @@ window.elefart.factory = (function () {
 		obj.shrink = shrink,
 		obj.scale = scale,
 		//parents and childen
-		obj.setParent = setParent,
-		obj.clearParent = clearParent,
 		obj.findChild = findChild,
 		obj.addChild = addChild,
 		obj.removeChild = removeChild,
@@ -1436,6 +1533,7 @@ window.elefart.factory = (function () {
 		obj.setStroke = setStroke,
 		obj.setFill = setFill,
 		obj.setImage = setImage,
+		obj.setSpriteCoords = setSpriteCoords,
 		//drawing layer
 		obj.setLayer = setLayer;
 		return obj;
@@ -1510,9 +1608,12 @@ window.elefart.factory = (function () {
 	 * @param {COLORS|CanvasGradient} fillStyle the color (rgb or hex) for the stroke, written as 
 	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 * @param {HTMLImageElement} src (optional) if present, add a reference to a JS image object to 
+	 * draw over the ScreenRect fill
+	 * @param {Function} callback (optional) function for callback
 	 * @returns {ScreenRect|false} if OK, return ScreenLine object, else false
 	 */
-	function ScreenRect (x, y, width, height, strokeWidth, strokeStyle, fillStyle, layer) {
+	function ScreenRect (x, y, width, height, strokeWidth, strokeStyle, fillStyle, layer, src, callback) {
 		var r = Rect(x, y, width, height);
 		if(r) {
 			addFns(r); //convert to ScreenObject
@@ -1520,8 +1621,10 @@ window.elefart.factory = (function () {
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!fillStyle) fillStyle = display.COLORS.WHITE;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			if(src && !callback) callback = function () {};
 			r.setStroke(strokeWidth, strokeStyle);
 			r.setFill(fillStyle);
+			if(src) r.setImage(src, callback, false);
 			r.setLayer(layer);
 		}
 		return r;
@@ -1541,9 +1644,12 @@ window.elefart.factory = (function () {
 	 * @param {COLORS|CanvasGradient} fillStyle the color (rgb or hex) for the stroke, written as 
 	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 * @param {HTMLImageElement} src (optional) if present, add a reference to a JS image object to 
+	 * draw over the ScreenRect fill
+	 * @param {Function} callback (optional) function for callback
 	 * @returns {ScreenCircle|false} if ok, return ScreenLine object, else false
 	 */
-	function ScreenCircle (x, y, radius, strokeWidth, strokeStyle, fillStyle, layer) {
+	function ScreenCircle (x, y, radius, strokeWidth, strokeStyle, fillStyle, layer, src, callback) {
 		var c = Circle(x, y, radius);
 		if(c) {
 			addFns(c); //convert to ScreenObject
@@ -1551,8 +1657,10 @@ window.elefart.factory = (function () {
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!fillStyle) fillStyle = display.COLORS.WHITE;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			if(src && !callback) callback = function () {};
 			c.setStroke(strokeWidth, strokeStyle);
 			c.setFill(fillStyle);
+			if(src) c.setImage(src, callback, false);
 			c.setLayer(layer);
 		}
 		return c;
@@ -1570,18 +1678,23 @@ window.elefart.factory = (function () {
 	 * @param {COLORS|CanvasGradient} fillStyle the color (rgb or hex) for the stroke, written as 
 	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 * @param {HTMLImageElement} src (optional) if present, add a reference to a JS image object to 
+	 * draw over the ScreenRect fill
+	 * @param {Function} callback (optional) function for callback
 	 * @returns {ScreenPoly|false} if ok, return ScreenLine object, else false
 	 */
-	function ScreenPoly(pts, strokeWidth, strokeStyle, fillStyle, layer) {
+	function ScreenPoly(pts, strokeWidth, strokeStyle, fillStyle, layer, src, callback) {
 		var p = Polygon(pts);
 		if(p) {
 			addFns(r); //convert to ScreenObject
 			if(!strokeWidth) strokeWidth = 0;
 			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
 			if(!fillStyle) fillStyle = display.COLORS.WHITE;
-			if(!layer) this.layer = display.LAYERS.FLOORS; //top layer
+			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			if(src && !callback) callback = function () {};
 			p.setStroke(strokeWidth, strokeStyle);
 			p.setFill(fillStyle);
+			if(src) p.setImage(src, callback, false);
 			p.setLayer(layer);
 		}
 		return p;
@@ -1591,24 +1704,24 @@ window.elefart.factory = (function () {
 	 * @constructor ScreenImage
 	 * @implements {Rect}
 	 * @classdesc create a ScreenObject that is a 'naked' image, without visible 
-	 * border or fill.
+	 * border or fill. Objects like Rect or Circle may have an image added separately.
 	 * @param {Number} x the x coordinate of the object
 	 * @param {Number} y the y coordinate of the object
 	 * @param {String} src the path to the image file used
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
 	 * @returns {ScreenImage|false} if ok, return ScreenLine object, else false
 	 */
-	function ScreenImage(x, y, src, strokeWidth, strokeStyle, callback, layer) {
+	function ScreenImage(x, y, src, callback, layer) {
 		var r = Rect(x, y, 0, 0); //zero until image loaded
 		if(r && src) {
 			addFns(r); //convert to ScreenObject
-			if(!strokeWidth) strokeWidth = 0;
-			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
-			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			strokeWidth = 0;
+			strokeStyle = display.COLORS.BLACK;
+			layer = display.LAYERS.FLOORS; //top layer
 			r.type = TYPES.IMAGE; //modified from type RECT
+			//don't set stroke or fill
 			r.setLayer(layer);
-			//don't set fill
-			r.setImage(src, callback);
+			r.setImage(src, callback, false);
 		}
 		else {
 			elefart.showError("ScreenImage invalid parameters, src:");
@@ -1616,43 +1729,6 @@ window.elefart.factory = (function () {
 		return r;
 	}
 
-	/** 
-	 * @method ScreenSprite
-	 * @implements {Rect}
-	 * @classdesc create a sprite table from supplied image file
-	 * @param {String} src the path to the image file used
-	 * @param {Number} the 'type', which is actually the row in 
-	 * the SpriteBoard image where the frames of the sprite are stored
-	 * @param {Number} the 'frames', where are the individual
-	 * columns in the Spriteboard image where frames of animation are 
-	 * stored.
-	 * @param {Function} callback the callback function to call after 
-	 * loading a SpriteBoard image
-	 * @param {LAYERS} layer the layer to draw the sprite into
-	 * @returns {ScreenSprite|false} if ok, return ScreenLine object, else false
-	 */
-	function ScreenSprite (src, types, frames, callback, layer) {
-		var r = Rect(0, 0, 0, 0); //always starts at 0, 0
-
-		if(r) {
-			addFns(r); //convert to ScreenObject
-			//no stroke or fill
-			if(!layer) layer = display.LAYERS.FLOORS; //top layer
-			r.setImage(src, callback, false); //load, but don't scale
-			r.setLayer(layer);
-			r.type = TYPES.SPRITE; //modified from type RECT
-			r.width = r.left = r.img.width; //adjust based on image size
-			r.height = r.bottom = r.img.height;
-			r.types = types;
-			r.frames = frames;
-			r.currentFrame = 0;
-			r.interval = 0;
-			r.loop = false;
-			r.frameWidth = 0;
-			r.frameHeight = 0;
-		}
-		return r;
-	}
 
 /* 
  * ============================
@@ -1687,6 +1763,7 @@ window.elefart.factory = (function () {
 		isNumber:isNumber,
 		isString:isString,
 		isArray:isArray,
+		isImage:isImage,
 		isFunction:isFunction,
 		isCanvasGradient:isCanvasGradient,
 		toInt:toInt, //convert to integer floor
@@ -1707,7 +1784,6 @@ window.elefart.factory = (function () {
 		ScreenLine:ScreenLine,
 		ScreenRect:ScreenRect,
 		ScreenCircle:ScreenCircle,
-		ScreenSprite:ScreenSprite,
 		init:init,
 		run:run
 	};

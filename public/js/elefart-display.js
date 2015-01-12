@@ -14,18 +14,18 @@ window.elefart.display = (function () {
 	var building,
 	dom,
 	controller,
-	factory,       //builds basic display objects
-	panel,         //game DOM panel
-	rect,          //game Rect
-	fctx,          //foreground context
-	bctx,          //background context
-	foreground,    //foreground canvas
-	background,    //background canvas
+	factory,        //builds basic display objects
+	panel,          //game DOM panel
+	rect,           //game Rect
+	fctx,           //foreground context
+	bctx,           //background context
+	foreground,     //foreground canvas
+	background,     //background canvas
 	displayList = {}, //multi-dimensional array with drawing objects
-	hotelWalls,    //hotel walls
-	hotelSign,     //hotel sign
-	spriteBoard,   //images of users for animation
-	cssBreakpoint, //keep track of current CSS breakpoint in getCSSBreakpoint
+	hotelWalls,     //hotel walls
+	hotelSign,      //hotel sign
+	characterBoard, //images of users for animation
+	cssBreakpoint,  //keep track of current CSS breakpoint in getCSSBreakpoint
 	firstTime = true;
 
 	/**
@@ -60,8 +60,9 @@ window.elefart.display = (function () {
 		LIGHT_GREY:"rgb(128,128,128)",
 		DARK_GREY:"rgb(64,64,64)",
 		YELLOW:"rgb(248, 237, 29)",
+		RED:"rgb(0,255,0)",
 		BROWN:"rgb(139,69,19)",
-		PINK: "rgb(190, 30, 45)" //TODO: convert to RGBA (e.g. rgba from rgb)
+		PINK: "rgb(190,30,45)" //TODO: convert to RGBA (e.g. rgba from rgb)
 	};
 
 	/** 
@@ -98,11 +99,12 @@ window.elefart.display = (function () {
 	 * we are in the same CSS breakpoint.
 	 */
 	function getCSSBreakpoint () {
-		var state = window.getComputedStyle(document.body,':before').content;
+		state = window.getComputedStyle(document.body,':before').content;
 		state = state || false;
 		if (state !== cssBreakpoint) {
 			// do something when viewport moves out of its last breakpoint
-			return (cssBreakpoint = state);
+			cssBreakpoint = state;
+			return cssBreakpoint;
 		}
 		else {
 			return false;
@@ -154,7 +156,7 @@ window.elefart.display = (function () {
 			hotelWalls.onload = function() {
 			console.log("display::preload(), loaded background patterns");
 		};
-		hotelWalls.src = "img/game/wallpaper.png";
+		hotelWalls.src = "img/bkgnd/wallpaper.png";
 
 		//hotel sign
 		hotelSign = new Image();
@@ -164,11 +166,40 @@ window.elefart.display = (function () {
 		hotelSign.src = "img/game/hotel_sign.png";
 
 		//character sprites
-		spriteBoard = new Image();
-		spriteBoard.onload = function () {
+		characterBoard = new Image();
+		characterBoard.onload = function () {
 			console.log("display::preload(), loaded character sprites");
 		}
-		spriteBoard.src = "img/game/spriteboard.png";
+		characterBoard.src = "img/game/characterboard.png";
+	}
+
+	/*
+	 * =========================================
+	 * GETTERS FOR ScreenSprit images
+	 * =========================================
+	 */
+	function getHotelWalls () {
+		if(hotelWalls) {
+			return hotelWalls;
+		}
+		console.log("ERROR: getHotelWalls() image not loaded");
+		return false;
+	}
+
+	function getHotelSign () {
+		if(hotelSign) {
+			return hotelSign;
+		}
+		console.log("ERROR: getHotelSign() image not loaded");
+		return false;
+	}
+
+	function getCharacterBoard () {
+		if(characterBoard) {
+			return characterBoard;
+		}
+		console.log("ERROR: getCharacterBoard() image not loaded");
+		return false;
 	}
 
 	/*
@@ -286,7 +317,7 @@ window.elefart.display = (function () {
 	/** 
 	 * @method addToDisplayList
 	 * @description add an object to the visual display list
-	 * @param {Point|Line|Rect|Circle|Polygon|Sprite} obj the object to draw
+	 * @param {Point|Line|Rect|Circle|Polygon|ScreenSprite} obj the object to draw
 	 * @param {LAYERS} layer the layer to draw in
 	 */
 	function addToDisplayList (obj, layer) {
@@ -301,7 +332,7 @@ window.elefart.display = (function () {
 	/** 
 	 * @method removeFromDisplayList
 	 * @description remove an object from drawing display list
-	 * @param {Point|Line|Rect|Circle|Polygon|SpriteBoard} obj the object to draw
+	 * @param {Point|Line|Rect|Circle|Polygon|ScreenSprite} obj the object to draw
 	 * @param {LAYERS} layer (optional) the display list layer to draw in (optional)
 	 */
 	function removeFromDisplayList (obj, layer) {
@@ -446,6 +477,9 @@ window.elefart.display = (function () {
 		ctx.fillStyle = obj.fillStyle;
 		ctx.globalAlpha = obj.opacity;
 		if(obj.fillStyle) ctx.fillRect(obj.left, obj.top, obj.width, obj.height);
+		if(obj.img) {
+			drawImage(ctx, obj);
+		}
 		if(obj.lineWidth && obj.strokeStyle) ctx.strokeRect(obj.left, obj.top, obj.width, obj.height);
 		ctx.restore();
 	}
@@ -483,6 +517,10 @@ window.elefart.display = (function () {
 		ctx.quadraticCurveTo(obj.left, y, x+r, y);
 		ctx.closePath();
 		if(obj.fillStyle) ctx.fill();
+		if(obj.img) {
+			ctx.clip();
+			drawImage(ctx, obj);
+		} 
 		if(obj.lineWidth && obj.strokeStyle) ctx.stroke();
 		ctx.restore();
 	}
@@ -504,6 +542,10 @@ window.elefart.display = (function () {
 		//ctx.rect(obj.left, obj.top, obj.width, obj.height); //enclosing Rect
 		ctx.closePath();
 		if(obj.fillStyle) ctx.fill();
+		if(obj.img) {
+			ctx.clip();
+			drawImage(ctx, obj); //TODO: clip image to draw in Circle fill
+		}
 		if(obj.lineWidth && obj.strokeStyle) ctx.stroke();
 		ctx.restore();
 	}
@@ -530,6 +572,10 @@ window.elefart.display = (function () {
 		}
 		ctx.closePath();
 		if(obj.fillStyle) ctx.fill();
+		if(obj.img) {
+			ctx.clip();
+			drawImage(ctx, obj); //TODO: NEED TO CLIP IMAGE TO POLYGON DIMENSIONS
+		}
 		if(obj.lineWidth && obj.strokeStyle) ctx.stroke();
 		ctx.restore();
 		elefart.showError("drawPolygon not implemented yet");
@@ -542,18 +588,44 @@ window.elefart.display = (function () {
 	 * @param {ScreenObject} the ScreenObject (type ScreenImage) to draw
 	 */
 	function drawImage (ctx, obj) {
-		//TODO: complete
 		ctx.save();
-		ctx.globalAlpha = opacity;
-		ctx.drawImage(
-			0, 0,
-			obj.img.width, obj.img,height,
-			obj.left,
-			obj.top,
-			obj.width,
-			obj.height
+		if(obj.imageOpacity) {
+			ctx.globalAlpha = obj.imageOpacity; //only if defined
+		}
+		else {
+			ctx.globalAlpha = obj.opacity;
+		}
+		if(obj.spriteCoords) {
+
+			var r = obj.spriteCoords.getCellRect();
+			window.rr = r;
+			window.obj = obj;
+			ctx.drawImage(
+				obj.img,
+				r.left,
+				r.top, 
+				r.width, 
+				r.height,
+				obj.left,
+				obj.top,
+				obj.width,
+				obj.height
 			);
-		if(obj.lineWidth && obj.strokeStyle) ctx.stroke();
+		}
+		else {
+			ctx.drawImage(
+				obj.img,
+				0, 
+				0,
+				obj.img.width, 
+				obj.img.height,
+				obj.left,
+				obj.top,
+				obj.width,
+				obj.height
+			);
+		}
+		
 		ctx.restore();
 	}
 
@@ -565,6 +637,7 @@ window.elefart.display = (function () {
 	 * @param {ScreenObject} the ScreenObject (type ScreenSprite) to draw
 	 */
 	function drawSpriteFrame (ctx, obj) {
+		//TODO: USE SPRITE COORDS OBJECT .spriteCoords
 		var captRect = {
 			top:obj.type * obj.top,
 			left:obj.frame * obj.left,
@@ -576,7 +649,7 @@ window.elefart.display = (function () {
 		ctx.save();
 		ctx.globalAlpha = opacity;
 		ctx.drawImage(
-			img, 
+			obj.img, 
 			captRect.left, 
 			captRect.top,  
 			captRect.width, 
@@ -586,7 +659,6 @@ window.elefart.display = (function () {
 			obj.width, 
 			obj.height
 			);
-		if(obj.lineWidth && obj.strokeStyle) ctx.stroke();
 		ctx.restore();
 	}
 
@@ -624,9 +696,6 @@ window.elefart.display = (function () {
 					break;
 				case factory.TYPES.IMAGE:
 					drawImage(ctx, obj);
-					break;
-				case factory.TYPES.SPRITE:
-					drawSpriteFrame(ctx, obj); //which frame set in Model
 					break;
 				default:
 					console.log("drawLayer unknown type:" + obj.type);
@@ -669,7 +738,7 @@ window.elefart.display = (function () {
 		//execute the display list
 		drawLayer(bctx, displayList[LAYERS.WORLD]);
 		drawLayer(bctx, displayList[LAYERS.BUILDING]);
-
+		window.bldg = displayList[LAYERS.BUILDING]; ///////////////////////////////////////////////
 		bctx.restore();
 
 	}
@@ -702,6 +771,7 @@ window.elefart.display = (function () {
 
 		//elevator shafts are in the foreground
 		drawLayer(fctx, displayList[LAYERS.SHAFTS]);
+
 		/*		drawLayer(fctx, displayList[LAYERS.ELEBACK]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE1]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE2]);
@@ -821,6 +891,9 @@ window.elefart.display = (function () {
 		LAYERS:LAYERS,
 		COLORS:COLORS,
 		MATERIALS:MATERIALS,
+		getHotelWalls:getHotelWalls,
+		getHotelSign:getHotelSign,
+		getCharacterBoard:getCharacterBoard,
 		getCSSBreakpoint:getCSSBreakpoint,
 		getGameRect:getGameRect,
 		setGameRect:setGameRect,

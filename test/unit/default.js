@@ -178,6 +178,8 @@ describe('Elefart factory', function () {
 		expect(ln.getX()).toBe(10);
 		expect(ln.getY()).toBe(20);
 
+		//TODO: check image addition
+
 		//check pointInside
 		inside = elefart.factory.ScreenRect(4, 5, 20, 20).pointInside(
 			elefart.factory.Point(3, 2)
@@ -344,18 +346,7 @@ describe('Elefart factory', function () {
 		}
 		vis.setFilter(filter);
 
-		//screen sprites
-		var type = 4; //row number 4 on spriteboard
-		var frames = 10; //number of frames to use
-		var sprite = elefart.factory.ScreenSprite(path, type, frames, function () {
-			console.log('sprite callback')
-		});
-
-		//add to display list
-		elefart.display.addToDisplayList(sprite, elefart.display.LAYERS.ELESPACE1);
-
-		//remove from display list
-		elefart.display.removeFromDisplayList(sprite);
+		//TODO: SPRITE COORDINATE TESTS....
 
 
 		/*

@@ -41,8 +41,6 @@ window.elefart.controller = (function () {
 			//set number of ElevatorShafts (x axis) only if CSS breakpoint changed
 			building.setDimensions(breakPt);
 		}
-		//set number of floors (y axis) on any resize
-		building.setFloors(); 
 		//rebuild the Model
 		building.buildWorld();
 		//redraw the View
