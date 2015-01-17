@@ -32,7 +32,6 @@ window.elefart.factory = (function () {
 	var TYPES = {
 		POINT:"POINT",
 		LINE:"LINE",
-		PADDING:"PADDING",
 		RECT:"RECT",
 		CIRCLE:"CIRCLE",
 		POLYGON:"POLYGON",
@@ -74,6 +73,19 @@ window.elefart.factory = (function () {
 	function toInt(num) {
 		num = Math.floor(num);
 		return ~~num; 
+	}
+
+	/**
+	 * @method getRandomInt
+	 * @description returns a random int between min (inclusive) and max 
+	 * (inclusive).
+	 * @param {Number} min lower bound (included in returned values)
+	 * @param {Number} max upper bound (included in returned values)
+	 * @returns {Number} a random integer >= min <= max
+	 */
+	function getRandomInt(min, max) {
+		console.log("min:" + min + " max:" + max)
+		return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 
 	/** 
@@ -123,6 +135,28 @@ window.elefart.factory = (function () {
 	 */
 	function isCanvasGradient (obj) {
 		return ("CanvasGradient" === Object.prototype.toString.call(obj).slice(8, -1));
+	}
+
+	/** 
+	 * @method getInitedArray
+	 * @description create an array of defined length, and fill with default values
+	 * @param {Number} n length of array
+	 * @param {*} default the value to put into each element of the array
+	 * @returns {Array} an Array, initialized to the right length and default values
+	 */
+	function getInitedArray(n, defaultValue) {
+		var arr = [];
+		for(var i = 0; i < n; i++) {
+			if(isNumber(defaultValue)) {
+				arr[i] = defaultValue;
+			}
+			else if(isString(defaultValue)) {
+				arr[i] = new String(defaultValue);
+			}
+			else {
+				arr[i] = clone(defaultValue);
+			}
+		}
 	}
 
 	/** 
@@ -324,40 +358,6 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
-	 * @constructor Padding
-	 * @classdesc ScreenObject.type PADDING. Like a Rect, but without width and height. 
-	 * Use to set padding on objects which support padding, e.g. Rect. encoded with TRBL
-	 * @param {Number} top the top padding
-	 * @param {Number} right the right-hand padding
-	 * @param {Number} bottom the bottom padding
-	 * @param {Number} left the left-hand padding
-	 * @returns {Padding} a Padding object
-	 */
-	function Padding(top, right, bottom, left) {
-		if(!isNumber(top) || !isNumber(right) || !isNumber(bottom) || !isNumber(left) || 
-			bottom + top > this.height || 
-			right + left > this.width) {
-			elefart.showError(this.type + " in Padding, invalid: top:"+ top + " left:" + left + " bottom:" + bottom + " right:" + right);
-			return false;
-		}
-		return {
-			type:TYPES.PADDING,
-			id:getId(),
-			top:toInt(top),
-			left:toInt(left),
-			bottom:toInt(bottom),
-			right:toInt(right),
-			valid: function () {
-				if(!isNumber(this.top) || !isNumber(this.right) || 
-					!isNumber(this.bottom) || !isNumber(this.left)) 
-						return false;
-					else
-						return true;
-			}
-		};
-	}
-
-	/** 
 	 * @constructor Rect
 	 * @classdesc ScreenObject.type RECT. Similar to DOMRect, but only 
 	 * containing information needed to draw on 2D Canvas. 
@@ -387,7 +387,7 @@ window.elefart.factory = (function () {
 			height:toInt(height),
 			opacity:1.0,
 			borderRadius:0,
-			paddingRect:{top:0, left:0, bottom:0, right:0, width:0, height:0},
+			padding:{top:0, left:0, bottom:0, right:0, width:0, height:0},
 			img:null, //IMAGE IN OBJECT
 			parent:null,
 			children:[],
@@ -431,7 +431,7 @@ window.elefart.factory = (function () {
 			radius:toInt(radius),
 			opacity:1.0,
 			borderRadius:radius,
-			paddingRadius:0,
+			padding:{radius:0},
 			img:null,
 			parent:null,
 			children:[],
@@ -478,6 +478,8 @@ window.elefart.factory = (function () {
 			height:0,
 			points:clone(pts),
 			opacity:1.0,
+			borderRadius:0,
+			padding:getInitedArray(pts.length, 0),
 			img:null,
 			parent:null,
 			children:[],
@@ -912,10 +914,6 @@ window.elefart.factory = (function () {
 		if(!centerPt.valid.apply(centerPt,[])) {
 			return false;
 		}
-		if(this.type === TYPES.PADDING) {
-			elefart.showError(this.type + " cannot be centered on a TYPES.POINT");
-			return false;
-		}
 		if(this.type === TYPES.POINT) {
 			this.x = centerPt.x;
 			this.y = centerPt.y;
@@ -941,7 +939,7 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean} if set, return true, else false
 	 */
 	function centerInRect (centerRect, recurse) {
-		if(this.type == TYPES.POINT || this.type === TYPES.LINE || this.type === TYPES.PADDING) {
+		if(this.type == TYPES.POINT || this.type === TYPES.LINE || this.type) {
 			elefart.showError(this.type + " cannot be centered in RECT");
 			return false;
 		}
@@ -961,7 +959,7 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean} if set, return true, else false
 	 */
 	function setDimensions (width, height) {
-		if(this.type === TYPES.POINT || this.type === TYPES.LINE || this.type === TYPES.PADDING) {
+		if(this.type === TYPES.POINT || this.type === TYPES.LINE || this.type) {
 			elefart.showError(this.type + " cannot set dimensions");
 			return false;
 		}
@@ -1000,37 +998,33 @@ window.elefart.factory = (function () {
 	 * top, right, bottom, left
 	 * @returns {Boolean} if set, return true, else false
 	 */
-	function setRectPadding (padding) {
-		if(this.type === TYPES.POINT || this.type === TYPES.PADDING || this.type === TYPES.LINE) {
+	function setPadding (padding) {
+		var x, y;
+		if(this.type === TYPES.POINT || this.type === TYPES.LINE) {
 			elefart.showError(this.type + " padding not allowed");
 			return false;
 		}
-		//check if valid padding
-		if((padding.left + padding.right) > this.width || 
-			(padding.top + padding.bottom) > this.height) {
-			elefart.showError(this.type + " padding exceeds width and height of its Rect");
-		}
-		//set padding
-		this.paddingRect.top = padding.top;
-		this.paddingRect.left = padding.left;
-		this.paddingRect.bottom = padding.bottom;
-		this.paddingRect.right = padding.right;
-
-		var x, y;
-		if(this.type === TYPES.POINT) {
-			x = this.x + this.paddingRect.left, y = this.y + this.paddingRect.top;
-		}
-		else if(this.type === TYPES.LINE) {
-			x = this.pt1.x + this.paddingRect.left, y = this.pt1.y + this.paddingRect.top;
-		}
 		else if(this.type === TYPES.RECT) {
-			x = this.top + this.paddingRect.top, y = this.left + this.paddingRect.left;
+			//set padding
+			this.padding.top = padding.top;
+			this.padding.left = padding.left;
+			this.padding.bottom = padding.bottom;
+			this.padding.right = padding.right;
+			x = this.top + this.padding.top, y = this.left + this.padding.left;
+				//check if valid padding
+			if((padding.left + padding.right) > this.width || 
+				(padding.top + padding.bottom) > this.height) {
+				elefart.showError(this.type + " padding exceeds width and height of its Rect");
+			}
 		}
 		else if(this.type === TYPES.CIRCLE) {
-			elefart.showError("can't set padding for CIRCLE");
+			this.padding.radius = padding;
 		}
 		else if(this.type === TYPES.POLYGON) {
-			elefart.showError("can't set padding for POLYGON");
+			this.padding = padding; //an array matching each Polygon line
+		}
+		else {
+
 		}
 
 		/* 
@@ -1038,7 +1032,7 @@ window.elefart.factory = (function () {
 		 * and right, which may result in an overhang. If an object
 		 * is "floating" inside any padding, we leave it alone
 		 */
-		if(this.children) {
+		if(this.children && x !== undefined && y !== undefined) {
 			for(var i = 0; i < this.children.length; i++) {
 				move.apply(this.children[i], [x, y]);
 			}
@@ -1092,13 +1086,13 @@ window.elefart.factory = (function () {
 		else if(this.type === TYPES.CIRCLE) {
 			this.radius -= pixels;
 		}
-		else if(this.type === TYPES.IMAGE) {
-			this.img.width -= (2 * pixels);
-			this.img.height += (2 * pixels);
-		}
 		else {
 			elefart.showError(this.type + " shrinkRect doesn't support this type");
 			return false;
+		}
+		if(this.img) {
+			this.img.width -= (2 * pixels);
+			this.img.height += (2 * pixels);
 		}
 
 		return true;
@@ -1182,15 +1176,20 @@ window.elefart.factory = (function () {
 	 */
 	function addChild(child) {
 		if(this.children) {
-			if(child === undefined || !isNumber(child.id) || 
-				child.type === undefined || child.type === TYPES.PADDING) {
+			if(child === undefined || !isNumber(child.id) || child.type === undefined) {
 				elefart.showError(child.type + "(" + child.instanceName + ") cannot add as child");
 				return false;
 			}
+			if(!child || !isNumber(child.id) || !child.type) {
+				elefart.showError("Tried to add non-ScreenObject as a child, " + child);
+				return false;
+			}
+			console.log("addChild, try to add:" + child.instanceName + " id:" + child.id);
+
 			//add to array
 			if(this.findChild(child.id)) {
-				elefart.showError("addChild, tried to add child that is already present in this object:" + child.id + "(" + child.instanceName + ")");
-				return false;
+					elefart.showError("addChild, tried to add child that is already present in this object:" + child.id + "(" + child.instanceName + ")");
+					return false;
 			}
 			child.parent = this;
 			this.children.push(child);
@@ -1252,10 +1251,6 @@ window.elefart.factory = (function () {
 	 * @param {CanvasGradient} grad gradient from canvas.getContext()
 	 */
 	function setGradient (grad) {
-		if(this.type === TYPES.PADDING) {
-			elefart.showError(this.type + " can't apply a width or color");
-			return false;
-		}
 		if(!grad) {
 			elefart.showError("null gradient applied to object");
 			return false;
@@ -1270,11 +1265,6 @@ window.elefart.factory = (function () {
 	 * @param {Number} (optional) imageOpacity the opacity of an image fill, if present
 	 */
 	function setOpacity (opacity, imageOpacity) {
-
-		if(this.type === TYPES.PADDING) {
-			elefart.showError(this.type + " can't apply a width or color");
-			return false;
-		}
 
 		//object opacity
 		if(isNumber(opacity) && 
@@ -1300,10 +1290,7 @@ window.elefart.factory = (function () {
 	 * @param {String} color (optional) rgb() or #rrggbb or #rgb color string
 	 */
 	function setStroke (width, color) {
-		if(this.type === TYPES.PADDING) {
-			elefart.showError(this.type + " can't apply a width or color");
-			return false;
-		}
+
 		if(width < 0) {
 			elefart.showError(this.type + " invalid stroke");
 			return false;
@@ -1326,8 +1313,8 @@ window.elefart.factory = (function () {
 	 * @param {String} color the rgb() or #rrggbb or #rgb color
 	 */
 	function setFill(color) {
-		if(this.type === TYPES.POINT || this.type === TYPES.LINE || this.type === TYPES.PADDING) {
-			elefart.showError(this.type + " can't apply a width or color to this type:" + this.type);
+		if(this.type === TYPES.POINT || this.type === TYPES.LINE) {
+			elefart.showError(this.type + " can't apply a fill color to this type:" + this.type);
 			return false;
 		}
 		if(!isRGB(color)) {
@@ -1354,8 +1341,8 @@ window.elefart.factory = (function () {
 	 * @param {Number} opacity (optional) if present, draw the image at a different 
 	 * opacity than its parent object
 	 */
-	function setImage(src, callback, scaleToRect, opacity) {
-		if(this.type === TYPES.POINT || this.type === TYPES.LINE || this.type === TYPES.PADDING) {
+	function setImage(src, callback, scaleToRect, imgOpacity) {
+		if(this.type === TYPES.POINT || this.type === TYPES.LINE) {
 			elefart.showError(this.type + " can't apply a width or color to this type:" + this.type);
 			return false;
 		}
@@ -1369,8 +1356,8 @@ window.elefart.factory = (function () {
 		else { //src is a path to an image file
 			that.img = new Image();
 
-			if(isNumber(opacity) && opacity >= 0 && opacity <= 1.0) {
-				that.imgOpacity = opacity;
+			if(isNumber(imgOpacity) && imgOpacity >= 0 && imgOpacity <= 1.0) {
+				that.imgOpacity = imgOpacity;
 			}
 
 			that.img.onload = function () {
@@ -1519,7 +1506,7 @@ window.elefart.factory = (function () {
 		obj.centerInRect = centerInRect,
 		obj.setDimensions = setDimensions,
 		obj.setRectBorderRadius = setRectBorderRadius,
-		obj.setRectPadding = setRectPadding,
+		obj.setPadding = setPadding,
 		obj.shrink = shrink,
 		obj.scale = scale,
 		//parents and childen
@@ -1559,10 +1546,10 @@ window.elefart.factory = (function () {
 	 */
 	function ScreenPoint (x, y, strokeWidth, strokeStyle, layer) {
 		var pt = Point(x, y);
-		addFns(pt); //convert to ScreenObject
 		if(pt) {
+			addFns(pt); //convert to ScreenObject
 			if(!strokeWidth) strokeWidth = 0;
-			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
+			if(!strokeStyle) strokeStyle = display.COLORS.CLEAR;
 			if(!layer) layer = display.LAYERS.FLOORS;
 			pt.setStroke(strokeWidth, strokeStyle);
 			pt.setFill(strokeStyle); //stroke == fill for a ScreenPoint
@@ -1586,7 +1573,7 @@ window.elefart.factory = (function () {
 		if(ln) {
 			addFns(ln); //convert to ScreenObject
 			if(!strokeWidth) strokeWidth = 1; //default for line since no fill
-			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
+			if(!strokeStyle) strokeStyle = display.COLORS.CLEAR;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
 			ln.setStroke(strokeWidth, strokeStyle);
 			ln.setLayer(layer);
@@ -1618,8 +1605,8 @@ window.elefart.factory = (function () {
 		if(r) {
 			addFns(r); //convert to ScreenObject
 			if(!strokeWidth) strokeWidth = 0;
-			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
-			if(!fillStyle) fillStyle = display.COLORS.WHITE;
+			if(!strokeStyle) strokeStyle = display.COLORS.CLEAR;
+			if(!fillStyle) fillStyle = display.COLORS.CLEAR;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
 			if(src && !callback) callback = function () {};
 			r.setStroke(strokeWidth, strokeStyle);
@@ -1654,8 +1641,8 @@ window.elefart.factory = (function () {
 		if(c) {
 			addFns(c); //convert to ScreenObject
 			if(!strokeWidth) strokeWidth = 0;
-			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
-			if(!fillStyle) fillStyle = display.COLORS.WHITE;
+			if(!strokeStyle) strokeStyle = display.COLORS.CLEAR;
+			if(!fillStyle) fillStyle = display.COLORS.CLEAR;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
 			if(src && !callback) callback = function () {};
 			c.setStroke(strokeWidth, strokeStyle);
@@ -1681,17 +1668,19 @@ window.elefart.factory = (function () {
 	 * @param {HTMLImageElement} src (optional) if present, add a reference to a JS image object to 
 	 * draw over the ScreenRect fill
 	 * @param {Function} callback (optional) function for callback
+	 * @param {Boolean} closed (optional) if true, close the polygon, else false
 	 * @returns {ScreenPoly|false} if ok, return ScreenLine object, else false
 	 */
-	function ScreenPoly(pts, strokeWidth, strokeStyle, fillStyle, layer, src, callback) {
+	function ScreenPoly(pts, strokeWidth, strokeStyle, fillStyle, layer, src, callback, closed) {
 		var p = Polygon(pts);
 		if(p) {
-			addFns(r); //convert to ScreenObject
+			addFns(p); //convert to ScreenObject
 			if(!strokeWidth) strokeWidth = 0;
-			if(!strokeStyle) strokeStyle = display.COLORS.BLACK;
-			if(!fillStyle) fillStyle = display.COLORS.WHITE;
+			if(!strokeStyle) strokeStyle = display.COLORS.CLEAR;
+			if(!fillStyle) fillStyle = display.COLORS.CLEAR;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
 			if(src && !callback) callback = function () {};
+
 			p.setStroke(strokeWidth, strokeStyle);
 			p.setFill(fillStyle);
 			if(src) p.setImage(src, callback, false);
@@ -1767,10 +1756,10 @@ window.elefart.factory = (function () {
 		isFunction:isFunction,
 		isCanvasGradient:isCanvasGradient,
 		toInt:toInt, //convert to integer floor
+		getRandomInt:getRandomInt, //random integers
 		getRGBAfromRGB:getRGBAFromRGB, //make rgb() strings with opacity
 		Point:Point, //Shape Primitive Constructors
 		Line:Line,
-		Padding:Padding,
 		Rect:Rect,
 		Circle:Circle,
 		Polygon:Polygon,
@@ -1784,6 +1773,7 @@ window.elefart.factory = (function () {
 		ScreenLine:ScreenLine,
 		ScreenRect:ScreenRect,
 		ScreenCircle:ScreenCircle,
+		ScreenPoly:ScreenPoly,
 		init:init,
 		run:run
 	};

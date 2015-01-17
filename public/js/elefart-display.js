@@ -45,7 +45,10 @@ window.elefart.display = (function () {
 		ELESPACE4:"ELESPCE4",
 		WALLS:"WALLS",         //building walls
 		DOORS:"DOORS",         //elevator doors
-		FLOORS:"FLOORS"        //people and objects in the room floors
+		FLOORS:"FLOORS",       //people and objects in the room floors
+		CONTROLS:"CONTROLS",   //user controls
+		MODAL:"MODAL",         //modal windows above game panel
+		ANIMATION:"ANIMATION"  //animation above game panel
 	};
 
 	/** 
@@ -55,6 +58,7 @@ window.elefart.display = (function () {
 	 * @description basic HTML5 Canvas rgb() colors for default objects
 	 */
 	var COLORS = { //flat colors
+		CLEAR:"rgba(0,0,0,0.0)",
 		BLACK:"rgb(0,0,0)",
 		WHITE:"rgb(255,255,255)",
 		LIGHT_GREY:"rgb(128,128,128)",
@@ -139,7 +143,6 @@ window.elefart.display = (function () {
 			foreground.width = rect.width;
 			foreground.height = rect.height;
 		}
-
 		return rect;
 	}
 
@@ -377,11 +380,11 @@ window.elefart.display = (function () {
 					x, y,  //starting coordinates of gradient
 					x2, y2 //ending coordinates of gradient
 					);
-				grd.addColorStop(0.000, 'rgb(34,133,232)');
-				grd.addColorStop(0.180, 'rgb(71,151,211)');
-				grd.addColorStop(0.400, 'rgb(102,164,214)');
-				grd.addColorStop(0.900, 'rgb(227,238,247)');
-				grd.addColorStop(1.000, 'rgb(240,255,250)');
+				grd.addColorStop(0.000, 'rgba(34,133,232,1.0)');
+				grd.addColorStop(0.180, 'rgba(71,151,211,1.0)');
+				grd.addColorStop(0.400, 'rgba(102,164,214,1.0)');
+				grd.addColorStop(0.900, 'rgba(227,238,247,1.0)');
+				grd.addColorStop(1.000, 'rgba(240,255,250,1.0)');
 				bctx.fillStyle = grd;
 				break;
 			case MATERIALS.GRADIENT_SUN:
@@ -391,9 +394,9 @@ window.elefart.display = (function () {
 					x, y, //ending circle x and y coordinate
 					y2    //ending circle radius
 					);
-				grd.addColorStop(0.050, 'rgb(255, 255, 0)');
-				grd.addColorStop(0.390, 'rgb(255, 212, 170)');
-				grd.addColorStop(1.000, 'rgb(255, 127, 0)');
+				grd.addColorStop(0.050, 'rgba(255, 255, 0,1.0)');
+				grd.addColorStop(0.390, 'rgba(255, 212, 170,1.0)');
+				grd.addColorStop(1.000, 'rgba(255, 127, 0,1.0)');
 				bctx.fillStyle = grd;
 				break;
 			default:
@@ -551,6 +554,103 @@ window.elefart.display = (function () {
 	}
 
 	/** 
+	 * @method movePointAlongLine
+	 * @description use this to "back points" down or up 
+	 * a line so a rounded connector can be drawn
+	 * @param {Point} pt1 start of line
+	 * @param {Point} pt2 end of line
+	 * @param {Number} radius how far to move back down line
+	 * @returns {Point} new Point, backed down line
+	 */
+	function movePointAlongLine (pt2, pt1, radius) {
+		var angle = Math.atan2(pt2.y - pt1.y, pt2.x - pt1.x);
+		//if(angle) angle = -angle;
+		var sin = Math.sin(angle) * -radius;
+		var cos = Math.cos(angle) * radius;
+		return {
+			x:pt1.x + cos,
+			y:pt2.y + sin
+		}
+	}
+
+	function lineAngle (p1, p2) {
+		var xDiff = p2.x - p1.x;
+		var yDiff = p2.y - p1.y;
+		return Math.atan2(yDiff, xDiff); // * (180 / Math.PI);
+	}
+
+	function lineLength (pt2, pt1) {
+		var dx   = pt2.x - pt1.x;         //horizontal difference 
+		var dy   = pt2.y - pt1.y;         //vertical difference 
+		var dist = Math.sqrt( dx*dx + dy*dy ); //distance using Pythagoras theorem
+		return dist;
+	}
+
+	/** 
+	 * @method getCircleLineIntersectionPoint
+	 * @description given a line an a circle, return intersections. Used to compute
+	 * rounding of corners in polygon by finding the 'shrink' point the line needs to 
+	 * go to to accomodate the arc
+	 * @link http://stackoverflow.com/questions/13053061/circle-line-intersection-points
+	 * @param {Point} pointA starting Point of line
+	 * @param {Point} pointB ending point of line
+	 * @param {Point} circle center
+	 * @param {Number} circle radius
+	 * @returns {Array} returns one or two points for the intersection of a line with 
+	 * the circle. 
+	 */
+	function getCircleLineIntersectionPoint(
+		pointA,
+		pointB, 
+		center, 
+		radius) {
+		var baX = pointB.x - pointA.x;
+		var baY = pointB.y - pointA.y;
+		var caX = center.x - pointA.x;
+		var caY = center.y - pointA.y;
+
+		var a = baX * baX + baY * baY;
+		var bBy2 = baX * caX + baY * caY;
+		var c = caX * caX + caY * caY - radius * radius;
+
+		var pBy2 = bBy2 / a;
+		var q = c / a;
+
+		var disc = pBy2 * pBy2 - q;
+		if (disc < 0) {
+			return []; //NO INTERSECTION
+		}
+		// if disc == 0 ... dealt with later
+		var tmpSqrt = Math.sqrt(disc);
+		var abScalingFactor1 = -pBy2 + tmpSqrt;
+		var abScalingFactor2 = -pBy2 - tmpSqrt;
+
+		var p1 = {
+				x: pointA.x - baX * abScalingFactor1, 
+				y: pointA.y - baY * abScalingFactor1
+			};
+		if (disc == 0) { // abScalingFactor1 == abScalingFactor2
+			return [p1];
+		}
+		var p2 = {
+				x: pointA.x - baX * abScalingFactor2, 
+				y: pointA.y - baY * abScalingFactor2
+			};
+		return [p1, p2];
+	}
+
+
+	function loopVal (val, max) {
+		if(val >= max) {
+			val = (max - val);
+		}
+		if(val < 0) {
+			val = (max + val);
+		}
+		return val;
+	}
+
+	/** 
 	 * @method drawPolygon
 	 * @description draw a closed Polygon
 	 * @linkhttp://www.arungudelli.com/html5/html5-canvas-polygon/
@@ -558,27 +658,94 @@ window.elefart.display = (function () {
 	 * @param {ScreenObject} obj the ScreenObject (type ScreenPoly} to draw
 	 */
 	function drawPolygon (ctx, obj) {
+
 		ctx.save();
 		ctx.lineWidth = obj.lineWidth;
 		ctx.strokeStyle = obj.strokeStyle;
-		ctx.fillStyle = obj.fillstyle;
-		ctx.globalAlpha = obj.opacity;
-		if (pts.length < 3) return;
+		ctx.fillStyle = obj.fillStyle; 
+		var pts = obj.points;
+		if (pts.length < 3) {
+			return;
+		} 
 		ctx.beginPath();
-		var pts = obj.pts;
-		ctx.moveTo(pts[0].x, pts[0].y);
-		for(var i = 1; i < pts.length; i++) {
-			ctx.lineTo(pts[i].x, pts[i].y);
+		if(obj.borderRadius) { //rounded
+			var pt0, pt1, pt2, newPt0, newPt1, newPt2,
+				r = obj.borderRadius;
+				var len = pts.length,
+				roundArr = [];
+			for(var i = 0; i < len; i++) {
+				//make the rounding close back on the first point in Polygon
+				pt0 = pts[loopVal(i-1, len)];
+				pt1 = pts[loopVal(i, len)];
+				pt2 = pts[loopVal(i+1, len)];
+
+				var intersect0 = getCircleLineIntersectionPoint(
+					pt0,
+					pt1,
+					pt0,
+					r); //bottom of line
+
+				var intersect1 = getCircleLineIntersectionPoint(
+					pt1,
+					pt0, 
+					pt1, 
+					r); //top of line
+
+				roundArr.push(intersect0[1]);
+				roundArr.push(intersect1[1]);
+
+			}
+			//use roundArr to draw the Polygon
+			var len = roundArr.length;
+			for(var i = 0; i < len; i++) {
+				ii = loopVal(i+1, len);
+				iii = loopVal(i+2, len);
+				ctx.moveTo(roundArr[i].x, roundArr[i].y);
+				if(i+1 < (roundArr.length-1)) {
+					ctx.arcTo(roundArr[i].x, roundArr[i].y, roundArr[ii].x, roundArr[ii].y, r)////////////////
+//ok
+				}
+				else {
+					ctx.lineTo(roundArr[ii].x, roundArr[ii].y); /////////////////////////
+					//ctx.arcTo(roundArr[i].x, roundArr[i].y, roundArr[ii].x, roundArr[ii].y, r)///////////////
+				}
+
+				if(i+2 < (roundArr.length-1)) {
+					ctx.arcTo(roundArr[ii].x, roundArr[ii].y, roundArr[iii].x, roundArr[iii].y, r)
+					//ctx.lineTo(roundArr[ii].x, roundArr[ii].y);///////////////////////
+
+				}
+				else {
+					//ctx.lineTo(roundArr[ii].x, roundArr[ii].y, roundArr[iii].x, roundArr[iii].y, r); //////////////////////
+					ctx.arcTo(roundArr[ii].x, roundArr[ii].y, roundArr[iii].x, roundArr[iii].y, r); //////////////////////
+//ok
+				}
+
+			}
+			//close the polygon
+			ctx.lineTo(roundArr[1].x, roundArr[1].y)
 		}
-		ctx.closePath();
-		if(obj.fillStyle) ctx.fill();
+		else { //square edges
+			ctx.moveTo(pts[0].x, pts[0].y);
+			for(var i = 1; i < pts.length; i++) {
+				ctx.lineTo(pts[i].x, pts[i].y);
+			}
+		}
+
+		if(obj.closed) {
+			ctx.closePath(); //closed shape, optional
+		}
+		if(obj.fillStyle) {
+			ctx.fill();
+		} 
 		if(obj.img) {
 			ctx.clip();
 			drawImage(ctx, obj); //TODO: NEED TO CLIP IMAGE TO POLYGON DIMENSIONS
 		}
-		if(obj.lineWidth && obj.strokeStyle) ctx.stroke();
+		if(obj.lineWidth && obj.strokeStyle) {
+			ctx.stroke();
+		} 
 		ctx.restore();
-		elefart.showError("drawPolygon not implemented yet");
 	}
 
 	/** 
@@ -590,7 +757,7 @@ window.elefart.display = (function () {
 	function drawImage (ctx, obj) {
 		ctx.save();
 		if(obj.imageOpacity) {
-			ctx.globalAlpha = obj.imageOpacity; //only if defined
+			ctx.globalAlpha = obj.imageOpacity*obj.opacity;
 		}
 		else {
 			ctx.globalAlpha = obj.opacity;
@@ -598,8 +765,6 @@ window.elefart.display = (function () {
 		if(obj.spriteCoords) {
 
 			var r = obj.spriteCoords.getCellRect();
-			window.rr = r;
-			window.obj = obj;
 			ctx.drawImage(
 				obj.img,
 				r.left,
@@ -637,7 +802,7 @@ window.elefart.display = (function () {
 	 * @param {ScreenObject} the ScreenObject (type ScreenSprite) to draw
 	 */
 	function drawSpriteFrame (ctx, obj) {
-		//TODO: USE SPRITE COORDS OBJECT .spriteCoords
+		ctx.save();
 		var captRect = {
 			top:obj.type * obj.top,
 			left:obj.frame * obj.left,
@@ -646,7 +811,6 @@ window.elefart.display = (function () {
 			width:obj.width,
 			height:obj.height
 		}
-		ctx.save();
 		ctx.globalAlpha = opacity;
 		ctx.drawImage(
 			obj.img, 
@@ -654,7 +818,7 @@ window.elefart.display = (function () {
 			captRect.top,  
 			captRect.width, 
 			captRect.height, 
-			obj.left, 
+			obj.left, //sprite coordinates onscreen
 			obj.top, //destRect.top, 
 			obj.width, 
 			obj.height
@@ -719,8 +883,6 @@ window.elefart.display = (function () {
 		return background;
 	}
 
-
-
 	/** 
 	 * @method drawBackground
 	 * @description draw the background for a game in an underlying canvas layer
@@ -738,7 +900,6 @@ window.elefart.display = (function () {
 		//execute the display list
 		drawLayer(bctx, displayList[LAYERS.WORLD]);
 		drawLayer(bctx, displayList[LAYERS.BUILDING]);
-		window.bldg = displayList[LAYERS.BUILDING]; ///////////////////////////////////////////////
 		bctx.restore();
 
 	}
@@ -772,7 +933,8 @@ window.elefart.display = (function () {
 		//elevator shafts are in the foreground
 		drawLayer(fctx, displayList[LAYERS.SHAFTS]);
 
-		/*		drawLayer(fctx, displayList[LAYERS.ELEBACK]);
+		/*
+		drawLayer(fctx, displayList[LAYERS.ELEBACK]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE1]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE2]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE3]);
@@ -780,6 +942,9 @@ window.elefart.display = (function () {
 		drawLayer(fctx, displayList[LAYERS.WALLS]);
 		drawLayer(fctx, displayList[LAYERS.DOORS]);
 		drawLayer(fctx, displayList[LAYERS.FLOORS]);
+		drawLayer(fctx, displayList[LAYERS.CONTROLS]);
+		drawLayer(fctx, displayList[LAYERS.MODAL]);     //modal windows above game panel
+		drawLayer(fctx, displayList[LAYERS.ANIMATION]); //animation above game panel
 		*/
 
 		//restore
@@ -846,6 +1011,10 @@ window.elefart.display = (function () {
 		background = document.createElement('canvas');
 		bctx = background.getContext("2d");
 		background.id = 'game-background';
+
+		controls = document.createElement('canvas');
+		cctx = controls.getContext("2d");
+		controls.id = 'game-controls';
 
 		//set init flag to false
 		firstTime = false;

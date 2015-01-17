@@ -25,7 +25,7 @@
 }
 
 /* Larger than small mobile */
-@media (min-width: 400px) {
+@media (min-width: 420px) {
 	#screen-game {
 		width:100%;
 	}
@@ -33,11 +33,20 @@
 }
 
 /* larger than small tablet */
-@media (min-width: 550px) {
+@media (min-width: 520px) {
 	#screen-game {
 		width:100%;
 	}
 	body:before { content: '{"name":"tablet2","floors":"8","shafts":"6"}'; display: none; }
+}
+
+/* small tablet */
+@media (min-width: 620px) {
+	#screen-game {
+		width:100%;
+	}
+	body:before { content: '{"name":"tablet2","floors":"8","shafts":"7"}'; display: none; }
+
 }
 
 /* Larger than tablet */
@@ -45,7 +54,7 @@
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: '{"name":"laptop","floors":"8","shafts":"7"}'; display: none; }
+	body:before { content: '{"name":"laptop","floors":"8","shafts":"8"}'; display: none; }
 }
 
 /* small desktop */
@@ -53,14 +62,14 @@
 	#screen-game {
 		width:95%;
 	}
-	body:before { content: '{"name":"desktop1","floors":"8","shafts":"8"}'; display: none; }
+	body:before { content: '{"name":"desktop1","floors":"8","shafts":"10"}'; display: none; }
 }
 
 @media (min-width: 1200px) {
 	#screen-game {
 		width:90%;
 	}
-	body:before { content: '{"name":"desktop2","floors":"8","shafts":"9"}'; display: none; }
+	body:before { content: '{"name":"desktop2","floors":"8","shafts":"11"}'; display: none; }
 }
 
 /* Larger than Desktop HD */
@@ -68,14 +77,14 @@
 	#screen-game {
 		width:80%;
 	}
-	body:before { content: '{"name":"desktop3","floors":"8","shafts":"10"}'; display: none; }
+	body:before { content: '{"name":"desktop3","floors":"8","shafts":"12"}'; display: none; }
 }
 
 @media (min-width: 1980px) {
 	#screen-game {
 		width:75%;
 	}
-	body:before { content: '{"name":"digitaltv2k","floors":"8","shafts":"12"}'; display: none; }
+	body:before { content: '{"name":"digitaltv2k","floors":"8","shafts":"13"}'; display: none; }
 }
 
 @media (min-width: 3960px) {

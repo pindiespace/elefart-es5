@@ -144,7 +144,7 @@ window.elefart.building = (function () {
 	 */
 	function getCSSValues(breakPt) {
 		if(factory.isString(breakPt)) {
-			breakPt = breakPt.replace(/(^['"])|(['"]$)/g,'');
+			breakPt = breakPt.replace(/(^['"])|(['"]$)|([\\])/g,'');
 			return JSON.parse(breakPt);
 		}
 		return false;
@@ -189,7 +189,7 @@ window.elefart.building = (function () {
 
 	/** 
 	 * @method setFloors
-	 * @description adjusts for portraits with narrow width (e.g. Kindle). CSS sets a standard 
+	 * @description adjusts for portraits with narrow width and big height (e.g. Kindle). CSS sets a standard 
 	 * width and height in the setDimensions() function, but if the display is very long, 
 	 * this routine adds a few floors
 	 */
@@ -208,6 +208,9 @@ window.elefart.building = (function () {
 		}
 		else if(gh < 480) {
 			DIMENSIONS.BUILDING_FLOOR.height = 0.20;
+		}
+		else if(gh < 550) {
+			DIMENSIONS.BUILDING_FLOOR.height = 0.17;
 		}
 		else if(gh < 760) {
 			DIMENSIONS.BUILDING_FLOOR.height = 0.15;
@@ -342,6 +345,14 @@ window.elefart.building = (function () {
 			var w = shaftWidth;
 			var h = building.height;
 
+			//if the shaft is the one that goes to the Roof, change top
+			if(shaftNum === hasShaftTop) {
+				var diff = building.top - DIMENSIONS.BUILDING.MIN_WALL;
+				t = DIMENSIONS.BUILDING.MIN_WALL;
+				h += diff;
+			}
+
+			//create the shaft
 			var s = factory.ScreenRect(
 				l,
 				t,
@@ -364,6 +375,7 @@ window.elefart.building = (function () {
 					DIMENSIONS.ELEVATOR_SHAFT.subOpacity
 					);
 
+				//create the sub-shaft
 				var sb = factory.ScreenRect(
 						l + shaftOffset,
 						t,
@@ -375,8 +387,27 @@ window.elefart.building = (function () {
 						display.LAYERS.SHAFTS
 					);
 				if(sb) {
+					//if we extend to the Roof, draw an external wall around the shaft
+					if(shaftNum === hasShaftTop) {
+						var wallSize = Math.ceil(building.height * DIMENSIONS.BUILDING.wallSize) + 2;
+						var sp = factory.ScreenPoly(
+							[
+								factory.ScreenPoint(sb.left,building.top + wallSize),
+								factory.ScreenPoint(sb.left,sb.top),
+								factory.ScreenPoint(sb.right,sb.top),
+								factory.ScreenPoint(sb.right,building.top + wallSize)
+							], 
+							building.lineWidth, 
+							display.COLORS.BROWN, 
+							display.COLORS.CLEAR, 
+							display.LAYERS.SHAFTS
+							);
+						sp.borderRadius=6;
+						display.addToDisplayList(sp, display.LAYERS.BUILDING);
+					}
+					//add the shaft rect
 					sb.name = TYPES.ELEVATOR.SUBSHAFT;
-					sb.instanceName = "Elevator Shaft #:" + shaftNum + "subshaft"
+					sb.instanceName = "Elevator Shaft #:" + shaftNum;
 					s.addChild(sb);
 					display.addToDisplayList(sb, display.LAYERS.SHAFTS);
 					return s;
@@ -384,6 +415,8 @@ window.elefart.building = (function () {
 				
 			}
 		}
+		//fallthrough
+		elefart.showError("failed to create Elevator Shaft:" + shaftNum);
 		return false;
 	}
 
@@ -463,6 +496,40 @@ window.elefart.building = (function () {
 
 			}
 		}
+		//fallthrough
+		elefart.showError("Failed to create BuildingFloor:" + floorNum);
+		return false;
+	}
+
+	/** 
+	 * @constructor BuildingRoof
+	 * @classdesc special "floor" actually the roof of the Building. Draw a roof 
+	 * pattern on the base, extending somewhatinto the previous floor, make an
+	 */
+	function BuildingRoof (building) {
+		var t = building.top;
+		var l = building.left;
+		var w = building.right - l;
+		var h = building.bottom - t;
+		var r = factory.ScreenRect(
+				l, 
+				t, 
+				w, 
+				h,
+				0, //stroke
+				display.COLORS.CLEAR, 
+				display.COLORS.CLEAR,
+				display.LAYERS.BUILDING
+			);
+
+		if(r) {
+				f.name = TYPES.BUILDING_FLOOR;
+				f.floorNum = -1;
+				f.instanceName = "ROOF";
+				return r;
+		}
+		//fallthrough
+		elefart.showError("Failed to create BuildingRoof");
 		return false;
 	}
 
@@ -485,15 +552,15 @@ window.elefart.building = (function () {
 
 		//compute sizes
 		//building wall width
-		var ww = DIMENSIONS.BUILDING.wallSize * world.width;
+		var ww = DIMENSIONS.BUILDING.wallSize * world.height;
 		var l = (DIMENSIONS.BUILDING.left * world.width);
 		var t = (DIMENSIONS.BUILDING.top * world.height);
 		var w = (DIMENSIONS.BUILDING.width * world.width);
 
-		if(w > 1000) {
-			w--; //KLUDGE FOR ALIGNMENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		if(w < 1000) {
+			w++; //KLUDGE FOR ALIGNMENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		}
-		w--;
+		w++;
 
 		//building height
 		var h = DIMENSIONS.BUILDING.height * world.height;
@@ -514,30 +581,35 @@ window.elefart.building = (function () {
 			b.shrink((ww/2)-1);
 			b.name = TYPES.BUILDING;
 			b.instanceName = "GasLight Building";
-			world.addChild(b);
 
 			//add to displayList BEFORE floors
 			display.addToDisplayList(b, display.LAYERS.BUILDING);
 
+			//add Building Roof
+			//b.addChild(BuildingRoof(b));
+
 			//add sign at top of Building
 			var st = (DIMENSIONS.BUILDING_SIGN.top * b.height); //top of sign
-			var sh = b.top - st - ww; //height of sign
+			var sh = b.top - st; //height of sign
+			var sw = DIMENSIONS.BUILDING_SIGN.width * b.width;
 
 			var s = factory.ScreenRect(
 				DIMENSIONS.BUILDING_SIGN.left * b.width, 
 				st, 
-				DIMENSIONS.BUILDING_SIGN.width * b.width, 
+				sw,
 				sh, 
 				0, 
-				null, 
-				null, 
+				display.COLORS.CLEAR, 
+				display.COLORS.CLEAR, 
 				display.LAYERS.BUILDING, 
 				display.getHotelSign()
 				);
 
 			if(s) {
 				s.name = TYPES.BUILDING_SIGN;
+				//scale sign at small dimensions
 				s.instanceName = "GasLight Building Sign";
+				s.imageOpacity = 1.0;
 				b.addChild(s);
 				display.addToDisplayList(s, display.LAYERS.BUILDING);
 			}
@@ -555,17 +627,29 @@ window.elefart.building = (function () {
 				b.addChild(BuildingFloor(b, i, numFloors));
 			}
 
-			//add elevator shafts
+			//compute which ElevatorShaft goes to the BuildingRoof
 			var numShafts = factory.toInt(DIMENSIONS.BUILDING.width/DIMENSIONS.ELEVATOR_SHAFT.width);
-			console.log("NUMSHAFTS:" + numShafts);
-			for(i = 0; i < numShafts; i++) {
-				b.addChild(ElevatorShaft(b, i, numShafts));
+			var shaftTop = 0;
+			var min = Math.floor(numShafts/2);
+			var ceil = numShafts - 1;
+			if(ceil <= min) {
+				shaftTop = ceil;
 			}
+			else {
+				shaftTop = factory.getRandomInt(Math.ceil(numShafts/2), numShafts-1);
+			}
+
+			//create all ElevatorShafts
+			for(i = 0; i < numShafts; i++) {
+				b.addChild(ElevatorShaft(b, i, numShafts, shaftTop));
+			}
+
+			//return the completed Building
+			return b;
 		}
-		if(!b) {
-			elefart.showError("failed to create Building");
-		}
-		return b;
+		//fallthrough
+		elefart.showError("failed to create Building");
+		return false;
 	}
 
 	/** 
@@ -577,7 +661,6 @@ window.elefart.building = (function () {
 	 * @returns {Sun|false} a Sun object, or false
 	 */
 	function Sun (world) {
-		var s = false;
 		//compute sizes
 		var l = DIMENSIONS.SUN.left * world.width;
 		var t = DIMENSIONS.SUN.top * world.height;
@@ -592,7 +675,7 @@ window.elefart.building = (function () {
 			);
 		if(grd) { 
 			//create the Sun
-			s = factory.ScreenCircle(
+			var s = factory.ScreenCircle(
 				l, t, r,
 				3, display.COLORS.WHITE,
 				grd,
@@ -602,12 +685,12 @@ window.elefart.building = (function () {
 				s.name = TYPES.SUN;
 				s.instanceName = "Sun";
 				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
+				return s;
 			}
 		}
-		if(!s) {
-			elefart.showError("failed to create Sun");
-		}
-		return s;
+		//fallthrough
+		elefart.showError("failed to create Sun");
+		return false;
 	}
 
 	/** 
@@ -619,7 +702,6 @@ window.elefart.building = (function () {
 	 * @returns {Sky|false} the Sky object, or false
 	 */
 	function Sky (world) {
-		var s = false;
 		//compute sizes
 		var l = DIMENSIONS.SKY.left * world.width;
 		var t = DIMENSIONS.SKY.top * world.height;
@@ -636,7 +718,7 @@ window.elefart.building = (function () {
 			h);
 		if(grd) {
 			//create the Sky
-			s = factory.ScreenRect(
+			var s = factory.ScreenRect(
 				l, 
 				t, 
 				w, 
@@ -648,14 +730,13 @@ window.elefart.building = (function () {
 			if(s) {
 				s.name = TYPES.SKY;
 				s.instanceName = "Sky";
-				///////////////////////////world.addChild(s);
 				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
+				return s;
 			}
 		}
-		if(!s) {
-			elefart.showError("failed to create Sky");
-		}
-		return s;
+		//fallthrough
+		elefart.showError("failed to create Sky");
+		return false;
 	}
 
 	/** 
@@ -667,7 +748,6 @@ window.elefart.building = (function () {
 	 * @returns {World|false} the World containing the Building
 	 */
 	function World () {
-		var w = false;
 		var r = display.getGameRect();
 		var w = r.right - r.left;
 		var h = r.bottom - r.top;
@@ -676,7 +756,7 @@ window.elefart.building = (function () {
 
 		if(r) {
 			//World is a ScreenRect
-			w = factory.ScreenRect(
+			var w = factory.ScreenRect(
 			0, 0, w, h,
 			0, display.COLORS.WHITE, 
 			display.COLORS.BLACK,
@@ -690,12 +770,12 @@ window.elefart.building = (function () {
 				w.setRectBorderRadius(0); //no border
 				w.setOpacity(0.0); //World is invisible
 				//we don't add World to display list
+				return w;
 			}
 		}
-		if(!w) {
-			elefart.showError("Failed to create World");
-		}
-		return w;
+		//fallthrough
+		elefart.showError("Failed to create World");
+		return false;
 	}
 
 	/* 
