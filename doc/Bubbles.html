@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>DocStrap Class: BuildingFloor</title>
+	<title>DocStrap Class: Bubbles</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -690,21 +690,17 @@
 					
 
 
-	<h1 class="page-title">Class: BuildingFloor</h1>
+	<h1 class="page-title">Class: Bubbles</h1>
 <section>
 
 <header>
     <h2>
-    BuildingFloor
+    Bubbles
     </h2>
     
-        <div class="class-description"><p>the floors passed by the Elevator. 
-BuildingFloor contains both parents and children</p>
-<ul>
-<li>parent: Building</li>
-<li>grandparent: World</li>
-<li>children: floorBase, ElevatorDoors, Goodies, ElevatorControls</li>
-</ul></div>
+        <div class="class-description"><p>ScreenObject.type BUBBLES. Bubbles are Polygon-like, but are made 
+with arcs instead of straight lines. Polygons are straight with rounded corners 
+if .borderRadius is set.</p></div>
     
 </header>
 
@@ -715,7 +711,7 @@ BuildingFloor contains both parents and children</p>
     
         
 <dt>
-    <h4 class="name" id="BuildingFloor"><span class="type-signature"></span>new BuildingFloor<span class="signature">(building, floorNum)</span><span class="type-signature"> &rarr; {<a href="BuildingFloor.html">BuildingFloor</a>|false}</span></h4>
+    <h4 class="name" id="Bubbles"><span class="type-signature"></span>new Bubbles<span class="signature">(pts)</span><span class="type-signature"> &rarr; {<a href="Bubbles.html">Bubbles</a>}</span></h4>
     
     
 </dt>
@@ -753,13 +749,13 @@ BuildingFloor contains both parents and children</p>
 
         <tr>
             
-                <td class="name"><code>building</code></td>
+                <td class="name"><code>pts</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="Building.html">Building</a></span>
+<span class="param-type">Array</span>
 
 
             
@@ -769,30 +765,7 @@ BuildingFloor contains both parents and children</p>
 
             
 
-            <td class="description last"><p>the parent building object</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>floorNum</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the floor number</p></td>
+            <td class="description last"><p>an array of Points defining the Bubbles</p></td>
         </tr>
 
 	
@@ -828,8 +801,8 @@ BuildingFloor contains both parents and children</p>
 	<dd class="tag-source">
 		<ul class="dummy">
 			<li>
-				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-505">line 505</a>
+				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-524">line 524</a>
 			</li>
 		</ul>
 	</dd>
@@ -856,7 +829,7 @@ BuildingFloor contains both parents and children</p>
     
             
 <div class="param-desc">
-    <p>a BuildingFloor object, or false</p>
+    <p>a Bubbles object</p>
 </div>
 
 
@@ -867,10 +840,7 @@ BuildingFloor contains both parents and children</p>
 	</dt>
 	<dd>
 		
-<span class="param-type"><a href="BuildingFloor.html">BuildingFloor</a></span>
-|
-
-<span class="param-type">false</span>
+<span class="param-type"><a href="Bubbles.html">Bubbles</a></span>
 
 
 	</dd>

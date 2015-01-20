@@ -36,7 +36,9 @@ window.elefart.display = (function () {
 	 */
 	var LAYERS = {
 		WORLD: "WORLD",        //environment outside building (Sun, Sky)
-		BUILDING:"BUILDING",   //back wall of building
+		CLOUDS: "CLOUDS",      //Clouds in the Sky
+		BUILDINGBACK:"BUILDINGBACK", //extreme back of building (includes ElevatorShafts)
+		BUILDING:"BUILDING",   //main Building
 		SHAFTS:"SHAFTS",       //elevator shafts in building
 		ELEBACK:"ELEBACK",     //back wall of elevators
 		ELESPACE1:"ELESPACE1", //places for People to stand
@@ -45,7 +47,9 @@ window.elefart.display = (function () {
 		ELESPACE4:"ELESPCE4",
 		WALLS:"WALLS",         //building walls
 		DOORS:"DOORS",         //elevator doors
-		FLOORS:"FLOORS",       //people and objects in the room floors
+		FLOORS:"FLOORS",       //objects in the room floors
+		PEOPLE:"PEOPLE",
+		BUILDINGFRONT:"BUILDINGFRONT", //anything in front of People
 		CONTROLS:"CONTROLS",   //user controls
 		MODAL:"MODAL",         //modal windows above game panel
 		ANIMATION:"ANIMATION"  //animation above game panel
@@ -61,6 +65,7 @@ window.elefart.display = (function () {
 		CLEAR:"rgba(0,0,0,0.0)",
 		BLACK:"rgb(0,0,0)",
 		WHITE:"rgb(255,255,255)",
+		PALE_GREY:"rgb(220, 220, 220)",
 		LIGHT_GREY:"rgb(128,128,128)",
 		DARK_GREY:"rgb(64,64,64)",
 		YELLOW:"rgb(248, 237, 29)",
@@ -77,7 +82,8 @@ window.elefart.display = (function () {
 	 */
 	var MATERIALS = { //gradients
 		GRADIENT_SKY:"GRADIENT_SKY",
-		GRADIENT_SUN:"GRADIENT_SUN"
+		GRADIENT_SUN:"GRADIENT_SUN",
+		GRADIENT_SHADOW:"GRADIENT_SHADOW"
 	};
 
 	/*
@@ -132,8 +138,6 @@ window.elefart.display = (function () {
 	 * DOM element the HTML5 Canvas object is attached to.
 	 */
 	function setGameRect () {
-		console.log("body width:"+ document.getElementsByTagName('body')[0].getBoundingClientRect().width);
-		console.log("panel width:"+ panel.getBoundingClientRect().width);
 		rect = panel.getBoundingClientRect();
 		if(background) {
 			background.width = rect.width;
@@ -324,8 +328,15 @@ window.elefart.display = (function () {
 	 * @param {LAYERS} layer the layer to draw in
 	 */
 	function addToDisplayList (obj, layer) {
-		if(obj && obj.type && layer) {
-			displayList[layer].push(obj);
+		if(obj && obj.type) {
+			if(layer) { //change layer
+				removeFromDisplayList(obj, layer);
+				obj.layer = layer;
+				displayList[layer].push(obj); 
+			}
+			else {
+				displayList[obj.layer].push(obj); //use default layer
+			}
 		}
 		else {
 			elefart.showError("addToDisplayList invalid params obj:" + typeof obj + " layer:" + layer);
@@ -344,7 +355,7 @@ window.elefart.display = (function () {
 			elefart.showError("removeFromDisplayList invalid object:" + typeof obj);
 		}
 		else if(layer) {
-			pos = checkIfInLayer(obj);
+			pos = checkIfInLayer(obj, layer);
 			if(pos) {
 				displayList[layer].splice(pos, 1); //remove element
 			}
@@ -374,6 +385,7 @@ window.elefart.display = (function () {
 	function getBackgroundTexture (material, x, y, x2, y2) {
 		var grd = null;
 		//create the linear gradient
+
 		switch(material) {
 			case MATERIALS.GRADIENT_SKY:
 				grd = bctx.createLinearGradient(
@@ -385,7 +397,6 @@ window.elefart.display = (function () {
 				grd.addColorStop(0.400, 'rgba(102,164,214,1.0)');
 				grd.addColorStop(0.900, 'rgba(227,238,247,1.0)');
 				grd.addColorStop(1.000, 'rgba(240,255,250,1.0)');
-				bctx.fillStyle = grd;
 				break;
 			case MATERIALS.GRADIENT_SUN:
 				grd = bctx.createRadialGradient(
@@ -394,10 +405,18 @@ window.elefart.display = (function () {
 					x, y, //ending circle x and y coordinate
 					y2    //ending circle radius
 					);
-				grd.addColorStop(0.050, 'rgba(255, 255, 0,1.0)');
-				grd.addColorStop(0.390, 'rgba(255, 212, 170,1.0)');
-				grd.addColorStop(1.000, 'rgba(255, 127, 0,1.0)');
-				bctx.fillStyle = grd;
+				grd.addColorStop(0.050, 'rgba(255,255,0,1.0)');
+				grd.addColorStop(0.390, 'rgba(255,212,170,1.0)');
+				grd.addColorStop(1.000, 'rgba(255,127,0,1.0)');
+				break;
+			case MATERIALS.GRADIENT_SHADOW:
+				grd = bctx.createLinearGradient(
+					x, y,  //starting coordinates of gradient
+					x2, y2 //ending coordinates of gradient
+					);
+				grd.addColorStop(0.000, 'rgba(32,32,32,1.0)');
+				grd.addColorStop(0.450, 'rgba(96,96,96,0.9)');
+				grd.addColorStop(1.000, 'rgba(200,200,200,0.4)');
 				break;
 			default:
 				elefart.showError("setBackGroundGradient received invalid CanvasGradient index");
@@ -509,21 +528,25 @@ window.elefart.display = (function () {
 		h = obj.height;
 		//rounded Rect shape from arcs
 		ctx.beginPath();
-		ctx.moveTo(obj.left + r, y);
-		ctx.lineTo(obj.left + w - r, y);
-		ctx.quadraticCurveTo(obj.x + w, y, x + w, y+r);
-		ctx.lineTo(obj.left+w, y+h-r);
-		ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-		ctx.lineTo(obj.left+r, y+h);
-		ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-		ctx.lineTo(obj.left, y+r);
-		ctx.quadraticCurveTo(obj.left, y, x+r, y);
+			ctx.moveTo(x+r, y);
+			ctx.lineTo(x+w-r, y);
+			ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+			ctx.lineTo(x+w, y+h-r);
+			ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+			ctx.lineTo(x+r, y+h);
+			ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+			ctx.lineTo(x, y+r);
+			ctx.quadraticCurveTo(x, y, x+r, y);
 		ctx.closePath();
+
+		//fill the Rect
 		if(obj.fillStyle) ctx.fill();
+
 		if(obj.img) {
 			ctx.clip();
 			drawImage(ctx, obj);
-		} 
+		}
+		//overlay stroke on top of fill and any images
 		if(obj.lineWidth && obj.strokeStyle) ctx.stroke();
 		ctx.restore();
 	}
@@ -538,7 +561,7 @@ window.elefart.display = (function () {
 		ctx.save();
 		ctx.lineWidth = obj.lineWidth;
 		ctx.strokeStyle = obj.strokeStyle;
-		ctx.fillStyle = obj.fillstyle;
+		ctx.fillStyle = obj.fillStyle;
 		ctx.globalAlpha = obj.opacity;
 		ctx.beginPath();
 		ctx.arc(obj.left+obj.radius, obj.top+obj.radius, obj.radius, 0, 2 * Math.PI);
@@ -695,33 +718,32 @@ window.elefart.display = (function () {
 				roundArr.push(intersect1[1]);
 
 			}
-			//use roundArr to draw the Polygon
+			//use roundArr to draw the rounded-corner Polygon
 			var len = roundArr.length;
 			for(var i = 0; i < len; i++) {
+				//set invisible if we sholdn't draw a stroke
+				console.log("globalAlpha:" + ctx.globalAlpha)
+				//forward and backward point positions
 				ii = loopVal(i+1, len);
 				iii = loopVal(i+2, len);
 				ctx.moveTo(roundArr[i].x, roundArr[i].y);
+
 				if(i+1 < (roundArr.length-1)) {
-					ctx.arcTo(roundArr[i].x, roundArr[i].y, roundArr[ii].x, roundArr[ii].y, r)////////////////
-//ok
+					ctx.arcTo(roundArr[i].x, roundArr[i].y, roundArr[ii].x, roundArr[ii].y, r);
 				}
 				else {
-					ctx.lineTo(roundArr[ii].x, roundArr[ii].y); /////////////////////////
-					//ctx.arcTo(roundArr[i].x, roundArr[i].y, roundArr[ii].x, roundArr[ii].y, r)///////////////
+					ctx.lineTo(roundArr[ii].x, roundArr[ii].y);
 				}
 
 				if(i+2 < (roundArr.length-1)) {
-					ctx.arcTo(roundArr[ii].x, roundArr[ii].y, roundArr[iii].x, roundArr[iii].y, r)
-					//ctx.lineTo(roundArr[ii].x, roundArr[ii].y);///////////////////////
-
-				}
+					ctx.arcTo(roundArr[ii].x, roundArr[ii].y, roundArr[iii].x, roundArr[iii].y, r);
+					}
 				else {
-					//ctx.lineTo(roundArr[ii].x, roundArr[ii].y, roundArr[iii].x, roundArr[iii].y, r); //////////////////////
-					ctx.arcTo(roundArr[ii].x, roundArr[ii].y, roundArr[iii].x, roundArr[iii].y, r); //////////////////////
-//ok
+					ctx.arcTo(roundArr[ii].x, roundArr[ii].y, roundArr[iii].x, roundArr[iii].y, r);
 				}
 
-			}
+			} //end of loop
+
 			//close the polygon
 			ctx.lineTo(roundArr[1].x, roundArr[1].y)
 		}
@@ -735,6 +757,51 @@ window.elefart.display = (function () {
 		if(obj.closed) {
 			ctx.closePath(); //closed shape, optional
 		}
+		if(obj.fillStyle) {
+			ctx.fill();
+		} 
+		if(obj.img) {
+			ctx.clip();
+			drawImage(ctx, obj); //TODO: NEED TO CLIP IMAGE TO POLYGON DIMENSIONS
+		}
+		if(obj.lineWidth && obj.strokeStyle) {
+			ctx.stroke();
+		} 
+		ctx.restore();
+	}
+
+	/** 
+	 * @method drawBubbles
+	 * @description draw a ScreenBubble object
+	 * @param {CanvasContext} ctx the current drawing context
+	 * @param {ScreenObject} the ScreenObject to draw
+	 */
+	function drawBubbles (ctx, obj) {
+		ctx.save();
+		ctx.lineWidth = obj.lineWidth;
+		ctx.strokeStyle = obj.strokeStyle;
+		ctx.fillStyle = obj.fillStyle; 
+		var pts = obj.points;
+		var radius = obj.radius;
+		if (pts.length < 3) {
+			return;
+		} 
+		ctx.beginPath();
+
+		//draw the bubbles as arcs
+		var len = pts.length;
+		ctx.moveTo(pts[0].x, pts[0].y);
+
+		for(var i = 0; i < len; i++) {
+			var ii = loopVal(i+1, len);
+			var iii = loopVal(i+2, len);
+			ctx.arcTo(pts[i].x, pts[i].y, pts[ii].x, pts[ii].y, 6);
+		}
+
+		if(obj.closed) {
+			ctx.closePath(); //closed shape, optional
+		}
+
 		if(obj.fillStyle) {
 			ctx.fill();
 		} 
@@ -833,7 +900,6 @@ window.elefart.display = (function () {
 	 * =========================================
 	 */
 	function drawLayer(ctx, layer) {
-		////////////////////console.log("Layer is:" + layer + " and length:" + layer.length);
 		var len = layer.length;
 		for(var i = 0; i < len; i++) {
 			var obj = layer[i];
@@ -857,6 +923,9 @@ window.elefart.display = (function () {
 					break;
 				case factory.TYPES.POLYGON:
 					drawPolygon(ctx, obj);
+					break;
+				case factory.TYPES.BUBBLES:
+					drawBubbles(ctx, obj);
 					break;
 				case factory.TYPES.IMAGE:
 					drawImage(ctx, obj);
@@ -899,6 +968,8 @@ window.elefart.display = (function () {
 
 		//execute the display list
 		drawLayer(bctx, displayList[LAYERS.WORLD]);
+		drawLayer(bctx, displayList[LAYERS.CLOUDS]);
+		drawLayer(bctx, displayList[LAYERS.BUILDINGBACK]);
 		drawLayer(bctx, displayList[LAYERS.BUILDING]);
 		bctx.restore();
 
@@ -932,9 +1003,8 @@ window.elefart.display = (function () {
 
 		//elevator shafts are in the foreground
 		drawLayer(fctx, displayList[LAYERS.SHAFTS]);
-
-		/*
 		drawLayer(fctx, displayList[LAYERS.ELEBACK]);
+		/*
 		drawLayer(fctx, displayList[LAYERS.ELESPACE1]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE2]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE3]);

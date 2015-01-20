@@ -18,6 +18,11 @@ window.elefart.dashboard = (function () {
 	controller,
 	firstTime = true;
 
+	var CONTROL_TYPES = {
+		START:"START",
+		STOP:"STOP"
+	};
+
 	/** 
 	 * @method init dashboard
 	 * @description initialize user controls for the game on the canvas.

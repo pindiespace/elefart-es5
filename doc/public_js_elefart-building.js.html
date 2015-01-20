@@ -28,6 +28,10 @@
 					<ul class="dropdown-menu ">
 						
 						<li>
+							<a href="Bubbles.html">Bubbles</a>
+						</li>
+						
+						<li>
 							<a href="Building.html">Building</a>
 						</li>
 						
@@ -40,11 +44,19 @@
 						</li>
 						
 						<li>
+							<a href="BuildingSign.html">BuildingSign</a>
+						</li>
+						
+						<li>
 							<a href="Circle.html">Circle</a>
 						</li>
 						
 						<li>
 							<a href="ClassList.html">ClassList</a>
+						</li>
+						
+						<li>
+							<a href="Cloud.html">Cloud</a>
 						</li>
 						
 						<li>
@@ -202,6 +214,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#drawBubbles">drawBubbles</a>
+						</li>
+						
+						<li>
 							<a href="global.html#drawCircle">drawCircle</a>
 						</li>
 						
@@ -262,6 +278,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#getBuildingObjByType">getBuildingObjByType</a>
+						</li>
+						
+						<li>
 							<a href="global.html#getByClassName">getByClassName</a>
 						</li>
 						
@@ -319,6 +339,10 @@
 						
 						<li>
 							<a href="global.html#getRandomInt">getRandomInt</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getRandomPoints">getRandomPoints</a>
 						</li>
 						
 						<li>
@@ -705,13 +729,20 @@ window.elefart.building = (function () {
 	 */
 	var MIN_FLOOR = 60;
 
+	/** 
+	 * @readonly
+	 * @description number used for first floor. Actual storage internally 
+	 * may be zero-based
+	 */
+	var ROOF = -1;
+
 	/**
 	 * @readonly
 	 * @enum {String}
 	 * @typedef {TYPES}
 	 * @description Enum for types of objects in the Building in the game
 	 */
-	var TYPES = {
+	var BUILDING_TYPES = {
 		ELEVATOR:"ELEVATOR",
 		ELEVATOR_DOORS:"ELEVATOR_DOORS",
 		ELEVATOR_SHAFT:"ELEVATOR_SHAFT",
@@ -722,6 +753,7 @@ window.elefart.building = (function () {
 		BUILDING_FLOORBASE:"BUILDING_FLOORBASE",
 		SUN:"SUN",
 		SKY:"SKY",
+		CLOUD:"CLOUD",
 		WORLD:"WORLD",
 		PERSON:"PERSON",
 		GOODIE:"GOODIE",
@@ -748,19 +780,30 @@ window.elefart.building = (function () {
 	 * the screen size changes.
 	 */
 	var DIMENSIONS = {};
-	DIMENSIONS[TYPES.SUN] = {
+	DIMENSIONS[BUILDING_TYPES.SUN] = {
 		top:0.03,
 		left:0.85,
 		width:0.045,
 		height:0.045
 	},
-	DIMENSIONS[TYPES.SKY] = {
+	DIMENSIONS[BUILDING_TYPES.SKY] = {
 		top:0.0,
 		left:0.0,
 		width:1.0,
 		height:0.1,
 	},
-	DIMENSIONS[TYPES.BUILDING] = {
+	DIMENSIONS[BUILDING_TYPES.CLOUD] = {
+		width:0.2,
+		height:0.4,
+		minWidth:50,
+		minHeight:40,
+		horizon:0.02, //lower horizon (no Clouds below that)
+		minArcs:3,
+		maxArcs:7,
+		minClouds:2,
+		maxClouds:20
+	},
+	DIMENSIONS[BUILDING_TYPES.BUILDING] = {
 		top:0.1,
 		left:0.0,
 		width:1.0,
@@ -768,31 +811,31 @@ window.elefart.building = (function () {
 		wallSize:0.01, //size of walls (related to height)
 		MIN_WALL:6
 	},
-	DIMENSIONS[TYPES.BUILDING_SIGN] = {
+	DIMENSIONS[BUILDING_TYPES.BUILDING_SIGN] = {
 		top:0.04,
 		left:0.07,
 		width:0.3,
-		height:0.05
+		//height:0.05 //determined by Building top
 	},
-	DIMENSIONS[TYPES.BUILDING_FLOOR] = {
+	DIMENSIONS[BUILDING_TYPES.BUILDING_FLOOR] = {
 		height:0.1, //height of entire floor
 	},
-	DIMENSIONS[TYPES.BUILDING_FLOORBASE] = {
+	DIMENSIONS[BUILDING_TYPES.BUILDING_FLOORBASE] = {
 		height:0.01 //height of walking surface at bottom BuildingFloor
 	},
-	DIMENSIONS[TYPES.ELEVATOR_SHAFT] = {
+	DIMENSIONS[BUILDING_TYPES.ELEVATOR_SHAFT] = {
 		width:0.1, //the entire shaft
 		subWidth:0.06, //the visible shaft rect
 		subOpacity:0.3 //opacity of central colored region of shaft
 	},
-	DIMENSIONS[TYPES.ELEVATOR_SUBSHAFT] = {
+	DIMENSIONS[BUILDING_TYPES.ELEVATOR_SUBSHAFT] = {
 		//nothing inherited at this point
 	},
-	DIMENSIONS[TYPES.ELEVATOR] = {
+	DIMENSIONS[BUILDING_TYPES.ELEVATOR] = {
 		elevatorWidth:0.1,
 		elevatorHeight:0.1
 	},
-	DIMENSIONS[TYPES.CONTROL_PANEL] = {
+	DIMENSIONS[BUILDING_TYPES.CONTROL_PANEL] = {
 		top: 0.8,
 		left:0.0,
 		bottom:1.0,
@@ -832,8 +875,8 @@ window.elefart.building = (function () {
 	 * entire building redraws to adjust. The dimensions of key 
 	 * elements (e.g. elevators and shafts) are changed in the 
 	 * DISPLAY {} lists of this object. Redefines occur in:
-	 * - DIMENSIONS[TYPES.ELEVATOR_SHAFT] 
-	 * - DIMENSIONS[TYPES.BUILDING_FLOOR] 
+	 * - DIMENSIONS[BUILDING_TYPES.ELEVATOR_SHAFT] 
+	 * - DIMENSIONS[BUILDING_TYPES.BUILDING_FLOOR] 
 	 * NOTE: dimensions are set for min-width and max-width CSS 
 	 * breakpoints. The setFloors() function adjusts for very elongated 
 	 * portrait displays (e.g. Kindle Fire).
@@ -843,19 +886,20 @@ window.elefart.building = (function () {
 	 */
 	function setDimensions (breakPt) {
 
-		console.log("New CSS breakpoint:" + breakPt);
+		if(breakPt !== false) console.log("New CSS breakpoint:" + breakPt);
 
 		var dim = getCSSValues(breakPt);
 
 		//compute ratios
 		if(dim) {
-
 			DIMENSIONS.ELEVATOR_SHAFT.width = 1/dim.shafts;
 			DIMENSIONS.ELEVATOR_SHAFT.subWidth = DIMENSIONS.ELEVATOR_SHAFT.width * 0.6;
 			DIMENSIONS.BUILDING_FLOOR.height = 1/dim.floors;
+			DIMENSIONS.BUILDING_SIGN.width = dim.signx;
+			DIMENSIONS.BUILDING_SIGN.top = dim.signy;
 		}
 		else {
-			console.log("ERROR: elefart.building, invalid dimensions from CSS");
+			///////////////////////console.log("ERROR: elefart.building, invalid dimensions from CSS");
 		}
 	}
 
@@ -867,9 +911,17 @@ window.elefart.building = (function () {
 	 * this routine adds a few floors
 	 */
 	function setFloors () {
-		var gh = display.getGameRect().height;
-		var h = gh.height * (1 - DIMENSIONS.BUILDING.HEIGHT);
+		var gr = display.getGameRect();
+		var gh = gr.height;
+		var ar = gr.width/gr.height;
 
+		//change some dimensions at extreme aspect ratios
+		if(ar &lt; 0.45) {
+			DIMENSIONS.BUILDING.top = 0.1 + (ar - 0.5)/5;
+			DIMENSIONS.SKY.height = DIMENSIONS.BUILDING.top
+		}
+
+		//compute height of building floors
 		if(gh &lt; 100) {
 			DIMENSIONS.BUILDING_FLOOR.height = 0.5;
 		}
@@ -891,7 +943,41 @@ window.elefart.building = (function () {
 		else {
 			DIMENSIONS.BUILDING_FLOOR.height = 0.10;
 		}
-		console.log("DIMENSIONS.BUILDING_FLOOR.height set to:"+DIMENSIONS.BUILDING_FLOOR.height)
+		/////////////////console.log("DIMENSIONS.BUILDING_FLOOR.height set to:"+DIMENSIONS.BUILDING_FLOOR.height)
+	}
+
+	/** 
+	 * @method getBuildingObjByType
+	 * @description given a type, find objects in the building, with optional recursive
+	 * action.
+	 * @param {String} type the type 
+	 * @param {Boolean} recurse (optional) if true, recurse through all children
+	 * @param {Number|String} index (optional) object property name
+	 * @param {Number|String} val (optional) value in property of Building object
+	 * @returns {Array} if found, get the object(s) in an array
+	 */
+	function getChildByType (type, recurse, index, val) {
+		var r = [],
+		len = this.children.length;
+		for(var i = 0; i &lt; len; i++) {
+			var o = this.children[i];
+			//console.log("name:" + o.name);
+			//console.log("index:" + index + " val:" + val);
+			if(o.name === type) {
+				if(index !== undefined &amp;&amp; val !== undefined) {
+					if(o[index] === val) {
+						r.push(o);
+					}
+				}
+				else {
+					r.push(o);
+				}
+			}
+			if(recurse) {
+				return getBuildingObjByType(type, index, val, recurse);
+			}
+		}
+		return r;
 	}
 
 	/* 
@@ -919,41 +1005,36 @@ window.elefart.building = (function () {
 	 * @param {Boolean} display if true, add to displayList
 	 * @returns {Elevator|false} an Elevator object, or false
 	 */
-	function Elevator (parent, display) {
-		var elev = false,
-		border = 4;
-		//elevator should start in its parent (ElevatorShaft)
-		if(parent === TYPES.ELEVATOR_SHAFT) {
+	function Elevator (building, shaft, subShaft, floor) {
+		var numFloors = Math.ceil(1/DIMENSIONS.BUILDING_FLOOR.height);
+		var t = building.top;
+		var l = subShaft.left;
+		var w = subShaft.width;
+		var h = subShaft.width;
 
-			elev = factory.ScreenRect(
-				parent.x, parent.bottom - parent.width, //square 
-				parent.width, parent.width, 
-				border,                //stroke width
+		//var sssss = building.getShaftSubWidth(); ////////////////////DOES NOT WORK
+
+		//TODO: use getters attached to Building
+
+		var e = factory.ScreenRect(
+				l, 
+				t,
+				w, 
+				h, 
+				8,                //stroke width
 				display.COLORS.BLACK,  //stroke color
 				display.COLORS.WHITE,  //fill color
 				display.LAYERS.ELEBACK //bottom layer
 			);
-			if(elev) {
-				elev.buildingType = TYPES.ELEVATOR;
-				//visual features
-				if(parent.buildingType === TYPES.ELEVATOR_SHAFT) {
-					parent.addChild(elev);
-					elev.setRectBorderRadius(border);
-
-					//TODO: draw top of elevator, creating Line children
-
-					//add to elefart.screens display list
-					if(display) {
-						display.addToDisplayList(elev, display.LAYERS.ELEBACK);
-					}
-				}
+			if(e) {
+				e.name = BUILDING_TYPES.ELEVATOR;
+				e.instanceName = "Shaft #:" + shaft.shaftNum;
+				e.borderRadius = 3;
+				e.shaftNum = shaft.shaftNum;
+				display.addToDisplayList(e, display.LAYERS.ELEBACK);
+				return e;
 			}
-
-		}
-		if(!elev) {
-			elefart.showError("failed to create Elevator");
-		}
-		return elev;
+		return false;
 	}
 
 	/* 
@@ -973,8 +1054,8 @@ window.elefart.building = (function () {
 	 * @returns {ElevatorDoors|false} an ElevatorDoors object, or false
 	 */
 	function ElevatorDoors (parent) {
-		if(parent &amp;&amp; parent.buildingType === TYPES.BUILDING_FLOOR) {
-				var eDoors = factory.ScreenRect(
+		if(parent &amp;&amp; parent.buildingType === BUILDING_TYPES.BUILDING_FLOOR) {
+			var eDoors = factory.ScreenRect(
 
 			);
 		}
@@ -1024,8 +1105,7 @@ window.elefart.building = (function () {
 				t = DIMENSIONS.BUILDING.MIN_WALL;
 				h += diff;
 			}
-
-			//create the shaft
+			//create the ElevatorShaft
 			var s = factory.ScreenRect(
 				l,
 				t,
@@ -1038,11 +1118,17 @@ window.elefart.building = (function () {
 				);
 
 			if(s) {
-				s.name = TYPES.ELEVATOR_SHAFT;
+				s.name = BUILDING_TYPES.ELEVATOR_SHAFT;
 				s.instanceName = "Shaft #:" + shaftNum;
 				s.shaftNum = shaftNum;
-				//draw the visible shaft as another Rect, partly transparent
-				//TODO: ShaftTop on a shaft
+				//assign generic getter function
+				s.getChildByType = getChildByType;
+
+				s.getSubShaft = function () {
+					return s.getChildByType(BUILDING_TYPES.ELEVATOR_SHAFT, false)[0];
+				}
+
+				//draw the visible SubShaft as another Rect, partly transparent
 				var rgbaColor = factory.getRGBAfromRGB(
 					display.COLORS.PINK, 
 					DIMENSIONS.ELEVATOR_SHAFT.subOpacity
@@ -1063,29 +1149,43 @@ window.elefart.building = (function () {
 					//if we extend to the Roof, draw an external wall around the shaft
 					if(shaftNum === hasShaftTop) {
 						var wallSize = Math.ceil(building.height * DIMENSIONS.BUILDING.wallSize) + 2;
-						var sp = factory.ScreenPoly(
-							[
-								factory.ScreenPoint(sb.left,building.top + wallSize),
-								factory.ScreenPoint(sb.left,sb.top),
-								factory.ScreenPoint(sb.right,sb.top),
-								factory.ScreenPoint(sb.right,building.top + wallSize)
-							], 
-							building.lineWidth, 
-							display.COLORS.BROWN, 
-							display.COLORS.CLEAR, 
+						l = sb.left;
+						t = sb.top;
+						w = sb.right - sb.left;
+						h = building.top - sb.top;
+						var sp = factory.ScreenRect(
+							l,
+							t,
+							w,
+							h,
+							building.lineWidth,
+							display.COLORS.BROWN,
+							display.COLORS.CLEAR,
 							display.LAYERS.SHAFTS
 							);
-						sp.borderRadius=6;
-						display.addToDisplayList(sp, display.LAYERS.BUILDING);
+						sp.borderRadius = 6;
+						display.addToDisplayList(sp, display.LAYERS.SHAFTS); //put behind BuildingFloor Rect
 					}
 					//add the shaft rect
-					sb.name = TYPES.ELEVATOR.SUBSHAFT;
+					sb.name = BUILDING_TYPES.ELEVATOR.SUBSHAFT;
+					sb.openSide = 3; //0, 1, 2, 3;
 					sb.instanceName = "Elevator Shaft #:" + shaftNum;
 					s.addChild(sb);
+
 					display.addToDisplayList(sb, display.LAYERS.SHAFTS);
+
+					////////////////////////
+					//CREATE ELEVATOR
+					////////////////////////
+					s.addChild(Elevator(building, s, sb, 1)); //building, shaft, subshaft, floor
+
+					//getter for Elevator
+					s.getElevator = function () {
+						return s.getChildByType(BUILDING_TYPES.ELEVATOR, false)[0];
+					}
+
 					return s;
 				}
-				
 			}
 		}
 		//fallthrough
@@ -1111,13 +1211,14 @@ window.elefart.building = (function () {
 	 * @returns {BuildingFloor|false} a BuildingFloor object, or false
 	 */
 	function BuildingFloor (building, floorNum, numFloors) {
-		if(building) {
-			var baseHeight = DIMENSIONS.BUILDING.wallSize * building.height;
-			if(baseHeight > MAX_WALLS) baseHeight = MAX_WALLS;
-			var h = building.height/numFloors;
-			var t = building.top + (floorNum * h);
-			var l = building.left;
-			var w = building.width;
+
+		//compute BuildingFloor based on dimensions
+		var baseHeight = DIMENSIONS.BUILDING.wallSize * building.height;
+		if(baseHeight > MAX_WALLS) baseHeight = MAX_WALLS;
+		var h = building.height/numFloors;
+		var t = building.top + (floorNum * h);
+		var l = building.left;
+		var w = building.width;
 
 			var f = factory.ScreenRect(
 				l,
@@ -1133,7 +1234,7 @@ window.elefart.building = (function () {
 				);
 
 			if(f) {
-				f.name = TYPES.BUILDING_FLOOR;
+				f.name = BUILDING_TYPES.BUILDING_FLOOR;
 				f.floorNum = (numFloors - floorNum);
 				f.instanceName = "Floor #" + f.floorNum;
 				f.walkLine = f.bottom; //where Players should put the .bottom of their enclosing Rect
@@ -1144,6 +1245,8 @@ window.elefart.building = (function () {
 					currRow:floorNum,
 					currCol:0
 				});
+				//assign generic getter function
+				f.getChildByType = getChildByType;
 				display.addToDisplayList(f, display.LAYERS.BUILDING);
 
 				//floorbase
@@ -1152,7 +1255,7 @@ window.elefart.building = (function () {
 					l,
 					t,
 					w,
-					baseHeight, //drawn downwards into lower floor
+					baseHeight, //Rect drawn downwards into lower floor
 					5,
 					display.COLORS.BROWN,
 					display.COLORS.BROWN,
@@ -1160,15 +1263,42 @@ window.elefart.building = (function () {
 					);
 				//TODO: also add elevator doors where shafts are
 				if(fb) {
-					fb.name = TYPES.BUILDING_FLOORBASE;
+					fb.name = BUILDING_TYPES.BUILDING_FLOORBASE;
 					fb.instanceName = "FloorBase #" + f.floorNum;
 					f.addChild(fb);
 					display.addToDisplayList(fb, display.LAYERS.BUILDING);
-					return f;
-				}
 
+					//get a shadow gradient
+					var grd = display.getBackgroundTexture(
+						display.MATERIALS.GRADIENT_SHADOW, 
+						l, 
+						t+baseHeight, 
+						l,
+						t+(baseHeight*4)
+						);
+					//make the shadow under the FLoor
+					var fg = factory.ScreenRect(
+						l,
+						t+baseHeight,
+						w,
+						baseHeight*4,
+						0,
+						display.COLORS.CLEAR,
+						grd,
+						display.LAYERS.BUILDING
+						);
+					if(fg) {
+						fg.name = BUILDING_TYPES.BUILDING_FLOORBASE;
+						fg.instanceName = "FloorBase shadow #" + f.floorNum;
+						fg.setOpacity(0.5);
+						fb.addChild(fg);
+						display.addToDisplayList(fg, display.LAYERS.BUILDING);
+						return f;
+					}
+
+				}
 			}
-		}
+
 		//fallthrough
 		elefart.showError("Failed to create BuildingFloor:" + floorNum);
 		return false;
@@ -1176,14 +1306,18 @@ window.elefart.building = (function () {
 
 	/** 
 	 * @constructor BuildingRoof
-	 * @classdesc special "floor" actually the roof of the Building. Draw a roof 
-	 * pattern on the base, extending somewhatinto the previous floor, make an
+	 * @classdesc special BuildingFloor, actually the roof of the Building. Draw a roof 
+	 * pattern on the base, extending into the next lower BuildingFloor
+	 * @param {Building} building the Building object, linked as parent to this class
+	 * @returns {BuildingRoof|false} a BuildingRoof, or false
 	 */
-	function BuildingRoof (building) {
-		var t = building.top;
+	function BuildingRoof (building, shaftTop) {
+
+		//compute BuildingRoof based on dimensions
+		var t = world.top;
 		var l = building.left;
 		var w = building.right - l;
-		var h = building.bottom - t;
+		var h = building.top;
 		var r = factory.ScreenRect(
 				l, 
 				t, 
@@ -1195,14 +1329,93 @@ window.elefart.building = (function () {
 				display.LAYERS.BUILDING
 			);
 
+		//create the BuildingRoof and set additional properties
 		if(r) {
-				f.name = TYPES.BUILDING_FLOOR;
-				f.floorNum = -1;
-				f.instanceName = "ROOF";
-				return r;
+			r.name = BUILDING_TYPES.BUILDING_FLOOR;
+			r.floorNum = ROOF; //SPECIAL NUMBER
+			r.instanceName = "ROOF";
+
+			//add the visible rooftop to the left of the ElevatorShaft punching through it
+			var shaftSubWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.subWidth * building.width/2);
+			var lw = shaftSubWidth - building.lineWidth + (
+				shaftTop * factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.width * building.width));
+			var rt = factory.ScreenRect(
+				world.left,
+				building.top - building.lineWidth,
+				lw,
+				4,
+				0,
+				display.COLORS.CLEAR,
+				display.COLORS.BLACK,
+				display.LAYERS.BUILDING
+				);
+
+			r.addChild(rt);
+			display.addToDisplayList(rt, display.LAYERS.BUILDING);
+		
+			//add the visible rooftop to the right of the ElevatorShaft punching through it
+			lw += (shaftSubWidth*2) + building.lineWidth/2;
+				rt = factory.ScreenRect(
+				lw,
+				building.top - building.lineWidth,
+				building.right+building.lineWidth,
+				4,
+				0,
+				display.COLORS.CLEAR,
+				display.COLORS.BLACK,
+				display.LAYERS.BUILDING
+				);
+
+			r.addChild(rt);
+			display.addToDisplayList(rt, display.LAYERS.BUILDING);
+			return r;
 		}
+
 		//fallthrough
 		elefart.showError("Failed to create BuildingRoof");
+		return false;
+	}
+
+	/** 
+	 * @constructor BuildingSign
+	 * @classdesc the sign on Building's BuildingRoof
+	 * - parent: Building
+	 * - grandparent: World
+	 * - children: none
+	 * @param {Building} building the Building object, linked as parent to this class
+	 * @returns {BuildingSign|false} a BuildingSign object, or false
+	 */
+	function BuildingSign (building) {
+
+		//compute BuildingSign based on dimensions
+		var ww = DIMENSIONS.BUILDING.wallSize * world.height;
+		var st = (DIMENSIONS.BUILDING_SIGN.top * building.height); //top of sign
+		var sh = building.top - st-ww/2; //height of sign
+		var sw = DIMENSIONS.BUILDING_SIGN.width * building.width;
+
+		//create the BuildingSign
+		var s = factory.ScreenRect(
+			DIMENSIONS.BUILDING_SIGN.left * building.width, 
+			st, 
+			sw,
+			sh, 
+			0, 
+			display.COLORS.CLEAR, 
+			display.COLORS.CLEAR, 
+			display.LAYERS.BUILDINGBACK, 
+			display.getHotelSign()
+			);
+
+		//set additional BuildingSign properties and add child objects
+		if(s) {
+			s.name = BUILDING_TYPES.BUILDING_SIGN;
+			s.instanceName = "GasLight Building Sign";
+			display.addToDisplayList(s, display.LAYERS.BUILDING);
+			return s;
+			}
+
+		//fallthrough
+		elefart.showError("Failed to create BuildingSigh");
 		return false;
 	}
 
@@ -1218,27 +1431,20 @@ window.elefart.building = (function () {
 	 * - parent: World
 	 * - grandparent: none
 	 * - children: BuildingFloor(s)
+	 * @param {World} world the World object, linked as parent to this class
 	 * @returns {Building|false} a Building object, or false
 	 */
-	function Building (world) {
+	function Building (world, shaftTop) {
 		var i; //counter
 
-		//compute sizes
-		//building wall width
+		//compute Building sizes based on dimensions
 		var ww = DIMENSIONS.BUILDING.wallSize * world.height;
 		var l = (DIMENSIONS.BUILDING.left * world.width);
 		var t = (DIMENSIONS.BUILDING.top * world.height);
-		var w = (DIMENSIONS.BUILDING.width * world.width);
-
-		if(w &lt; 1000) {
-			w++; //KLUDGE FOR ALIGNMENT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		}
-		w++;
-
-		//building height
+		var w = (DIMENSIONS.BUILDING.width * world.width) +1;// +1 fixes width at some dimensions
 		var h = DIMENSIONS.BUILDING.height * world.height;
 
-		//create building
+		//create Building
 		var b = factory.ScreenRect(
 				l, 
 				t, 
@@ -1250,57 +1456,42 @@ window.elefart.building = (function () {
 				display.LAYERS.WORLD
 			);
 
+		//set additional Building properties and add child objects
 		if(b) {
-			b.shrink((ww/2)-1);
-			b.name = TYPES.BUILDING;
+			b.shrink((ww/2)-1); //shrink so stroke shows on left and right of window
+			b.name = BUILDING_TYPES.BUILDING;
 			b.instanceName = "GasLight Building";
+			b.getChildByType = getChildByType; //generic child getter function
 
-			//add to displayList BEFORE floors
+			//add to Building outline to displayList BEFORE BuildingFloors
 			display.addToDisplayList(b, display.LAYERS.BUILDING);
 
-			//add Building Roof
-			//b.addChild(BuildingRoof(b));
-
-			//add sign at top of Building
-			var st = (DIMENSIONS.BUILDING_SIGN.top * b.height); //top of sign
-			var sh = b.top - st; //height of sign
-			var sw = DIMENSIONS.BUILDING_SIGN.width * b.width;
-
-			var s = factory.ScreenRect(
-				DIMENSIONS.BUILDING_SIGN.left * b.width, 
-				st, 
-				sw,
-				sh, 
-				0, 
-				display.COLORS.CLEAR, 
-				display.COLORS.CLEAR, 
-				display.LAYERS.BUILDING, 
-				display.getHotelSign()
-				);
-
-			if(s) {
-				s.name = TYPES.BUILDING_SIGN;
-				//scale sign at small dimensions
-				s.instanceName = "GasLight Building Sign";
-				s.imageOpacity = 1.0;
-				b.addChild(s);
-				display.addToDisplayList(s, display.LAYERS.BUILDING);
+			//getter for BuildingSign
+			b.getSign = function () {
+				return b.getChildByType (BUILDING_TYPES.BUILDING_SIGN, false)[0];
 			}
 
-			//add top floor opening on roof
+			//add the BuildingSign on Roof of Building BEFORE BuildingFloors
+			b.addChild(BuildingSign(b));
+
+			//getters for BuildingFloors
+			b.getFloor = function (floorNum, useDisplay) {
+				return b.getChildByType (BUILDING_TYPES.BUILDING_FLOOR, false, "floorNum", floorNum)[0];
+			}
+			b.getFloors = function () {
+				return b.getChildByType (BUILDING_TYPES.BUILDING_FLOOR);
+			}
+
+			//add BuildingFloors
 			var floorHeight = DIMENSIONS.BUILDING_FLOOR.height * b.height;
-			//var numFloors = b.height/floorHeight;
 			var numFloors = Math.ceil(1/DIMENSIONS.BUILDING_FLOOR.height);
 			floorHeight = b.height/numFloors;
 			var floorDiff = b.height - (numFloors * floorHeight);
-			console.log("bldg height:" + b.height + " floor height:" + floorHeight + " numFloors:" + numFloors + " floorDiff:" + floorDiff)
-
-			console.log("NUMFLOORS:" + numFloors);
 			for(i = 0; i &lt; numFloors; i++) {
 				b.addChild(BuildingFloor(b, i, numFloors));
 			}
 
-			//compute which ElevatorShaft goes to the BuildingRoof
+			//compute which ElevatorShaft goes to the BuildingRoof (one extra floor, number -1)
 			var numShafts = factory.toInt(DIMENSIONS.BUILDING.width/DIMENSIONS.ELEVATOR_SHAFT.width);
 			var shaftTop = 0;
 			var min = Math.floor(numShafts/2);
@@ -1312,57 +1503,160 @@ window.elefart.building = (function () {
 				shaftTop = factory.getRandomInt(Math.ceil(numShafts/2), numShafts-1);
 			}
 
+			//getter for BuildingRoof
+			b.getBuildingRoof = function () {
+				return b.getChildByType(BUILDING_TYPES.BUILDING_FLOOR, false, "floorNum", ROOF)[0];
+			}
+
+			//create and add BuildingRoof, with adds as a BuildingFloor -1
+			b.addChild(BuildingRoof(b, shaftTop));
+
+			//getters for ElevatorShafts
+			b.getShaft = function (shaftNum) {
+				return b.getChildByType (BUILDING_TYPES.ELEVATOR_SHAFT, false, "shaftNum", shaftNum)[0];
+			}
+
+			b.getShafts = function () {
+				return b.getChildByType (BUILDING_TYPES.ELEVATOR_SHAFT);
+			}
+
 			//create all ElevatorShafts
 			for(i = 0; i &lt; numShafts; i++) {
 				b.addChild(ElevatorShaft(b, i, numShafts, shaftTop));
 			}
-
 			//return the completed Building
+
+			window.b = b; ////////////////////////////////////////////////////////////////////////////////////////////////////
 			return b;
 		}
+
 		//fallthrough
 		elefart.showError("failed to create Building");
 		return false;
 	}
 
 	/** 
-	 * @constructor Sun
-	 * @classdesc the sun over the Building, a circle with a color gradient.
-	 * - parent: World
-	 * - grandparent: none
+	 * @constructor Cloud
+	 * @classdesc the clouds in the Sky, Bubbles object
+	 * - parent: Sky
+	 * - grandparent: World
 	 * - children: none
-	 * @returns {Sun|false} a Sun object, or false
+	 * @param {Sky} sky the Sky 
+	 * @returns {Cloud|false} a Cloud object, or false
 	 */
-	function Sun (world) {
-		//compute sizes
-		var l = DIMENSIONS.SUN.left * world.width;
-		var t = DIMENSIONS.SUN.top * world.height;
-		var r = DIMENSIONS.SUN.height * world.height * 0.5;
-		//create the radial gradient
-		var grd = display.getBackgroundTexture(
-			display.MATERIALS.GRADIENT_SUN, 
-			l+r, //x first circle x
-			t+r,   //y first circle y
-			2,   //x2 first circle radius
-			r    //y2 second circle radius
+	function Cloud (sky) {
+		/* 
+		 * compute Cloud based on Sky dimensions. Clouds near the 
+		 * bottom of the Sky are smaller and move more slowly than those 
+		 * near the top of the Sky. Clouds are placed in a semi-random fashion, 
+		 * and have the arcs in their shapes set randomly as well
+		 */
+		var minWidth = DIMENSIONS[BUILDING_TYPES.CLOUD].minWidth;
+		var minHeight = DIMENSIONS[BUILDING_TYPES.CLOUD].minHeight;
+		console.log("sky.width:" + sky.width + " sky.height:" + sky.height)
+		var cloudX = factory.getRandomInt(
+			sky.left, 
+			sky.width-100
 			);
-		if(grd) { 
-			//create the Sun
-			var s = factory.ScreenCircle(
-				l, t, r,
-				3, display.COLORS.WHITE,
-				grd,
-				display.LAYERS.WORLD
-				);
-			if(s) {
-				s.name = TYPES.SUN;
-				s.instanceName = "Sun";
-				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
-				return s;
+
+		var cloudY = factory.getRandomInt(
+			sky.top,
+			sky.top + sky.height - minHeight
+			);
+
+		var cloudWidth  = factory.getRandomInt(minWidth, sky.width/4);
+		var cloudHeight = factory.getRandomInt(minHeight, sky.height/1.5);
+		console.log("cloudWidth:" + cloudWidth + " cloudHeight:" + cloudHeight)
+
+		var l = cloudX; if(l &lt; 10) l = 10;
+		var t = cloudY; if(t &lt; 1) t = 1;
+		var w = l + cloudWidth;
+		if(w > sky.width) w -= sky.width/2;
+		var h = t + cloudHeight;
+		if(h > sky.height) h -= sky.height/2;
+		var scale = (h - t)/sky.bottom;
+		w *= scale; if(w &lt; minWidth) w = minWidth;
+		h *= scale; if(h &lt; minHeight) h = minHeight;
+		
+		//make the cloudRect
+		var cloudRect = factory.Rect(
+			l,
+			t,
+			w,
+			h
+			);
+
+
+		////////////////////
+		//center:point
+		//radius:number
+		//n:number = 10
+		//TODO: MAKE THREE RADII TO GET CURVES
+		function getNPointsOnCircle(center, radius, radius2, xDistort, yDistort, n) {
+			var alpha = Math.PI * 2 / n;
+			var points = [], 
+			pointOnCircle,
+			i = -1;
+			while(++i &lt; n) {
+				var theta = alpha * i;
+				if(i%2) {
+					pointOnCircle = factory.Point(center.x + (Math.cos(theta) * radius*yDistort), 
+					center.y + (Math.sin(theta) * radius*xDistort)); //LARGER RING
+				}
+				else {
+					var x, y;
+					pointOnCircle = factory.Point(center.x + (Math.cos(theta) * radius2*yDistort), 
+						center.y + (Math.sin(theta) * radius2*xDistort)); //SMALLER RING
+				}
+
+				points[i] = pointOnCircle;
 			}
+			return points;
 		}
+		////////////////////
+		var cc = factory.Point(
+				(cloudRect.left + cloudRect.width/2), 
+				(cloudRect.top + cloudRect.height/2)
+			);
+		console.log("scale:" + scale)
+		console.log("cloudRect:" + cloudRect.top + "," + cloudRect.right + "," + cloudRect.bottom + "," + cloudRect.left);
+		pts = getNPointsOnCircle(
+				cc, 
+				cloudRect.height/2, //outerRadius
+				cloudRect.height/3, //inner radius
+				factory.getRandomInt(0.8, 1.0), //y distortion to oval
+				factory.getRandomInt(3, 7), //x distortion to oval
+				10
+				);
+
+		var minRadius = 1; //minimum arc
+		var maxRadius = cloudRect.height/4; //maximum arc
+
+		//create the Cloud
+		var c = factory.ScreenBubbles(
+			pts, 
+			2, 
+			display.COLORS.PALE_GREY, 
+			display.COLORS.WHITE, 
+			display.LAYERS.CLOUDS, 
+			null, 
+			null, 
+			true,
+			minRadius,
+			maxRadius
+			);
+
+		//set additional Cloud properties
+		if(c) {
+			c.name = BUILDING_TYPES.CLOUD;
+			c.instanceName = "Cloud";
+			c.getChildByType = getChildByType; //generic child getter function
+			display.addToDisplayList(c);
+			return c;
+		}
+
 		//fallthrough
-		elefart.showError("failed to create Sun");
+		elefart.showError("failed to create Cloud");
 		return false;
 	}
 
@@ -1371,26 +1665,31 @@ window.elefart.building = (function () {
 	 * @classdesc the sky over the Building, a rect with a color gradient.
 	 * - parent: World
 	 * - grandparent: none
-	 * - children: none
+	 * - children: Clouds in Sky
+	 * @param {World} world the World object, linked as parent to this class
 	 * @returns {Sky|false} the Sky object, or false
 	 */
 	function Sky (world) {
-		//compute sizes
+
+		//compute Sky sizes based on World relative dimensions
 		var l = DIMENSIONS.SKY.left * world.width;
 		var t = DIMENSIONS.SKY.top * world.height;
 		var w = DIMENSIONS.SKY.width * world.width;
 		var h = DIMENSIONS.SKY.height * world.height;
 		 if(w > 1000) {
-			w -= 2;
+			w -= 2; //kludge fixing some dimensions
 		}
+
+		//Sky gradient
 		var grd = display.getBackgroundTexture(
 			display.MATERIALS.GRADIENT_SKY, 
 			l, 
 			t, 
 			l,
 			h);
+
+		//create the Sky
 		if(grd) {
-			//create the Sky
 			var s = factory.ScreenRect(
 				l, 
 				t, 
@@ -1400,15 +1699,96 @@ window.elefart.building = (function () {
 				grd,                     //fill
 				display.LAYERS.WORLD
 			);
+
+			//set additional Sky properties
 			if(s) {
-				s.name = TYPES.SKY;
+				s.name = BUILDING_TYPES.SKY;
 				s.instanceName = "Sky";
+				s.getChildByType = getChildByType; //generic child getter function
+
+				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
+
+				//getters for Clouds
+				s.getClouds = function () {
+					return s.getChildByType(BUILDING_TYPES.CLOUDS);
+				}
+
+				//create Clouds
+				var numClouds = factory.getRandomInt(DIMENSIONS[BUILDING_TYPES.CLOUD].minClouds, 
+					DIMENSIONS[BUILDING_TYPES.CLOUD].maxClouds);
+
+				//TODO: MAKE CLOUDS AT DEFINED DISTANCES AND HEIGHTS, SHRINK AS THEY GO 
+				//DOWN AND TO THE HORIZON
+				numClouds = 1; /////////////////////////////////////////////////////
+
+				for(var i = 0; i &lt; numClouds; i++) {
+					s.addChild(Cloud(s));
+				}
+
+				return s;
+			}
+		}
+
+		//fallthrough
+		elefart.showError("failed to create Sky");
+		return false;
+	}
+
+
+	/** 
+	 * @constructor Sun
+	 * @classdesc the sun over the Building, a circle with a color gradient.
+	 * - parent: World
+	 * - grandparent: none
+	 * - children: light gradient around Sun's edge in Sky
+	 * @param {World} world the World object, linked as parent to this class
+	 * @returns {Sun|false} a Sun object, or false
+	 */
+	function Sun (world) {
+
+		//compute Sun sizes based on relative World dimensions
+		var l = DIMENSIONS.SUN.left * world.width;
+		var t = DIMENSIONS.SUN.top * world.height;
+		var r = DIMENSIONS.SUN.height * world.height * 0.5;
+
+		//create the radial gradient
+		var grd = display.getBackgroundTexture(
+			display.MATERIALS.GRADIENT_SUN, 
+			l+r,  //x first circle x
+			t+r,  //y first circle y
+			2,    //x2 first circle radius
+			r     //y2 second circle radius
+			);
+
+		//create the Sun
+		if(grd) { 
+			var s = factory.ScreenCircle(
+				l, 
+				t, 
+				r,
+				3, 
+				display.COLORS.WHITE,
+				grd,
+				display.LAYERS.WORLD
+				);
+
+			//set additional Sun properties
+			if(s) {
+				s.name = BUILDING_TYPES.SUN;
+				s.instanceName = "Sun";
+				s.getChildByType = getChildByType; //generic child getter function
+
+				//TODO: getter for Sun gradient lighting Sky in its vicinity
+
+				//TODO: add the lightening gradient
+
 				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
 				return s;
 			}
 		}
+
 		//fallthrough
-		elefart.showError("failed to create Sky");
+		elefart.showError("failed to create Sun");
 		return false;
 	}
 
@@ -1421,31 +1801,50 @@ window.elefart.building = (function () {
 	 * @returns {World|false} the World containing the Building
 	 */
 	function World () {
+
+		//game dimensions set by browser viewport
 		var r = display.getGameRect();
 		var w = r.right - r.left;
 		var h = r.bottom - r.top;
 
-		console.log("World computed width:" + w); ////////////////
-
+		//create the World
 		if(r) {
-			//World is a ScreenRect
 			var w = factory.ScreenRect(
-			0, 0, w, h,
-			0, display.COLORS.WHITE, 
+			0, 
+			0, 
+			w, 
+			h,
+			0, 
+			display.COLORS.WHITE, 
 			display.COLORS.BLACK,
 			display.LAYERS.WORLD
 			);
-			//set World propeties
+
+			//set additional World propeties
 			if(w) {
-				w.name = TYPES.WORLD;
+				w.name = BUILDING_TYPES.WORLD;
 				w.instanceName = "World of Elefart";
-				w.parent = null; //world has not parent
+				w.getChildByType = getChildByType; //generic child getter function
+				w.parent = null; //World has no parent
 				w.setRectBorderRadius(0); //no border
 				w.setOpacity(0.0); //World is invisible
+
+				//getters
+				w.getBuilding = function () {
+					return w.getChildByType (BUILDING_TYPES.BUILDING, false)[0];
+				}
+				w.getSky = function () {
+					return w.getChildByType (BUILDING_TYPES.SKY, false)[0];
+				}
+				w.getSun = function () {
+					return w.getChildByType (BUILDING_TYPES.SUN, false)[0];
+				}
 				//we don't add World to display list
+
 				return w;
 			}
 		}
+
 		//fallthrough
 		elefart.showError("Failed to create World");
 		return false;
@@ -1517,7 +1916,6 @@ window.elefart.building = (function () {
 	 * elefart.screens displayList
 	 */
 	function buildWorld () {
-		console.log("In buildWorld");
 
 		//kill the old world display list
 		display.initDisplayList();
@@ -1528,12 +1926,11 @@ window.elefart.building = (function () {
 		setFloors();
 
 		//reset the world
-		w = World();
-		console.log("SETTING w AS WORLD IN WINDOW:w");
-		if(w) {
-			w.addChild(Sky(w));
-			w.addChild(Sun(w));
-			w.addChild(Building(w));
+		world = World();
+		if(world) {
+			world.addChild(Sky(world));
+			world.addChild(Sun(world));
+			world.addChild(Building(world));
 			//once we're done, start the event loop
 		} //end of if w
 	}
@@ -1612,7 +2009,7 @@ window.elefart.building = (function () {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Sat Jan 17th 2015 using the <a
+		on Mon Jan 19th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
