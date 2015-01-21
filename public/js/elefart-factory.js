@@ -35,7 +35,7 @@ window.elefart.factory = (function () {
 		RECT:"RECT",
 		CIRCLE:"CIRCLE",
 		POLYGON:"POLYGON",
-		BUBBLES:"BUBBLES",
+		CLOUD:"CLOUD",
 		IMAGE:"IMAGE"
 	};
 
@@ -522,16 +522,18 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
-	 * @constructor Bubbles
-	 * @classdesc ScreenObject.type BUBBLES. Bubbles are Polygon-like, but are made 
-	 * with arcs instead of straight lines. Polygons are straight with rounded corners 
-	 * if .borderRadius is set. 
-	 * @param {Array} pts an array of Points defining the Bubbles
-	 * @returns {Bubbles} a Bubbles object
+	 * @constructor Cloud
+	 * @classdesc ScreenObject.type Cloud. Cloudss are Polygon-like, but are made 
+	 * with curves instead of straight lines. Polygons are straight with rounded corners 
+	 * if polygon.borderRadius is set. Specific algorithms are needed to organize the 
+	 * points in a Cloud into the desired pattern. elefart.building used a proceedural 
+	 * "flower" shape to create clouds
+	 * @param {Array} pts an array of Points defining the Cloud
+	 * @returns {Cloud} a Cloud object
 	 */
-	function Bubbles (pts) {
+	function Cloud (pts) {
 		var b = Polygon(pts);
-		b.type = TYPES.BUBBLES;
+		b.type = TYPES.CLOUD;
 		b.radius = getInitedArray(pts.length, 0); //radius of each arch of each sub-Bubble
 		return b;
 	}
@@ -1738,8 +1740,8 @@ window.elefart.factory = (function () {
 		return p;
 	}
 
-	function ScreenBubbles (pts, strokeWidth, strokeStyle, fillStyle, layer, src, callback, closed, minRadius, maxRadius) {
-		var b = Bubbles(pts);
+	function ScreenCloud (pts, strokeWidth, strokeStyle, fillStyle, layer, src, callback, closed, minRadius, maxRadius) {
+		var b = Cloud(pts);
 
 		if(b) {
 			for(var i = 0; i < pts.length; i++) {
@@ -1835,7 +1837,7 @@ window.elefart.factory = (function () {
 		Rect:Rect,
 		Circle:Circle,
 		Polygon:Polygon,
-		Bubbles:Bubbles, //cloud-like
+		Cloud:Cloud, //cloud-like
 		setFilter:setFilter, //Member functions
 		setGradient:setGradient,
 		setOpacity:setOpacity,
@@ -1847,7 +1849,7 @@ window.elefart.factory = (function () {
 		ScreenRect:ScreenRect,
 		ScreenCircle:ScreenCircle,
 		ScreenPoly:ScreenPoly,
-		ScreenBubbles:ScreenBubbles,
+		ScreenCloud:ScreenCloud,
 		init:init,
 		run:run
 	};

@@ -771,12 +771,12 @@ window.elefart.display = (function () {
 	}
 
 	/** 
-	 * @method drawBubbles
-	 * @description draw a ScreenBubble object
+	 * @method drawCloud
+	 * @description draw a ScreenCloud object
 	 * @param {CanvasContext} ctx the current drawing context
 	 * @param {ScreenObject} the ScreenObject to draw
 	 */
-	function drawBubbles (ctx, obj) {
+	function drawCloud (ctx, obj) {
 		ctx.save();
 		ctx.lineWidth = obj.lineWidth;
 		ctx.strokeStyle = obj.strokeStyle;
@@ -788,20 +788,18 @@ window.elefart.display = (function () {
 		} 
 		ctx.beginPath();
 
-		//draw the bubbles as arcs
+		//draw the bubbly parts of the cloud as curves
 		var len = pts.length;
 		ctx.moveTo(pts[0].x, pts[0].y);
 
-		for(var i = 0; i < len; i++) {
+		for(var i = 1; i < len; i+=3) {
 			var ii = loopVal(i+1, len);
 			var iii = loopVal(i+2, len);
-			ctx.arcTo(pts[i].x, pts[i].y, pts[ii].x, pts[ii].y, 6);
+			ctx.bezierCurveTo(pts[i].x, pts[i].y, pts[ii].x, pts[ii].y, pts[iii].x, pts[iii].y);
 		}
-
 		if(obj.closed) {
 			ctx.closePath(); //closed shape, optional
 		}
-
 		if(obj.fillStyle) {
 			ctx.fill();
 		} 
@@ -924,8 +922,8 @@ window.elefart.display = (function () {
 				case factory.TYPES.POLYGON:
 					drawPolygon(ctx, obj);
 					break;
-				case factory.TYPES.BUBBLES:
-					drawBubbles(ctx, obj);
+				case factory.TYPES.CLOUD:
+					drawCloud(ctx, obj);
 					break;
 				case factory.TYPES.IMAGE:
 					drawImage(ctx, obj);
