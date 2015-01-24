@@ -95,20 +95,16 @@ describe('Elefart factory', function () {
 		 * ============================
 		 */
 
-		//Point and Line tests
+		//Point tests
 		var p = new elefart.factory.Point(10, 10);
 		expect(typeof p).toBe('object');
 		expect(p.valid()).toBe(true);
 
+		//Line tests
 		var l = new elefart.factory.Line(
 			elefart.factory.Point(10, 20), 
 			elefart.factory.Point(100, 200)
 			);
-
-		//Padding tests
-		var pd = new elefart.factory.Padding(4,3,2,1);
-		expect(typeof pd).toBe('object');
-		expect(pd.valid()).toBe(true);
 
 		//Rect tests
 		var r = new elefart.factory.Rect(10, 100, 20, 200);
@@ -252,7 +248,7 @@ describe('Elefart factory', function () {
 		//check setDimensions
 		mv.setDimensions(100, 100);
 		expect(mv.width).toBe(100);
-		expect(mv.height).toBe(100);
+		expect(mv.height).toBe(100); //////////////ERROR HERE!!!!!!
 
 		//check centerOnPoint
 		mv.centerOnPoint(
@@ -267,12 +263,9 @@ describe('Elefart factory', function () {
 		expect(mv.top).toBe(350);
 
 		//check scale
-		mv.scale(2.0);
+		mv.scale(2.0, 2.0);
 		expect(mv.width).toBe(200);
 		expect(mv.height).toBe(200);
-
-		//check setRectPadding
-		mv.setRectPadding(elefart.factory.Padding(4,5,6,7));
 
 		//check setRectBorderRadius
 		mv.setRectBorderRadius(4);

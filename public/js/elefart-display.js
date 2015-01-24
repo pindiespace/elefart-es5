@@ -220,7 +220,7 @@ window.elefart.display = (function () {
 	 * @description get the pixel RGB(A) data from an image 
 	 * @param {HTMLImageElement} img image to return pixel data from 
 	 * @param {HTMLCanvasElement} c offscreen <canvas> object to filter in
-	 * @return {Array}  array with RGB or RGBA image data 
+	 * @return {Array<Number>} an array with RGB or RGBA image data 
 	 */
 	function getPixels (img, c) { 
 		c.width = img.width; 
@@ -564,13 +564,14 @@ window.elefart.display = (function () {
 		ctx.fillStyle = obj.fillStyle;
 		ctx.globalAlpha = obj.opacity;
 		ctx.beginPath();
+		//circle starts at topLeft, so add radius when drawing from center Point
 		ctx.arc(obj.left+obj.radius, obj.top+obj.radius, obj.radius, 0, 2 * Math.PI);
 		//ctx.rect(obj.left, obj.top, obj.width, obj.height); //enclosing Rect
 		ctx.closePath();
 		if(obj.fillStyle) ctx.fill();
 		if(obj.img) {
 			ctx.clip();
-			drawImage(ctx, obj); //TODO: clip image to draw in Circle fill
+			drawImage(ctx, obj);
 		}
 		if(obj.lineWidth && obj.strokeStyle) ctx.stroke();
 		ctx.restore();
@@ -619,7 +620,7 @@ window.elefart.display = (function () {
 	 * @param {Point} pointB ending point of line
 	 * @param {Point} circle center
 	 * @param {Number} circle radius
-	 * @returns {Array} returns one or two points for the intersection of a line with 
+	 * @returns {Array<Point>} returns one or two Points for the intersection of a Line with 
 	 * the circle. 
 	 */
 	function getCircleLineIntersectionPoint(
