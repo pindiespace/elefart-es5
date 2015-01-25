@@ -98,8 +98,8 @@ window.elefart.building = (function () {
 	DIMENSIONS[BUILDING_TYPES.CLOUD] = {
 		width:0.2,
 		height:0.4,
-		minWidth:50,
-		minHeight:40,
+		minWidth:100,
+		minHeight:10,
 		horizon:0.02, //lower horizon (no Clouds below that)
 		minArcs:3,
 		maxArcs:7,
@@ -848,7 +848,7 @@ window.elefart.building = (function () {
 	 * @param {Sky} sky the Sky 
 	 * @returns {Cloud|false} a Cloud object, or false
 	 */
-	function Cloud (sky) {
+	function Cloud (sky, distance, width, height, blendColor) {
 		/* 
 		 * compute Cloud based on Sky dimensions. Clouds near the 
 		 * bottom of the Sky are smaller and move more slowly than those 
@@ -857,35 +857,21 @@ window.elefart.building = (function () {
 		 */
 		var minWidth = DIMENSIONS[BUILDING_TYPES.CLOUD].minWidth;
 		var minHeight = DIMENSIONS[BUILDING_TYPES.CLOUD].minHeight;
-		console.log("sky.width:" + sky.width + " sky.height:" + sky.height)
 
 		//Cloud x position
 		var cloudX = factory.getRandomInt(
 			sky.left, 
-			sky.width-100
+			sky.right - minWidth
 			);
+		//random biases to the right, so skew x values to the left
+		cloudX -= sky.width * 0.2;
+		var cloudY = sky.height * distance * (height/sky.height);
 
-		//Cloud y position
-		var cloudY = factory.getRandomInt(
-			sky.top,
-			sky.top + sky.height - minHeight
-			);
+		var l = cloudX;
+		var t = cloudY;
+		var w = l + width*distance;
+		var h = t + height*distance;
 
-		//Cloud width and height
-		var cloudWidth  = factory.getRandomInt(minWidth, sky.width/4);
-		var cloudHeight = factory.getRandomInt(minHeight, sky.height/1.5);
-		console.log("cloudWidth:" + cloudWidth + " cloudHeight:" + cloudHeight)
-
-		var l = cloudX; if(l < 10) l = 10;
-		var t = cloudY; if(t < 1) t = 1;
-		var w = l + cloudWidth;
-		if(w > sky.width) w -= sky.width/2;
-		var h = t + cloudHeight;
-		if(h > sky.height) h -= sky.height/2;
-		var scale = (h - t)/sky.bottom;
-		w *= scale; if(w < minWidth) w = minWidth;
-		h *= scale; if(h < minHeight) h = minHeight;
-		
 		//make the cloudRect
 		var cloudRect = factory.Rect(
 			l,
@@ -899,24 +885,19 @@ window.elefart.building = (function () {
 				(cloudRect.left + cloudRect.width/2), 
 				(cloudRect.top + cloudRect.height/2)
 			);
-		console.log("scale:" + scale)
-		console.log("cloudRect:" + cloudRect.top + "," + cloudRect.right + "," + cloudRect.bottom + "," + cloudRect.left);
+		//console.log("cloudRect:" + cloudRect.top + "," + cloudRect.right + "," + cloudRect.bottom + "," + cloudRect.left);
 
+		var sFactor = ((1.0 - distance) * (sky.height - t));
 		pts = factory.createFlowerShape(
 				cc, //central Point
-				cloudRect.height/3, //outerRadius
-				cloudRect.height/4, //inner radius
-				factory.getRandomInt(0.8, 1.0), //y distortion to oval
-				factory.getRandomInt(3, 7), //x distortion to oval
+				//cloudRect.height/3, //outerRadius
+				//cloudRect.height/4, //inner radius
+				sFactor/3,
+				sFactor/4,
+				factory.getRandomInt(0.95, 1.0), //y distortion to oval
+				factory.getRandomInt(7, 8), //x distortion to oval
 				10
 			);
-
-		//adjust points so more Cloud-like
-		pts = factory.skewShape(pts, cc, 0, 0.3);
-		pts = factory.slantShape(pts, cc, 0.3, 0);
-
-		var minRadius = 1; //minimum arc
-		var maxRadius = cloudRect.height/4; //maximum arc
 
 		//create the Cloud
 		var c = factory.ScreenCloud(
@@ -930,8 +911,39 @@ window.elefart.building = (function () {
 			true
 			);
 
-		//set additional Cloud properties
+		/* 
+		 * skew Cloud points with a linear approximation. For small 
+		 * Clouds, this is enough to make them fluffier on the top 
+		 * and flattened on the bottom.
+		 */
 		if(c) {
+			var xSkew = 0.2 * c.width;
+			var ySkew = (c.height/c.width) * c.height;
+			//adjust points so more Cloud-like
+			factory.skewShape(c, cc, 8, xSkew, 0, xSkew);
+			//flatten the Cloud bottom
+			var len = c.points.length;
+			var dist = c.bottom - cc.y;
+			for(var i = 0; i < len; i++) {
+				var pt = c.points[i];
+				if(pt.y > cc.y) {
+					var cdist = pt.y - cc.y;
+					var scale = cdist/dist;
+					pt.y -= (scale * ySkew);
+				}
+			}
+			//shadow for Cloud
+			var grd = display.getBackgroundTexture(
+				display.MATERIALS.GRADIENT_CLOUD, 
+				0, 
+				c.top, 
+				0, 
+				c.bottom
+			);
+			c.setFill(grd, blendColor); //Cloud fill, plus Sky gradient
+			//TODO: clouds "blue with distance, so set a bluing value"
+
+			c.distance = distance; //used to animate Cloud layers
 			c.name = BUILDING_TYPES.CLOUD;
 			c.instanceName = "Cloud";
 			c.getChildByType = getChildByType; //generic child getter function
@@ -943,81 +955,6 @@ window.elefart.building = (function () {
 		elefart.showError("failed to create Cloud");
 		return false;
 	}
-
-	/** 
-	 * @constructor Sky
-	 * @classdesc the sky over the Building, a rect with a color gradient.
-	 * - parent: World
-	 * - grandparent: none
-	 * - children: Clouds in Sky
-	 * @param {World} world the World object, linked as parent to this class
-	 * @returns {Sky|false} the Sky object, or false
-	 */
-	function Sky (world) {
-
-		//compute Sky sizes based on World relative dimensions
-		var l = DIMENSIONS.SKY.left * world.width;
-		var t = DIMENSIONS.SKY.top * world.height;
-		var w = DIMENSIONS.SKY.width * world.width;
-		var h = DIMENSIONS.SKY.height * world.height;
-		 if(w > 1000) {
-			w -= 2; //kludge fixing some dimensions
-		}
-
-		//Sky gradient
-		var grd = display.getBackgroundTexture(
-			display.MATERIALS.GRADIENT_SKY, 
-			l, 
-			t, 
-			l,
-			h);
-
-		//create the Sky
-		if(grd) {
-			var s = factory.ScreenRect(
-				l, 
-				t, 
-				w, 
-				h,
-				0, display.COLORS.BLACK, //stroke
-				grd,                     //fill
-				display.LAYERS.WORLD
-			);
-
-			//set additional Sky properties
-			if(s) {
-				s.name = BUILDING_TYPES.SKY;
-				s.instanceName = "Sky";
-				s.getChildByType = getChildByType; //generic child getter function
-
-				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
-
-				//getters for Clouds
-				s.getClouds = function () {
-					return s.getChildByType(BUILDING_TYPES.CLOUDS);
-				}
-
-				//create Clouds
-				var numClouds = factory.getRandomInt(DIMENSIONS[BUILDING_TYPES.CLOUD].minClouds, 
-					DIMENSIONS[BUILDING_TYPES.CLOUD].maxClouds);
-
-				//TODO: MAKE CLOUDS AT DEFINED DISTANCES AND HEIGHTS, SHRINK AS THEY GO 
-				//DOWN AND TO THE HORIZON
-				numClouds = 1; /////////////////////////////////////////////////////
-
-				for(var i = 0; i < numClouds; i++) {
-					s.addChild(Cloud(s));
-				}
-
-				return s;
-			}
-		}
-
-		//fallthrough
-		elefart.showError("failed to create Sky");
-		return false;
-	}
-
 
 	/** 
 	 * @constructor Sun
@@ -1077,6 +1014,121 @@ window.elefart.building = (function () {
 	}
 
 	/** 
+	 * @constructor Sky
+	 * @classdesc the sky over the Building, a rect with a color gradient.
+	 * - parent: World
+	 * - grandparent: none
+	 * - children: Clouds in Sky
+	 * @param {World} world the World object, linked as parent to this class
+	 * @returns {Sky|false} the Sky object, or false
+	 */
+	function Sky (world) {
+
+		//compute Sky sizes based on World relative dimensions
+		var l = DIMENSIONS.SKY.left * world.width;
+		var t = DIMENSIONS.SKY.top * world.height;
+		var w = DIMENSIONS.SKY.width * world.width;
+		var h = DIMENSIONS.SKY.height * world.height;
+		 if(w > 1000) {
+			w -= 2; //kludge fixing some dimensions
+		}
+
+		//Sky gradient
+		var grd = display.getBackgroundTexture(
+			display.MATERIALS.GRADIENT_SKY, 
+			l, 
+			t, 
+			l,
+			h);
+
+		//create the Sky
+		if(grd) {
+			var s = factory.ScreenRect(
+				l, 
+				t, 
+				w, 
+				h,
+				0, display.COLORS.BLACK, //stroke
+				grd,                     //fill
+				display.LAYERS.WORLD
+			);
+
+			//set additional Sky properties
+			if(s) {
+				s.name = BUILDING_TYPES.SKY;
+				s.instanceName = "Sky";
+				s.getChildByType = getChildByType; //generic child getter function
+
+				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
+
+				//getter for the Sun
+				s.getSun = function () {
+					return s.getChildByType (BUILDING_TYPES.SUN, false)[0];
+				}
+
+				//create the Sun, keeping a reference to calculate its corona later
+				var sun = Sun(world);
+				s.addChild(sun);
+
+				//getters for Clouds
+				s.getClouds = function () {
+					return s.getChildByType(BUILDING_TYPES.CLOUDS);
+				}
+
+				//create Clouds
+				var numClouds = factory.getRandomInt(DIMENSIONS[BUILDING_TYPES.CLOUD].minClouds, 
+					DIMENSIONS[BUILDING_TYPES.CLOUD].maxClouds);
+				var i;
+				var numClouds = factory.toInt(s.width/250);
+				for(i = 0; i < numClouds; i++) {
+					s.addChild(Cloud(s, 0.7, 0.9*s.width, 0.5*s.height, grd));
+				}
+				for(i = 0; i < numClouds; i++) {
+					s.addChild(Cloud(s, 0.65, 0.9*s.width, 0.5*s.height, grd));
+				}
+				for(i = 0; i < numClouds; i++) {
+					s.addChild(Cloud(s, 0.6, 0.9*s.width, 0.5*s.height, grd));
+				}
+				numClouds -= 1; if(numClouds < 1) numClouds = 1;
+				for(i = 0; i < numClouds; i++) {
+					s.addChild(Cloud(s, 0.55, 0.9*s.width, 0.5*s.height, grd));
+				}
+				numClouds -= 1;
+				for(i = 0; i < numClouds; i++) {
+					s.addChild(Cloud(s, 0.5, 0.9*s.width, 0.5*s.height, grd));
+				}
+				numClouds -= 1; if(numClouds < 1) numClouds = 1;
+				for(i = 0; i < numClouds; i++) {
+					s.addChild(Cloud(s, 0.4, 0.9*s.width, 0.5*s.height, grd));
+				}
+				numClouds -= 1;
+				for(i = 0; i < numClouds; i++) {
+					s.addChild(Cloud(s, 0.3, 0.9*s.width, 0.5*s.height, grd));
+				}
+				if(numClouds < 1) numClouds = 1;
+				for(i = 0; i < numClouds; i++) {
+					s.addChild(Cloud(s, 0.3, 1.0*s.width, 0.5*s.height, grd));
+				}
+
+				//TODO: move drawing sun here
+				//TODO: add solar gradient, with an XOR copy over the 
+				//Sun disk and clouds
+				//add to right layer in world
+				//TODO: add clouds to clouds layer
+				
+				var cPt = sun.getCenter();
+				var r = s.height/2;
+				
+				return s;
+			}
+		}
+
+		//fallthrough
+		elefart.showError("failed to create Sky");
+		return false;
+	}
+
+	/** 
 	 * @constructor World
 	 * @classdesc the top-level environment
 	 * - parent: none
@@ -1119,9 +1171,6 @@ window.elefart.building = (function () {
 				}
 				w.getSky = function () {
 					return w.getChildByType (BUILDING_TYPES.SKY, false)[0];
-				}
-				w.getSun = function () {
-					return w.getChildByType (BUILDING_TYPES.SUN, false)[0];
 				}
 				//we don't add World to display list
 
@@ -1213,7 +1262,7 @@ window.elefart.building = (function () {
 		world = World();
 		if(world) {
 			world.addChild(Sky(world));
-			world.addChild(Sun(world));
+			//world.addChild(Sun(world));
 			world.addChild(Building(world));
 			window.w = world; /////////////////////////////////////////////////////////////////////////
 			//once we're done, start the event loop

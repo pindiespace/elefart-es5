@@ -552,6 +552,7 @@ window.elefart.factory = (function () {
 	/* 
 	 * ============================
 	 * COMPLEX SHAPES AND SHAPE TRANSFORMS
+	 * APPLIED TO POLYGONS
 	 * ============================
 	 */
 
@@ -599,7 +600,7 @@ window.elefart.factory = (function () {
 	 * @method skewShape
 	 * @description skew a shape via an upper or lower bias. A straight line becomes a 
 	 * curve, with the peak of the curve at its central Point.
-	 * @param {Array<Point>} pts the points (forming a shape) to skew
+	 * @param {ScreenObject} obj the points (forming a shape) to skew
 	 * @param {Point} center the assigned center of the points. Skew happens in a circular
 	 * ring around the center point. This allows complex shapes to skew in one area.
 	 * @param {Number} topSkew skew, as a percent (0-1.0) of the top quadrant of a circle
@@ -608,67 +609,49 @@ window.elefart.factory = (function () {
 	 * @param {Number} leftSkew skew, as a percent (0-1.0) of the top quadrant of a circle
 	 * @returns {Array<Point>} returns modified Points
 	 */
-	function skewShape (pts, center, topSkew, rightSkew, bottomSkew, leftSkew) {
-		var len = pts.length;
+	function skewShape (obj, center, top, right, bottom, left) {
+		var len = obj.points.length, 
+		pts = obj.points, 
+		dist, cdist, skew, x, y;
 		for(var i = 0; i < len; i++) {
 			var pt = pts[i];
 			//switch through quadrants
 			if(pt.x < center.x) {
+				cdist = center.x - pt.x;
+				dist = center.x - obj.left;
+				skew = 1.0 - Math.sin(cdist/dist);
 				if(pt.y < center.y) {
 					//top left
+					///////////////console.log("topleft skew:" + skew)
+					pt.y -= (skew * top);
+					pt.x += ((1.0 - skew) * left);
 				}
 				else {
 					//bottom left
+					//////////////////console.log("bottomleft")
+					pt.y -= (skew * bottom);
+					pt.x += ((1.0 - skew) * left);
 				}
 			}
 			else {
+				cdist = pt.x - center.x;
+				dist = obj.right - center.x;
+				skew = 1.0 - Math.sin(cdist/dist);
 				if(pt.y < center.y) {
 					//top right
+					////////////////console.log("topright skew:" + skew)
+					pt.y -= (skew * top);
+					pt.x -= ((1.0 - skew) * right);
 				}
 				else {
 					//bottom right
+					////////////////console.log("bottomright")
+					pt.y -= (skew * bottom);
+					pt.x -= ((1.0 - skew) * right);
 				}
 			}
 		}
-		return pts;
-	}
-
-	/** 
-	 * @method slantShape
-	 * @description slant a shape inwards/outwards from center to edge. A 
-	 * square would become a trapezoid
-	 * @param {Array<Point>} pts the points (forming a shape) to skew
-	 * @param {Point} center the assigned center of the points. Skew happens in a circular
-	 * ring around the center point. This allows complex shapes to skew in one area.
-	 * @param {Number} topSkew skew, as a percent (0-1.0) of the top quadrant of a circle
-	 * @param {Number} rightSkew skew, as a percent (0-1.0) of the top quadrant of a circle
-	 * @param {Number} bottomSkew skew, as a percent (0-1.0) of the top quadrant of a circle
-	 * @param {Number} leftSkew skew, as a percent (0-1.0) of the top quadrant of a circle
-	 * @returns {Array<Point>} returns modified Points
-	 */
-	function slantShape (pts, center, topSlant, rightSlant, bottomSlant, leftSlant) {
-		var len = pts.length;
-		for(var i = 0; i < len; i++) {
-			var pt = pts[i];
-			//switch through quadrants
-			if(pt.x < center.x) {
-				if(pt.y < center.y) {
-					//top left
-				}
-				else {
-					//bottom left
-				}
-			}
-			else {
-				if(pt.y < center.y) {
-					//top right
-				}
-				else {
-					//bottom right
-				}
-			}
-		}
-		return pts;
+		return true;
 	}
 
 	/* 
@@ -944,7 +927,7 @@ window.elefart.factory = (function () {
 	function getCenter () {
 		switch(this.type) {
 			case TYPES.POINT:
-				console.log("warning: took center of type POINT");
+				console.log("warning: took center of type POINT (equal to the Point)");
 				return this;
 				break;
 			case TYPES.LINE:
@@ -1123,7 +1106,7 @@ window.elefart.factory = (function () {
 				}
 				break;
 			default:
-				console.log(this.type + " cannot use move()");
+				elefart.showError(this.type + " cannot use move()");
 				return false;
 				break;
 		}
@@ -1175,7 +1158,7 @@ window.elefart.factory = (function () {
 				}
 				break;
 			default:
-				console.log(this.type + " cannot use moveTo()");
+				elefart.showError(this.type + " cannot use moveTo()");
 				return false;
 				break;
 		}
@@ -1230,7 +1213,7 @@ window.elefart.factory = (function () {
 					this.points[i].y += dy;
 				}
 			default:
-				console.log(this.type + " cannot use centerOnPoint()");
+				elefart.showError(this.type + " cannot use centerOnPoint()");
 				return false;
 				break;
 		}
@@ -1644,10 +1627,17 @@ window.elefart.factory = (function () {
 		return false;
 	}
 
+	/* 
+	 * ============================
+	 * SCREEN OBJECT STYLES
+	 * ============================
+	 */
+
 	/** 
 	 * @method setFilter
 	 * @description set a filter on an ScreenObject image, if it exists
 	 * @param {Function} filter the filtering function (expects pixel data)
+	 * @returns {Boolean} if ok, return true, else false
 	 */
 	function setFilter (filter) {
 		if(!this.img) {
@@ -1658,12 +1648,14 @@ window.elefart.factory = (function () {
 			elefart.showError("supplied filter is not a Function:" + filter);
 		}
 		this.filter = filter;
+		return true;
 	}
 
 	/** 
 	 * @method setGradient
 	 * @description set an HTML5 canvas gradient object for a ScreenObject
 	 * @param {CanvasGradient} grad gradient from canvas.getContext()
+	 * @returns {Boolean} if ok, return true, else false
 	 */
 	function setGradient (grad) {
 		if(!grad) {
@@ -1671,6 +1663,7 @@ window.elefart.factory = (function () {
 			return false;
 		}
 		this.gradient = grad;
+		return true;
 	}
 
 	/** 
@@ -1678,10 +1671,9 @@ window.elefart.factory = (function () {
 	 * @description set the opacity of a ScreenObject
 	 * @param {Number} opacity the opacity of the object
 	 * @param {Number} (optional) imageOpacity the opacity of an image fill, if present
+	 * @returns {Boolean} if ok, return true, else false
 	 */
-	function setOpacity (opacity, imageOpacity) {
-
-		//object opacity
+	function setOpacity (opacity, imageOpacity, blendOpacity) {
 		if(isNumber(opacity) && 
 			opacity >= 0.0 || opacity <= 1.0) {
 				this.opacity = opacity;
@@ -1690,12 +1682,13 @@ window.elefart.factory = (function () {
 			if(this.img && this.imageOpacity && isNumber(imageOpacity) && 
 				imageOpacity >= 0.0 || imageOpacity <= 1.0) {
 					this.imageOpacity = imageOpacity;
+					return true;
 			}
 		}
 		else {
 			elefart.showError("invalid opacity:" + opacity + " imageOpacity:" + imageOpacity);
 		}
-
+		return false;
 	}
 
 	/** 
@@ -1703,9 +1696,9 @@ window.elefart.factory = (function () {
 	 * @description set the stroke around an ScreenObject
 	 * @param {Number} width the width of the stroke in pixels
 	 * @param {String} color (optional) rgb() or #rrggbb or #rgb color string
+	 * @returns {Boolean} if ok, return true, else false
 	 */
 	function setStroke (width, color) {
-
 		if(width < 0) {
 			elefart.showError(this.type + " invalid stroke");
 			return false;
@@ -1719,31 +1712,33 @@ window.elefart.factory = (function () {
 		}
 
 		this.lineWidth = width;
-
+		return true;
 	}
 
 	/** 
 	 * @method setFill
 	 * @description set the fill color for a ScreenObject
-	 * @param {String} color the rgb() or #rrggbb or #rgb color
+	 * @param {String} color the rgb() or #rrggbb or #rgb color or CanvasGradient
+	 * @param {String} blendColor (optional) the rgb(), rgba(), #rrggbb or #rgb or CanvasGradient
+	 * @returns {Boolean} if ok, return true, else false
 	 */
-	function setFill(color) {
+	function setFill(color, blendColor) {
 		if(this.type === TYPES.POINT || this.type === TYPES.LINE) {
 			elefart.showError("warning: can't apply a fill color to type " + this.type);
 			return false;
 		}
-		if(!isRGB(color)) {
+		if(!isRGB(color) && !isCanvasGradient(color)) {
 			elefart.showError("invalid RGB color");
 			return false;
 		}
 		this.fillStyle = color;
-	}
 
-	/* 
-	 * ============================
-	 * SCREEN OBJECTS WITH IMAGES
-	 * ============================
-	 */
+		//blend color. Most objects don't need this, but a few (like Clouds) do
+		if(blendColor && (isRGB(blendColor) || isCanvasGradient(blendColor))) {
+			this.blendColor = blendColor;
+		}
+		return true;
+	}
 
 	/** 
 	 * @method setImage
@@ -1755,6 +1750,7 @@ window.elefart.factory = (function () {
 	 * @param {Boolean} scaleToRect if true, scale the image to the defined Rect object inside this object
 	 * @param {Number} opacity (optional) if present, draw the image at a different 
 	 * opacity than its parent object
+	 * @returns {Boolean} if ok, return true, else false
 	 */
 	function setImage(src, callback, scaleToRect, imgOpacity) {
 		if(this.type === TYPES.POINT || this.type === TYPES.LINE) {
@@ -1791,6 +1787,7 @@ window.elefart.factory = (function () {
 
 			//start loading the image
 			that.img.src = src;
+			return true;
 		}
 	}
 
@@ -1876,6 +1873,7 @@ window.elefart.factory = (function () {
 	 * drawn by elefart.display
 	 * @param {LAYERS} layer the layer to draw in. Layers are 
 	 * defined in elefart.display.LAYERS
+	 * @returns {Boolean} if ok, return true, else false
 	 */
 	function setLayer(layer) {
 		//get length of current layers from elefart.display
@@ -1888,6 +1886,7 @@ window.elefart.factory = (function () {
 			return false;
 		}
 		this.layer = layer;
+		return true;
 	}
 
 	/** 
@@ -2106,9 +2105,6 @@ window.elefart.factory = (function () {
 
 	function ScreenCloud (pts, strokeWidth, strokeStyle, fillStyle, layer, src, callback, closed) {
 		var b = Cloud(pts);
-
-		//TODO: RADIUS NOT HERE
-
 		if(b) {
 			addFns(b);
 			if(!strokeWidth) strokeWidth = 0;
@@ -2203,7 +2199,6 @@ window.elefart.factory = (function () {
 		Cloud:Cloud, //cloud-like
 		createFlowerShape:createFlowerShape,
 		skewShape:skewShape,
-		slantShape:slantShape,
 		setFilter:setFilter, //Member functions
 		setGradient:setGradient,
 		setOpacity:setOpacity,

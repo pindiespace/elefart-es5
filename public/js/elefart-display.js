@@ -83,7 +83,9 @@ window.elefart.display = (function () {
 	var MATERIALS = { //gradients
 		GRADIENT_SKY:"GRADIENT_SKY",
 		GRADIENT_SUN:"GRADIENT_SUN",
-		GRADIENT_SHADOW:"GRADIENT_SHADOW"
+		GRADIENT_CORONA:"GRADIENT_CORONA",
+		GRADIENT_SHADOW:"GRADIENT_SHADOW",
+		GRADIENT_CLOUD:"GRADIENT_CLOUD"
 	};
 
 	/*
@@ -409,6 +411,16 @@ window.elefart.display = (function () {
 				grd.addColorStop(0.390, 'rgba(255,212,170,1.0)');
 				grd.addColorStop(1.000, 'rgba(255,127,0,1.0)');
 				break;
+			case MATERIALS.GRADIENT_CORONA:
+				grd = bctx.createRadialGradient(
+					x, y, //starting circle x and y coordinate
+					x2,   //starting circle radius
+					x, y, //ending circle x and y coordinate
+					y2    //ending circle radius
+					);
+				grd.addColorStop(0.050, 'rgba(255,255,255,0.3)');
+				grd.addColorStop(1.000, 'rgba(255,255,255,0.1)');
+				break;
 			case MATERIALS.GRADIENT_SHADOW:
 				grd = bctx.createLinearGradient(
 					x, y,  //starting coordinates of gradient
@@ -417,6 +429,16 @@ window.elefart.display = (function () {
 				grd.addColorStop(0.000, 'rgba(32,32,32,1.0)');
 				grd.addColorStop(0.450, 'rgba(96,96,96,0.9)');
 				grd.addColorStop(1.000, 'rgba(200,200,200,0.4)');
+				break;
+			case MATERIALS.GRADIENT_CLOUD:
+				grd = bctx.createLinearGradient(
+					x, y,  //starting coordinates of gradient
+					x2, y2 //ending coordinates of gradient
+					);
+				grd.addColorStop(0.000, 'rgba(255,255,255,1.0)');
+				grd.addColorStop(0.400, 'rgba(250,250,250,1.0)');
+				grd.addColorStop(0.500, 'rgba(240,240,240,1.0)');
+				grd.addColorStop(0.600, 'rgba(220,220,220,1.0)');
 				break;
 			default:
 				elefart.showError("setBackGroundGradient received invalid CanvasGradient index");
@@ -787,6 +809,7 @@ window.elefart.display = (function () {
 		if (pts.length < 3) {
 			return;
 		} 
+		ctx.globalAlpha = obj.opacity;
 		ctx.beginPath();
 
 		//draw the bubbly parts of the cloud as curves
@@ -804,11 +827,24 @@ window.elefart.display = (function () {
 		if(obj.fillStyle) {
 			ctx.fill();
 		} 
+		if(obj.blendColor) { //optional blending with background
+			ctx.fillStyle = obj.blendColor;
+			var dist = Math.pow(obj.distance, 4); if(dist < 0.1) dist = 0;
+			if(dist) {
+				ctx.globalAlpha = dist;
+				ctx.fill();
+				ctx.globalAlpha = obj.opacity;
+			}
+		}
 		if(obj.img) {
 			ctx.clip();
-			drawImage(ctx, obj); //TODO: NEED TO CLIP IMAGE TO POLYGON DIMENSIONS
+			if(obj.imageOpacity) ctx.globalAlpha = obj.imageOpacity;
+			drawImage(ctx, obj);
+			ctx.globalAlpha = obj.opacity;
 		}
 		if(obj.lineWidth && obj.strokeStyle) {
+			var l = 1.2 - obj.distance; if(l > 1.0) l = 1.0;
+			ctx.globalAlpha = l;
 			ctx.stroke();
 		} 
 		ctx.restore();
