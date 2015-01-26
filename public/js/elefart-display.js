@@ -85,7 +85,8 @@ window.elefart.display = (function () {
 		GRADIENT_SUN:"GRADIENT_SUN",
 		GRADIENT_CORONA:"GRADIENT_CORONA",
 		GRADIENT_SHADOW:"GRADIENT_SHADOW",
-		GRADIENT_CLOUD:"GRADIENT_CLOUD"
+		GRADIENT_CLOUD:"GRADIENT_CLOUD",
+		GRADIENT_CORONA:"GRADIENT_CORONA"
 	};
 
 	/*
@@ -327,13 +328,13 @@ window.elefart.display = (function () {
 	 * @method addToDisplayList
 	 * @description add an object to the visual display list
 	 * @param {Point|Line|Rect|Circle|Polygon|ScreenSprite} obj the object to draw
-	 * @param {LAYERS} layer the layer to draw in
+	 * @param {LAYERS} layer (optional) the layer to draw in
 	 */
 	function addToDisplayList (obj, layer) {
 		if(obj && obj.type) {
 			if(layer) { //change layer
 				removeFromDisplayList(obj, layer);
-				obj.layer = layer;
+				obj.layer = layer; //reset the layer the object is part of
 				displayList[layer].push(obj); 
 			}
 			else {
@@ -418,8 +419,9 @@ window.elefart.display = (function () {
 					x, y, //ending circle x and y coordinate
 					y2    //ending circle radius
 					);
-				grd.addColorStop(0.050, 'rgba(255,255,255,0.3)');
-				grd.addColorStop(1.000, 'rgba(255,255,255,0.1)');
+				grd.addColorStop(0.000, 'rgba(255,255,255,0.0)');
+				grd.addColorStop(x2/y2, 'rgba(255,255,255,0.8)');
+				grd.addColorStop(1.000, 'rgba(255,255,255,0.0)');
 				break;
 			case MATERIALS.GRADIENT_SHADOW:
 				grd = bctx.createLinearGradient(

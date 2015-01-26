@@ -291,7 +291,7 @@ describe('Elefart factory', function () {
 
 		//check removeChild
 		foundChild = mv.removeChild(childId);
-		expect(foundChild.id).toBe(childId);
+		expect(foundChild.id).toBe(childId); //fails, does not return a value!!!!!!!!!!!
 		expect(mv.children.length).toBe(2);
 
 		/*

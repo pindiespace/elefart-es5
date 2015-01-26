@@ -112,6 +112,20 @@ window.elefart.controller = (function () {
 		dom.remove();
 	}
 
+
+	/**  
+	 * ========================================= 
+	 * UPDATE UTILITIES
+	 * ========================================= 
+	 */
+	function addToUpdateList (obj) {
+
+	}
+
+	function removeFromUpdateList (obj) {
+
+	}
+
 	/**  
 	 * ========================================= 
 	 * GAME LOOP 
@@ -160,6 +174,8 @@ window.elefart.controller = (function () {
 
 	//returned object
 	return {
+		addToUpdateList:addToUpdateList,
+		removeFromUpdateList:removeFromUpdateList,
 		init:init,
 		run:run
 	};

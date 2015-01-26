@@ -15,6 +15,7 @@ window.elefart.factory = (function () {
 
 	var id = 0, //object Ids
 	display,
+	controller,
 	firstTime = true;
 
 	/* 
@@ -1601,29 +1602,51 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
+	 * @method removeFromLists
+	 * @description allows a ScreenObject to remove itself from 
+	 * all Lists (World, display drawing, controller updates)
+	 */
+	function removeFromLists () {
+		display.removeFromDisplayList(this);
+		controller.removeFromUpdateList(this);
+		var children = this.children;
+		var len = children.length;
+		console.log("removing " + this.instanceName + " from lists, now looping through its children");
+		for(var i = 0; i < len; i++) {
+			children[i].removeFromLists();
+		}
+		//TODO: flag the canvas panels we need to update (MAP LAYERS TO PANELS)
+		//TODO: ONE SHAFT HAS AN ERROR!!!!!!!!!!!!!!!
+		//TODO: DOESN'T REMOVE OBJECT!!!
+	}
+
+	/** 
 	 * @method removeChild
-	 * @description remove a child ScreenObject by its id
-	 * @param {Number} childId the id of the object
+	 * @description remove a child ScreenObject by its id, also removing it from 
+	 * the displayList (elefart-display) and updateList (elefart-controller).
+	 * @param {Number|ScreenObject} child the id of the object, or the actual object. If the 
+	 * object is passed, the method checks for an Id value and proceeds.
 	 * @returns {Object|false} if ok, return the removed child, else false
 	 */
-	function removeChild(childId) {
-		if(this.children) {
-			if(childId === undefined || !isNumber(childId)) {
-				elefart.showError("removeChild, invalid childId:" + childId);
-				return false;
-			}
-			for(var i = 0; i < this.children.length; i++) {
-				var child = this.children[i];
-				if(child.id === childId) {
-					child.parent = null;
-					return this.children.splice(i, 1)[0]; //return child outside array .splice() array
+	function removeChild(child) {
+		if(child && child.id) {
+			var children = this.children;
+			if(children) {
+				var len = children.length;
+				for(var i = 0; i < len; i++) {
+				if(child === children[i]) {
+					child.removeFromLists();
+					children.splice(i, 1)[0]; //display and controller references gone, ok to delete all
+					return child;
+					}
 				}
 			}
+			else {
+				elefart.showError(this.type + " removeChild() children array undefined for object:" + this + " id:" + this.id + " instanceName:" + this.instanceName);
+				return false;
+			}
 		}
-		else {
-			elefart.showError(this.type + " removeChild() children array undefined");
-		}
-
+		elefart.showError(this.type + " removeChild() child not an object");
 		return false;
 	}
 
@@ -1927,6 +1950,7 @@ window.elefart.factory = (function () {
 		obj.findChild = findChild,
 		obj.addChild = addChild,
 		obj.removeChild = removeChild,
+		obj.removeFromLists = removeFromLists,
 		//visual styles
 		obj.setFilter = setFilter,
 		obj.setGradient = setGradient,
@@ -2164,6 +2188,7 @@ window.elefart.factory = (function () {
 	 */
 	function init () {
 		display = elefart.display;
+		controller = elefart.controller;
 		firstTime = false;
 	}
 

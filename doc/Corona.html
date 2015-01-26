@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>DocStrap Class: Elevator</title>
+	<title>DocStrap Class: Corona</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -722,21 +722,19 @@
 					
 
 
-	<h1 class="page-title">Class: Elevator</h1>
+	<h1 class="page-title">Class: Corona</h1>
 <section>
 
 <header>
     <h2>
-    Elevator
+    Corona
     </h2>
     
-        <div class="class-description"><p>an Elevator consists of a single rounded Rect
-representing the elevator, plush some line arcs on top forming 
-the attachment in the shaft. </p>
+        <div class="class-description"><p>the Corona surrounding the Sun, a circular gradient blended over 
+Sky and Clouds. The parent Sun is blended UNDER the Clouds.</p>
 <ul>
-<li>parent: ElevatorShaft</li>
-<li>grandparent: Building</li>
-<li>chidren: ElevatorDoors, Person(s)</li>
+<li>parent: Sun</li>
+<li>grandparent: Sky</li>
 </ul></div>
     
 </header>
@@ -748,7 +746,7 @@ the attachment in the shaft. </p>
     
         
 <dt>
-    <h4 class="name" id="Elevator"><span class="type-signature"></span>new Elevator<span class="signature">(parent, display)</span><span class="type-signature"> &rarr; {<a href="Elevator.html">Elevator</a>|false}</span></h4>
+    <h4 class="name" id="Corona"><span class="type-signature"></span>new Corona<span class="signature">(sun)</span><span class="type-signature"> &rarr; {<a href="Corona.html">Corona</a>}</span></h4>
     
     
 </dt>
@@ -786,13 +784,13 @@ the attachment in the shaft. </p>
 
         <tr>
             
-                <td class="name"><code>parent</code></td>
+                <td class="name"><code>sun</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">ScreenObject</span>
+<span class="param-type"><a href="Sun.html">Sun</a></span>
 
 
             
@@ -802,30 +800,7 @@ the attachment in the shaft. </p>
 
             
 
-            <td class="description last"><p>a parent ScreenObject (can be null)</p></td>
-        </tr>
-
-	
-
-        <tr>
-            
-                <td class="name"><code>display</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>if true, add to displayList</p></td>
+            <td class="description last"><p>the Sun object, linked as parent to this class</p></td>
         </tr>
 
 	
@@ -862,7 +837,7 @@ the attachment in the shaft. </p>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-294">line 294</a>
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-1010">line 1010</a>
 			</li>
 		</ul>
 	</dd>
@@ -889,7 +864,7 @@ the attachment in the shaft. </p>
     
             
 <div class="param-desc">
-    <p>an Elevator object, or false</p>
+    <p>a Corona gradient matched to Sun and Sky.</p>
 </div>
 
 
@@ -900,10 +875,7 @@ the attachment in the shaft. </p>
 	</dt>
 	<dd>
 		
-<span class="param-type"><a href="Elevator.html">Elevator</a></span>
-|
-
-<span class="param-type">false</span>
+<span class="param-type"><a href="Corona.html">Corona</a></span>
 
 
 	</dd>
