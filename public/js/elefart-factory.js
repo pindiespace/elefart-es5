@@ -1100,6 +1100,9 @@ window.elefart.factory = (function () {
 				this.top  += dy; this.bottom += dy;
 				break;
 			case TYPES.POLYGON:
+			case TYPES.CLOUD:
+				this.left += dx; this.right  += dx;
+				this.top  += dy; this.bottom += dy;
 				var len = this.points.length;
 				for(var i = 0; i < len; i++) {
 					this.points[i].x += dx; 
@@ -1144,19 +1147,11 @@ window.elefart.factory = (function () {
 				break;
 			case TYPES.RECT:
 			case TYPES.CIRCLE:
+			case TYPES.CLOUD:
+			case TYPES.POLYGON:
 				dx = x - this.left;
 				dy = y - this.top;
 				move.apply(this, [dx, dy, false]);
-				break;
-			case TYPES.POLYGON:
-				var len = this.points.length;
-				for(var i = 0; i < len; i++) {
-					var pt = this.points[i]
-					dx = x - this.left.x;
-					dy = y - this.top.y;
-					this.points[i].x += dx; 
-					this.points[i].y += dy;
-				}
 				break;
 			default:
 				elefart.showError(this.type + " cannot use moveTo()");
@@ -1205,6 +1200,7 @@ window.elefart.factory = (function () {
 				dy = centerPt.y - Math.min(this.top	+ (this.height/2));
 				move.apply(this, [dx, dy, false]);
 				break;
+			case TYPES.CLOUD:
 			case TYPES.POLYGON:
 				var len = this.points.length;
 				dx = centerPt.x - Math.min(this.left + (this.width/2));
@@ -1865,7 +1861,6 @@ window.elefart.factory = (function () {
 					}
 					currCol = col;
 				}
-
 				return {
 					top:row * this.cellHeight,
 					left:col * this.cellWidth,

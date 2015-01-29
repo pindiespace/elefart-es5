@@ -15,18 +15,54 @@ window.elefart.display = (function () {
 	dom,
 	controller,
 	factory,        //builds basic display objects
-	panel,          //game DOM panel
+	panel,          //game DOM panel (all Canvas objects attached inside)
 	rect,           //game Rect
-	fctx,           //foreground context
 	bctx,           //background context
-	foreground,     //foreground canvas
+	fctx,           //foreground context
+	cctx,           //controls context
 	background,     //background canvas
+	foreground,     //foreground canvas
+	controls,       //controls canvas
 	displayList = {}, //multi-dimensional array with drawing objects
 	hotelWalls,     //hotel walls
 	hotelSign,      //hotel sign
 	characterBoard, //images of users for animation
 	cssBreakpoint,  //keep track of current CSS breakpoint in getCSSBreakpoint
 	firstTime = true;
+
+	/** 
+	 * @readonly
+	 * @enum {String}
+	 * @typedef PANELS
+	 * @description Enum giving which canvas (foreground, background, controls) we draw to
+	 */
+	var PANELS = {
+		BACKGROUND: "BACKGROUND", //stuff that never changes (e.g. Building layout)
+		FOREGROUND: "FOREGROUND", //stuff that changes quickly (e.g. game characters)
+		CONTROLS: "CONTROLS"      //stuff that changes on user action (e.g. control panel)
+	};
+
+	/** 
+	 * An object used by Controller to manage updates and redraws
+	 * ticks can be 1-1000 (millisecs)
+	 */
+	var PANELDRAW  = {};
+	PANELDRAW[PANELS.BACKGROUND] = {
+		draw:drawBackground,
+		ticks:0,
+		count:0
+	};
+	PANELDRAW[PANELS.FOREGROUND] = {
+		draw:drawForeground,
+		ticks:20,
+		count:0
+
+	};
+	PANELDRAW[PANELS.CONTROLS] = {
+		draw:drawControls,
+		ticks:0,
+		count:0
+	};
 
 	/**
 	 * @readonly
@@ -35,7 +71,9 @@ window.elefart.display = (function () {
 	 * @description Enum giving specific names to the list of drawing layers used by displayList.
 	 */
 	var LAYERS = {
+		//background panel
 		WORLD: "WORLD",        //environment outside building (Sun, Sky)
+		//foreground
 		CLOUDS: "CLOUDS",      //Clouds in the Sky
 		BUILDINGBACK:"BUILDINGBACK", //extreme back of building (includes ElevatorShafts)
 		BUILDING:"BUILDING",   //main Building
@@ -50,6 +88,7 @@ window.elefart.display = (function () {
 		FLOORS:"FLOORS",       //objects in the room floors
 		PEOPLE:"PEOPLE",
 		BUILDINGFRONT:"BUILDINGFRONT", //anything in front of People
+		//controls
 		CONTROLS:"CONTROLS",   //user controls
 		MODAL:"MODAL",         //modal windows above game panel
 		ANIMATION:"ANIMATION"  //animation above game panel
@@ -85,8 +124,7 @@ window.elefart.display = (function () {
 		GRADIENT_SUN:"GRADIENT_SUN",
 		GRADIENT_CORONA:"GRADIENT_CORONA",
 		GRADIENT_SHADOW:"GRADIENT_SHADOW",
-		GRADIENT_CLOUD:"GRADIENT_CLOUD",
-		GRADIENT_CORONA:"GRADIENT_CORONA"
+		GRADIENT_CLOUD:"GRADIENT_CLOUD"
 	};
 
 	/*
@@ -149,6 +187,10 @@ window.elefart.display = (function () {
 		if(foreground) {
 			foreground.width = rect.width;
 			foreground.height = rect.height;
+		}
+		if(controls) {
+			controls.width = rect.width;
+			controls.height = rect.height;
 		}
 		return rect;
 	}
@@ -279,6 +321,42 @@ window.elefart.display = (function () {
 	 */
 
 	/** 
+	 * @method getPanel
+	 * get the panel a particular DisplayList is assigned to
+	 */
+	function getPanel(layer) {
+		switch(layer) {
+			case LAYERS.WORLD:  //environment outside building (Sun, Sky)
+				return PANELS.BACKGROUND;
+				break;
+			case LAYERS.CLOUDS:      //Clouds in the Sky
+			case LAYERS.BUILDINGBACK:  //extreme back of building (includes ElevatorShafts)
+			case LAYERS.BUILDING:      //main Building
+			case LAYERS.SHAFTS:        //elevator shafts in building
+			case LAYERS.ELEBACK:       //back wall of elevators
+			case LAYERS.ELESPACE1:     //places for People to stand
+			case LAYERS.ELESPACE2: 
+			case LAYERS.ELESPACE3: 
+			case LAYERS.ELESPACE4: 
+			case LAYERS.WALLS:         //building walls
+			case LAYERS.DOORS:         //elevator doors
+			case LAYERS.FLOORS:        //objects in the room floors
+			case LAYERS.PEOPLE: 
+			case LAYERS.BUILDINGFRONT: //anything in front of People
+				return PANELS.FOREGROUND;
+				break;
+			case LAYERS.CONTROLS:      //user controls
+			case LAYERS.MODAL:         //modal windows above game panel
+			case LAYERS.ANIMATION:     //animation above game panel
+				return PANELS.CONTROLS;
+				break;
+			default:
+				elefart.showError("in getPanel(), Invalid layer:" + layer);
+				break;
+		}
+	}
+
+	/** 
 	 * @method DisplayList
 	 * @description create a new DisplayList
 	 */
@@ -305,6 +383,7 @@ window.elefart.display = (function () {
 		}
 		return false;
 	}
+
 	/** 
 	 * @method checkIfInList 
 	 * @description check if an object is already in the drawing list
@@ -338,12 +417,15 @@ window.elefart.display = (function () {
 				displayList[layer].push(obj); 
 			}
 			else {
-				displayList[obj.layer].push(obj); //use default layer
+				layer = obj.layer;
 			}
+			obj.panel = getPanel(layer);
+			displayList[layer].push(obj);
 		}
 		else {
 			elefart.showError("addToDisplayList invalid params obj:" + typeof obj + " layer:" + layer);
 		}
+		return false;
 	}
 
 	/** 
@@ -360,7 +442,8 @@ window.elefart.display = (function () {
 		else if(layer) {
 			pos = checkIfInLayer(obj, layer);
 			if(pos) {
-				displayList[layer].splice(pos, 1); //remove element
+				obj.panel = false; //no panel when removed
+				displayList[layer].splice(pos, 1); //remove element reference
 			}
 		}
 		else {
@@ -369,6 +452,14 @@ window.elefart.display = (function () {
 				displayList[pos.layer].splice(pos, 1); //remove element
 			}
 		}
+	}
+
+	/** 
+	 * @method changeDisplayList
+	 * @description move an object from oneDisplayList to another
+	 */
+	function changeDisplayList (obj, layer1, layer2) {
+
 	}
 
 	/*
@@ -380,7 +471,7 @@ window.elefart.display = (function () {
 	/** 
 	 * @method getBackgroundTexture 
 	 * @description create and/or get a specific background 
-	 * gradient. Gradients are identified by ther MATERIALS 
+	 * gradient. Gradients are identified by their MATERIALS 
 	 * naming.
 	 * @param {MATERIALS} material the gradient to use
 	 * @returns {CanvasGradient} the CanvasGradient reference
@@ -420,7 +511,7 @@ window.elefart.display = (function () {
 					y2    //ending circle radius
 					);
 				grd.addColorStop(0.000, 'rgba(255,255,255,0.0)');
-				grd.addColorStop(x2/y2, 'rgba(255,255,255,0.8)');
+				grd.addColorStop(x2/y2, 'rgba(255,255,255,0.4)');
 				grd.addColorStop(1.000, 'rgba(255,255,255,0.0)');
 				break;
 			case MATERIALS.GRADIENT_SHADOW:
@@ -432,6 +523,25 @@ window.elefart.display = (function () {
 				grd.addColorStop(0.450, 'rgba(96,96,96,0.9)');
 				grd.addColorStop(1.000, 'rgba(200,200,200,0.4)');
 				break;
+			default:
+				elefart.showError("getBackgroundTexture received invalid CanvasGradient index:" + material);
+				break;
+			}
+		return grd;
+	}
+
+
+	/** 
+	 * @method getForegroundTexture
+	 * @description create and/or get a specific background 
+	 * gradient. Gradients are identified by their MATERIALS 
+	 * naming.
+	 * @param {MATERIALS} material the gradient to use
+	 * @returns {CanvasGradient} the CanvasGradient reference
+	 */
+	function getForegroundTexture (material, x, y, x2, y2) {
+		var grd = null;
+		switch(material) {
 			case MATERIALS.GRADIENT_CLOUD:
 				grd = bctx.createLinearGradient(
 					x, y,  //starting coordinates of gradient
@@ -443,31 +553,31 @@ window.elefart.display = (function () {
 				grd.addColorStop(0.600, 'rgba(220,220,220,1.0)');
 				break;
 			default:
-				elefart.showError("setBackGroundGradient received invalid CanvasGradient index");
-				break;
-			}
-		return grd;
-	}
-
-	/** 
-	 * @method getForegroundTexture
-	 * @description create and/or get a specific background 
-	 * gradient. Gradients are identified by ther MATERIALS 
-	 * naming.
-	 * @param {MATERIALS} material the gradient to use
-	 * @returns {CanvasGradient} the CanvasGradient reference
-	 */
-	function getForegroundTexture (material, x, y, x2, y2) {
-		var grd;
-			var grd = null;
-		switch(material) {
-			//TODO: foreground textures
-			default:
-				elefart.showError("no foreground textures exist!");
+				elefart.showError("getForegroundgroundTexture received invalid CanvasGradient index:" + material);
 				break;
 		}
 		return grd;
 	}
+
+	/** 
+	 * @method getControlTexture
+	 * @description create and/or get a specific background 
+	 * gradient. Gradients are identified by their MATERIALS 
+	 * naming.
+	 * @param {MATERIALS} material the gradient to use
+	 * @returns {CanvasGradient} the CanvasGradient reference
+	 */
+	function getControlTexture (material, x, y, x2, y2) {
+		var grd = null;
+		switch(material) {
+			//TODO: foreground textures
+			default:
+				elefart.showError("getForegroundgroundTexture received invalid CanvasGradient index:" + material);
+				break;
+		}
+		return grd;
+	}
+
 
 	/*
 	 * =========================================
@@ -831,7 +941,7 @@ window.elefart.display = (function () {
 		} 
 		if(obj.blendColor) { //optional blending with background
 			ctx.fillStyle = obj.blendColor;
-			var dist = Math.pow(obj.distance, 4); if(dist < 0.1) dist = 0;
+			var dist = Math.pow(obj.distance, 3.5); if(dist < 0.1) dist = 0;
 			if(dist) {
 				ctx.globalAlpha = dist;
 				ctx.fill();
@@ -839,11 +949,12 @@ window.elefart.display = (function () {
 			}
 		}
 		if(obj.img) {
-			ctx.clip();
 			if(obj.imageOpacity) ctx.globalAlpha = obj.imageOpacity;
+			ctx.clip();
 			drawImage(ctx, obj);
 			ctx.globalAlpha = obj.opacity;
 		}
+
 		if(obj.lineWidth && obj.strokeStyle) {
 			var l = 1.2 - obj.distance; if(l > 1.0) l = 1.0;
 			ctx.globalAlpha = l;
@@ -1005,7 +1116,6 @@ window.elefart.display = (function () {
 
 		//execute the display list
 		drawLayer(bctx, displayList[LAYERS.WORLD]);
-		drawLayer(bctx, displayList[LAYERS.CLOUDS]);
 		drawLayer(bctx, displayList[LAYERS.BUILDINGBACK]);
 		drawLayer(bctx, displayList[LAYERS.BUILDING]);
 		bctx.restore();
@@ -1039,6 +1149,7 @@ window.elefart.display = (function () {
 		fctx.clearRect(0, 0, foreground.width, foreground.height);
 
 		//elevator shafts are in the foreground
+		drawLayer(fctx, displayList[LAYERS.CLOUDS]);
 		drawLayer(fctx, displayList[LAYERS.SHAFTS]);
 		drawLayer(fctx, displayList[LAYERS.ELEBACK]);
 		/*
@@ -1049,13 +1160,32 @@ window.elefart.display = (function () {
 		drawLayer(fctx, displayList[LAYERS.WALLS]);
 		drawLayer(fctx, displayList[LAYERS.DOORS]);
 		drawLayer(fctx, displayList[LAYERS.FLOORS]);
-		drawLayer(fctx, displayList[LAYERS.CONTROLS]);
-		drawLayer(fctx, displayList[LAYERS.MODAL]);     //modal windows above game panel
-		drawLayer(fctx, displayList[LAYERS.ANIMATION]); //animation above game panel
 		*/
 
 		//restore
 		fctx.restore();
+	}
+
+	/** 
+	 * @method getControlCanvas
+	 * @description get a reference to the control canvas
+	 */
+	function getControlCanvas () {
+		if(firstTime) return false;
+		return controls;
+	}
+
+	/** 
+	 * @method drawControls
+	 * @description draw the controls for the display
+	 */
+	function drawControls () {
+		cctx.save();
+		cctx.clearRect(0,0, controls.width, controls.height);
+		drawLayer(cctx, displayList[LAYERS.CONTROLS]);
+		drawLayer(fctx, displayList[LAYERS.MODAL]);     //modal windows above game panel
+		drawLayer(fctx, displayList[LAYERS.ANIMATION]); //animation above game panel
+		cctx.restore();
 	}
 
 	/*
@@ -1109,15 +1239,15 @@ window.elefart.display = (function () {
 		//initialize our display list as a multi-dimensional array
 		initDisplayList();
 
-		//initialize canvas for foreground
-		foreground = document.createElement('canvas');
-		fctx = foreground.getContext("2d");
-		foreground.id = 'game-foreground';
-
 		//initialize canvas for background
 		background = document.createElement('canvas');
 		bctx = background.getContext("2d");
 		background.id = 'game-background';
+
+		//initialize canvas for foreground
+		foreground = document.createElement('canvas');
+		fctx = foreground.getContext("2d");
+		foreground.id = 'game-foreground';
 
 		controls = document.createElement('canvas');
 		cctx = controls.getContext("2d");
@@ -1149,10 +1279,10 @@ window.elefart.display = (function () {
 			//compute the current screen size
 			setGameRect();
 
-			//add our foreground and background canvas to the HTML panel
-			panel.appendChild(background);
-			panel.appendChild(foreground);
-
+			//add our canvas layers to the HTML panel
+			panel.appendChild(background); //static
+			panel.appendChild(foreground); //action in building
+			panel.appendChild(controls);   //ui
 		}
 		else {
 			console.log("ERROR: failed to make canvas objects, foreground:" + 
@@ -1165,6 +1295,8 @@ window.elefart.display = (function () {
 	//returned object
 	return {
 		LAYERS:LAYERS,
+		PANELS:PANELS,
+		PANELDRAW:PANELDRAW,
 		COLORS:COLORS,
 		MATERIALS:MATERIALS,
 		getHotelWalls:getHotelWalls,
@@ -1190,6 +1322,7 @@ window.elefart.display = (function () {
 		drawSpriteFrame:drawSpriteFrame,
 		drawBackground:drawBackground,
 		drawForeground:drawForeground,
+		drawControls:drawControls,
 		init:init,
 		run:run
 	};

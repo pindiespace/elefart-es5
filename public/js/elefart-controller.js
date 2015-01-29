@@ -19,8 +19,11 @@
 window.elefart.controller = (function () {
 
 	var building,
-	display,
+	display,    //display object
+	panels,
 	dashboard, 
+	updateList = {},
+	now, then, elapsed, //framerate (fps) calculations
 	firstTime = true;
 
 	/** 
@@ -118,12 +121,60 @@ window.elefart.controller = (function () {
 	 * UPDATE UTILITIES
 	 * ========================================= 
 	 */
-	function addToUpdateList (obj) {
 
+	/** 
+	 * @method initUpdateList
+	 * @description initialize the update list for the application
+	 */
+	function initUpdateList () {
+		updateList = {};
+		for(var i in display.PANELS) {
+			updateList[i] = [];
+		}
 	}
 
-	function removeFromUpdateList (obj) {
+	/** 
+	 * @method addToUpdateList
+	 * @description add an object to the visual display list
+	 * @param {Point|Line|Rect|Circle|Polygon|ScreenSprite} obj the object to draw
+	 * @param {PANELS} panel (optional) the panel where the object is drawn by display
+	 */
+	function addToUpdateList (obj) {
+		if(obj && obj.type) {
+			var panel = updateList[obj.panel];
+			var len = panel.length;
+			for(var i = 0; i < len; i++) {
+				if(panel[i] === obj) {
+					return true; //already there
+				}
+			}
+			panel.push(obj); 
+			return true;
+		}
+		elefart.showError("addToUpdateList invalid params obj:" + typeof obj + " panel:" + panel);
+		return false;
+	}
 
+	/** 
+	 * @method removeFromUpdateList
+	 * @description remove an object from drawing display list
+	 * @param {Point|Line|Rect|Circle|Polygon|ScreenSprite} obj the object to draw
+	 * @param {PANELS} panel (optional) the display list panel to draw in (optional)
+	 */
+	function removeFromUpdateList (obj) {
+		if(obj && obj.type) {
+			var panel = updateList[obj.panel];
+			var len = panel.length;
+			for(var i = 0; i < len; i++) {
+				if(panel[i] === obj) {
+					panel[i].panel = false; //no panel when removed
+					panel.splice(i, 1); //remove element reference
+					return true;
+				}
+			}
+		}
+		elefart.showError("removeFromUpdateList invalid object:" + typeof obj);
+		return false;
 	}
 
 	/**  
@@ -136,13 +187,41 @@ window.elefart.controller = (function () {
 	 * @method gameLoop
 	 * @description regular updates (e.g. screen redraws)
 	 */
-	function gameLoop() {
+	function gameLoop () {
+		var panel, ticks, count, ul, len;
+		now = Date.now();
+		elapsed = now - then;
+		//console.log("FPS:" + elapsed);
 
-		display.drawForeground();
+		for(var i in panels) {
+			panel = panels[i],
+			ticks = panel.ticks,
+			panel.count += elapsed
+			count = panel.count;
+			if(ticks && (count > elapsed)) {
+				//console.log("count:" + count + " elapsed:" + elapsed)
+				ul = updateList[i],
+				len = ul.length;
+				for(var j = 0; j < len; j++) {
+					if(ul[j].updateByTime) {
+						ul[j].updateByTime();
+					}
+				}
+				panel.draw(); //draw the panel
+				panel.count = 0;
+			}
+			else {
+				//console.log("too short")
+			}
+		}
+
+		//reset interval
+		then = elapsed = now;
 
 		requestAnimationFrame(gameLoop); 
 
 	}
+
 	/** 
 	 * @method init controller
 	 * @description initialize the controller, including event handlers. Requires 
@@ -151,7 +230,10 @@ window.elefart.controller = (function () {
 	function init () {
 		building = elefart.building,
 		display = elefart.display,
+		panels = display.PANELDRAW;
 		dashboard = elefart.dashboard;
+		then = now = Date.now(); //fps
+		initUpdateList(); //initialize the update list
 		firstTime = false;
 	}
 
@@ -168,6 +250,9 @@ window.elefart.controller = (function () {
 		//TODO: probaby need a switch here for other screens
 		//set handlers associate with an active game
 		setGameHandlers(display.getForegroundCanvas());
+		//initialize FPS variables
+
+		//start the loop
 		gameLoop();
 
 	}
