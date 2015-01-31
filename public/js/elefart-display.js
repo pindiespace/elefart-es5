@@ -43,7 +43,8 @@ window.elefart.display = (function () {
 	};
 
 	/** 
-	 * An object used by Controller to manage updates and redraws
+	 * An object used by Controller to manage updates and redraws for each Canvas panel. 
+	 * layers may be swapped manually between these panels as necessary.
 	 * ticks can be 1-1000 (millisecs)
 	 */
 	var PANELDRAW  = {};
@@ -500,8 +501,8 @@ window.elefart.display = (function () {
 					y2    //ending circle radius
 					);
 				grd.addColorStop(0.050, 'rgba(255,255,0,1.0)');
-				grd.addColorStop(0.390, 'rgba(255,212,170,1.0)');
-				grd.addColorStop(1.000, 'rgba(255,127,0,1.0)');
+				grd.addColorStop(0.390, 'rgba(255,222,180,1.0)');
+				grd.addColorStop(1.000, 'rgba(255,137,0,1.0)');
 				break;
 			case MATERIALS.GRADIENT_CORONA:
 				grd = bctx.createRadialGradient(
@@ -672,16 +673,112 @@ window.elefart.display = (function () {
 			ctx.lineTo(x, y+r);
 			ctx.quadraticCurveTo(x, y, x+r, y);
 		ctx.closePath();
-
 		//fill the Rect
 		if(obj.fillStyle) ctx.fill();
-
+		//draw clipped image if present
 		if(obj.img) {
 			ctx.clip();
 			drawImage(ctx, obj);
 		}
 		//overlay stroke on top of fill and any images
-		if(obj.lineWidth && obj.strokeStyle) ctx.stroke();
+		if(obj.lineWidth && obj.strokeStyle) {
+			ctx.stroke();
+		}
+		ctx.restore();
+	}
+
+	/** 
+	 * @method drawBox
+	 * @description draw a rounded-corner Rect with one side missing.
+	 * @param {CanvasContext} ctx current drawing context
+	 * @param {ScreenObject} the ScreenObject (type ScreenRect) to draw
+	 */
+	function drawRoundedBox(ctx, obj) {
+		ctx.save();
+		ctx.lineWidth = obj.lineWidth;
+		ctx.strokeStyle = obj.strokeStyle;
+		ctx.fillStyle = obj.fillStyle;
+		ctx.globalAlpha = obj.opacity;
+		var r = obj.borderRadius,
+		x = obj.left,
+		y = obj.top,
+		w = obj.width,
+		h = obj.height;
+		//rounded Rect shape from arcs
+		ctx.beginPath();
+
+			//draw the straight lines
+			ctx.moveTo(x, y+h-r);
+			if(obj.missingSide !== 4) ctx.lineTo(x, y+r);
+			ctx.moveTo(x+r, y);
+			if(obj.missingSide !== 1) ctx.lineTo(x+w-r, y);
+			ctx.moveTo(x+w, y+r);
+			if(obj.missingSide !== 2) ctx.lineTo(x+w, y+h-r);
+			ctx.moveTo(x+w-r, y+h);
+			if(obj.missingSide !==3) ctx.lineTo(x+r, y+h);
+
+			//draw in corners
+			//top
+			if(obj.missingSide === 1) {
+				ctx.moveTo(x, y+r);
+				ctx.lineTo(x,y);
+				ctx.moveTo(x+w, y);
+				ctx.lineTo(x+w, y+r);
+				//draw quad curves
+				ctx.moveTo(x+w, y+h-r);
+				ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+				ctx.moveTo(x+r, y+h);
+				ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+			}
+			//right
+			else if(obj.missingSide === 2) {
+				ctx.moveTo(x+w-r, y);
+				ctx.lineTo(x+w, y);
+				ctx.moveTo(x+w, y+h);
+				ctx.lineTo(x+w-r, y+h);
+				//draw quad curves
+				ctx.moveTo(x+r, y+h);
+				ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+				ctx.moveTo(x, y+r);
+				ctx.quadraticCurveTo(x, y, x+r, y);
+			}
+			//bottom
+			else if(obj.missingSide === 3) {
+				ctx.moveTo(x+w, y+h-r);
+				ctx.lineTo(x+w, y+h);
+				ctx.moveTo(x, y+h);
+				ctx.lineTo(x, y+h-r);
+				//draw quad curves
+				ctx.moveTo(x, y+r);
+				ctx.quadraticCurveTo(x, y, x+r, y);
+				ctx.moveTo(x+w-r, y);
+				ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+			}
+			//left
+			else if(obj.missingSide === 4) {
+				ctx.moveTo(x+r, y+h);
+				ctx.lineTo(x, y+h);
+				ctx.moveTo(x,y);
+				ctx.lineTo(x+r, y);
+				//draw quad curves
+				ctx.moveTo(x+w-r, y);
+				ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+				ctx.moveTo(x+w, y+h-r);
+				ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+			}
+
+
+		//fill the Rect
+		if(obj.fillStyle) ctx.fill();
+		//draw clipped image if present
+		if(obj.img) {
+			ctx.clip();
+			drawImage(ctx, obj);
+		}
+		//overlay stroke on top of fill and any images
+		if(obj.lineWidth && obj.strokeStyle) {
+			ctx.stroke();
+		}
 		ctx.restore();
 	}
 
@@ -936,27 +1033,27 @@ window.elefart.display = (function () {
 		if(obj.closed) {
 			ctx.closePath(); //closed shape, optional
 		}
-		if(obj.fillStyle) {
+		if(obj.fillStyle) { //fill with primary color
 			ctx.fill();
 		} 
 		if(obj.blendColor) { //optional blending with background
+			var dist = Math.pow(obj.distance, 3.5); 
+			if(dist < 0.1) dist = 0;
 			ctx.fillStyle = obj.blendColor;
-			var dist = Math.pow(obj.distance, 3.5); if(dist < 0.1) dist = 0;
-			if(dist) {
-				ctx.globalAlpha = dist;
-				ctx.fill();
-				ctx.globalAlpha = obj.opacity;
-			}
+			ctx.globalAlpha = dist;
+			ctx.fill();
+			ctx.globalAlpha = obj.opacity;
 		}
-		if(obj.img) {
+		if(obj.img) { //internal image
 			if(obj.imageOpacity) ctx.globalAlpha = obj.imageOpacity;
 			ctx.clip();
 			drawImage(ctx, obj);
 			ctx.globalAlpha = obj.opacity;
 		}
 
-		if(obj.lineWidth && obj.strokeStyle) {
-			var l = 1.2 - obj.distance; if(l > 1.0) l = 1.0;
+		if(obj.lineWidth && obj.strokeStyle) { //shrink stroke with distance
+			var l = 1.2 - obj.distance; 
+			if(l > 1.0) l = 1.0;
 			ctx.globalAlpha = l;
 			ctx.stroke();
 		} 
@@ -1059,7 +1156,11 @@ window.elefart.display = (function () {
 					drawLine(ctx, obj);
 					break;
 				case factory.TYPES.RECT:
-					if(obj.borderRadius === 0) {
+
+					if(obj.missingSide > 0) {
+						drawRoundedBox(ctx, obj);
+					}
+					else if(obj.borderRadius === 0) {
 						drawRect(ctx, obj);
 					}
 					else {
@@ -1316,6 +1417,7 @@ window.elefart.display = (function () {
 		drawLine:drawLine,
 		drawRect:drawRect,
 		drawRoundedRect:drawRoundedRect,
+		drawRoundedBox:drawRoundedBox,
 		drawCircle:drawCircle,
 		drawPolygon:drawPolygon,
 		drawImage:drawImage,

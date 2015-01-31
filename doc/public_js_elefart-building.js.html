@@ -100,6 +100,10 @@
 						</li>
 						
 						<li>
+							<a href="ScreenBox.html">ScreenBox</a>
+						</li>
+						
+						<li>
 							<a href="ScreenCircle.html">ScreenCircle</a>
 						</li>
 						
@@ -219,6 +223,10 @@
 						
 						<li>
 							<a href="global.html#drawBackground">drawBackground</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawBox">drawBox</a>
 						</li>
 						
 						<li>
@@ -895,6 +903,7 @@ window.elefart.building = (function () {
 	},
 	DIMENSIONS[BUILDING_TYPES.ELEVATOR_SUBSHAFT] = {
 		//nothing inherited at this point
+		shaftOffset:0.1 //relative to the Shaft
 	},
 	DIMENSIONS[BUILDING_TYPES.ELEVATOR] = {
 		elevatorWidth:0.1,
@@ -980,11 +989,11 @@ window.elefart.building = (function () {
 		var gh = gr.height;
 		var ar = gr.width/gr.height;
 
-		//change some dimensions at extreme aspect ratios
-		if(ar &lt; 0.45) {
-			DIMENSIONS.BUILDING.top = 0.1 + (ar - 0.5)/5;
-			DIMENSIONS.SKY.height = DIMENSIONS.BUILDING.top
-		}
+		//TODO: ADJUST NUMBER OF SHAFTS TO BE MORE AT EXTREME ASPECT RATIOS
+		//NARROW HEIGHT, BIG WIDTH
+
+		//bind Sky and top of Building
+		DIMENSIONS.SKY.height = DIMENSIONS.BUILDING.top;
 
 		//compute height of building floors
 		if(gh &lt; 100) {
@@ -1008,7 +1017,7 @@ window.elefart.building = (function () {
 		else {
 			DIMENSIONS.BUILDING_FLOOR.height = 0.10;
 		}
-		/////////////////console.log("DIMENSIONS.BUILDING_FLOOR.height set to:"+DIMENSIONS.BUILDING_FLOOR.height)
+
 	}
 
 	/** 
@@ -1088,7 +1097,7 @@ window.elefart.building = (function () {
 			if(e) {
 				e.name = BUILDING_TYPES.ELEVATOR;
 				e.instanceName = "Shaft #:" + shaft.shaftNum;
-				e.borderRadius = 3;
+				e.setRectBorderRadius(3);
 				e.shaftNum = shaft.shaftNum;
 				display.addToDisplayList(e, display.LAYERS.ELEBACK);
 				return e;
@@ -1149,12 +1158,11 @@ window.elefart.building = (function () {
 		if(building) {
 			var shaftWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.width * building.width);
 			var shaftSubWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.subWidth * building.width);
-			var shaftOffset = factory.toInt((shaftWidth - shaftSubWidth)/2);
-			var ww = building.lineWidth; //control how shafts overlap building walls
+			var shaftMargin = (shaftWidth - shaftSubWidth)/2;
 
 			//compute shaft dimensions
 			var t = building.top; //offset so overlaps roof, doesn't overlap bottom floor
-			var l = building.left + (shaftWidth * shaftNum); //zero-based
+			var l = building.left + (shaftWidth * shaftNum);// + shaftMargin; //zero-based
 			var w = shaftWidth;
 			var h = building.height;
 
@@ -1170,7 +1178,7 @@ window.elefart.building = (function () {
 				t,
 				w,
 				h, //we don't include the walking surface
-				0,
+				1,
 				display.COLORS.CLEAR,
 				display.COLORS.CLEAR, //TODO: OVERLAPPING FLOORS, PARTIALLY OPAQUE
 				display.LAYERS.SHAFTS
@@ -1183,19 +1191,21 @@ window.elefart.building = (function () {
 				//assign generic getter function
 				s.getChildByType = getChildByType;
 
+				//draw the visible SubShaft
+				//getter for subShaft
 				s.getSubShaft = function () {
-					return s.getChildByType(BUILDING_TYPES.ELEVATOR_SHAFT, false)[0];
+					return s.getChildByType(BUILDING_TYPES.ELEVATOR_SUBSHAFT, false)[0];
 				}
 
-				//draw the visible SubShaft as another Rect, partly transparent
+				//subShaft color
 				var rgbaColor = factory.getRGBAfromRGB(
 					display.COLORS.PINK, 
 					DIMENSIONS.ELEVATOR_SHAFT.subOpacity
 					);
 
-				//create the visible sub-shaft
+				//create the subShaft
 				var sb = factory.ScreenRect(
-						l + shaftOffset,
+						l + shaftMargin,
 						t,
 						shaftSubWidth,
 						h,
@@ -1206,11 +1216,9 @@ window.elefart.building = (function () {
 					);
 				if(sb) {
 					//add the shaft rect
-					sb.name = BUILDING_TYPES.ELEVATOR.SUBSHAFT;
-					sb.openSide = 3; //0, 1, 2, 3;
+					sb.name = BUILDING_TYPES.ELEVATOR_SUBSHAFT;
 					sb.instanceName = "Elevator SubShaft for #:" + shaftNum;
 					s.addChild(sb);
-
 					display.addToDisplayList(sb, display.LAYERS.SHAFTS);
 
 					////////////////////////
@@ -1343,106 +1351,6 @@ window.elefart.building = (function () {
 	}
 
 	/** 
-	 * @constructor BuildingRoof
-	 * @classdesc special BuildingFloor, actually the roof of the Building. Draw a roof 
-	 * pattern on the base, extending into the next lower BuildingFloor
-	 * @param {Building} building the Building object, linked as parent to this class
-	 * @returns {BuildingRoof|false} a BuildingRoof, or false
-	 */
-	function BuildingRoof (building, shaftTop) {
-
-		//compute BuildingRoof based on dimensions
-		var t = world.top; //overlaps the Sky
-		var l = building.left;
-		var w = building.right - l;
-		var h = building.top;
-		var r = factory.ScreenRect(
-				l, 
-				t, 
-				w, 
-				h,
-				0, //stroke
-				display.COLORS.CLEAR, 
-				display.COLORS.CLEAR,
-				display.LAYERS.BUILDING
-			);
-
-		//create the BuildingRoof and set additional properties
-		if(r) {
-			r.name = BUILDING_TYPES.BUILDING_FLOOR;
-			r.floorNum = ROOF; //SPECIAL NUMBER
-			r.instanceName = "ROOF";
-			var roofHeight = 4; //visible drawn BuildingRoof
-
-			//add the visible rooftop to the LEFT of the ElevatorShaft punching through it
-			var shaftWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.width * building.width);
-			var shaftSubWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.subWidth * building.width);
-			var shaftOffset = factory.toInt((shaftWidth - shaftSubWidth)/2);
-			var l = building.left - building.lineWidth + 1;
-			var t = building.top - building.lineWidth; //offset so overlaps roof, doesn't overlap bottom floor
-			var lw = l + (shaftWidth * shaftTop) + shaftOffset + building.lineWidth; //zero-based
-			var lt = factory.ScreenRect(
-				l,
-				t,
-				lw,
-				roofHeight, //visible BuildingRoof height
-				0,
-				display.COLORS.CLEAR,
-				display.COLORS.BLACK,
-				display.LAYERS.BUILDING
-				);
-			lt.instanceName = "Roof Left";
-			r.addChild(lt);
-			display.addToDisplayList(lt, display.LAYERS.BUILDING);
-		
-			//add the visible rooftop to the RIGHT of the ElevatorShaft punching through it
-			var rr = lw + shaftWidth - shaftOffset-shaftOffset;
-			var rt = factory.ScreenRect(
-				rr,
-				t,
-				building.right - rr+1,
-				roofHeight,
-				0,
-				display.COLORS.CLEAR,
-				display.COLORS.BLACK,
-				display.LAYERS.BUILDING
-				);
-
-			rt.instanceName = "Roof right";
-			r.addChild(rt);
-			display.addToDisplayList(rt, display.LAYERS.BUILDING);
-
-			//draw an outline around the top shaft for the ElevatorShaft that goes to the Roof
-			//TODO: black thin, then brown thicker
-			//TODO: match height available to us
-			//TODO: elevator needs to be a bit smaller
-			//TODO: LEFT AND RIGHT RECT ABOVE NOT BEING REMOVED BY REMOVECHILD
-			w = rt.left - lt.right// - wallSize;
-			h = DIMENSIONS.BUILDING_FLOOR.height * building.height;
-			var lineWidth = roofHeight+3;
-			//external wall on Roof
-			var sp = factory.ScreenRect(
-				lt.right-1,
-				roofHeight,
-				w,
-				h,
-				lineWidth,
-				display.COLORS.BROWN,
-				display.COLORS.CLEAR,
-				display.LAYERS.ELEBACK
-				);
-			sp.borderRadius = 6;
-			r.addChild(sp);
-			display.addToDisplayList(sp, display.LAYERS.ELEBACK); //put behind BuildingFloor Rect
-			return r;
-		}
-
-		//fallthrough
-		elefart.showError("Failed to create BuildingRoof");
-		return false;
-	}
-
-	/** 
 	 * @constructor BuildingSign
 	 * @classdesc the sign on Building's BuildingRoof
 	 * - parent: Building
@@ -1482,6 +1390,102 @@ window.elefart.building = (function () {
 
 		//fallthrough
 		elefart.showError("Failed to create BuildingSign");
+		return false;
+	}
+
+	/** 
+	 * @constructor BuildingRoof
+	 * @classdesc special BuildingFloor, actually the roof of the Building. Draw a roof 
+	 * pattern on the base, extending into the next lower BuildingFloor
+	 * @param {Building} building the Building object, linked as parent to this class
+	 * @returns {BuildingRoof|false} a BuildingRoof, or false
+	 */
+	function BuildingRoof (building, roofShaft) {
+		//BuildingRoof overlaps Sky
+		var t = world.top;
+		var l = building.left;
+		var w = building.right - l;
+		var h = building.top;
+		var r = factory.ScreenRect(
+				l, 
+				t, 
+				w, 
+				h,
+				0, //stroke
+				display.COLORS.CLEAR, 
+				display.COLORS.CLEAR,
+				display.LAYERS.BUILDING
+			);
+
+		//get the subShaft in roofShaft
+		var ss = roofShaft.getSubShaft();
+		var roofWidth = building.lineWidth*0.75;
+
+		//create the visible roof (to the left and right of the roofShaft)
+		if(r) {
+			//left Rect
+			l = building.left - roofWidth;
+			t = building.top - roofWidth;
+			w = ss.left + roofWidth;
+			h = roofWidth;
+			var roofLeft = factory.ScreenRect(
+				l,
+				t,
+				w,
+				h, //visible BuildingRoof height
+				0,
+				display.COLORS.CLEAR,
+				display.COLORS.BLACK,
+				display.LAYERS.BUILDING
+				);
+			roofLeft.instanceName = "Roof Left";
+			r.addChild(roofLeft);
+			display.addToDisplayList(roofLeft, display.LAYERS.ELEBACK);
+
+			//right Rect
+			l = ss.right;
+			t = building.top - roofWidth;
+			w = building.right + roofWidth - ss.right;
+			h = roofWidth;
+			var roofRight = factory.ScreenRect(
+				l,
+				t,
+				w,
+				h, //visible BuildingRoof height
+				0,
+				display.COLORS.CLEAR,
+				display.COLORS.BLACK,
+				display.LAYERS.BUILDING
+				);
+			roofRight.instanceName = "Roof Right";
+			r.addChild(roofRight);
+			display.addToDisplayList(roofRight, display.LAYERS.ELEBACK);
+
+			//draw outline along ElevatorShaft punching through Roof
+			l = ss.left;
+			t = ss.top;
+			w = ss.width;
+			h = building.top - t;
+			var cupola = factory.ScreenRect(
+				l,
+				t,
+				w,
+				h, //visible BuildingRoof height
+				building.lineWidth,
+				display.COLORS.BLACK,
+				display.COLORS.CLEAR,
+				display.LAYERS.BUILDING
+				);
+			cupola.instanceName = "Roof Cupola";
+			cupola.borderRadius = building.lineWidth;
+			cupola.missingSide = factory.SIDES.BOTTOM;
+			r.addChild(cupola);
+			display.addToDisplayList(cupola, display.LAYERS.ELEBACK);
+
+			return r;
+		}
+		//fallthrough
+		elefart.showError("Failed to create BuildingRoof");
 		return false;
 	}
 
@@ -1569,14 +1573,6 @@ window.elefart.building = (function () {
 				shaftTop = factory.getRandomInt(Math.ceil(numShafts/2), numShafts-1);
 			}
 
-			//getter for BuildingRoof
-			b.getBuildingRoof = function () {
-				return b.getChildByType(BUILDING_TYPES.BUILDING_FLOOR, false, "floorNum", ROOF)[0];
-			}
-
-			//create and add BuildingRoof, with adds as a BuildingFloor -1
-			b.addChild(BuildingRoof(b, shaftTop));
-
 			//getters for ElevatorShafts
 			b.getShaft = function (shaftNum) {
 				return b.getChildByType (BUILDING_TYPES.ELEVATOR_SHAFT, false, "shaftNum", shaftNum)[0];
@@ -1590,7 +1586,19 @@ window.elefart.building = (function () {
 			for(i = 0; i &lt; numShafts; i++) {
 				b.addChild(ElevatorShaft(b, i, numShafts, shaftTop));
 			}
+
+			var roofShaft = b.getShaft(shaftTop);
+
+			//getter for BuildingRoof
+			b.getBuildingRoof = function () {
+				return b.getChildByType(BUILDING_TYPES.BUILDING_FLOOR, false, "floorNum", ROOF)[0];
+			}
+
+			//create and add BuildingRoof, Floor# -1, and with a opening for the roofShaft
+			b.addChild(BuildingRoof(b, roofShaft));
+
 			//return the completed Building
+
 
 			window.b = b; ////////////////////////////////////////////////////////////////////////////////////////////////////
 			return b;
@@ -1620,21 +1628,20 @@ window.elefart.building = (function () {
 		var minWidth = DIMENSIONS[BUILDING_TYPES.CLOUD].minWidth;
 		var minHeight = DIMENSIONS[BUILDING_TYPES.CLOUD].minHeight;
 
-		//Cloud x position
+		//Cloud randomly assigned x position
 		var cloudX = factory.getRandomInt(
 			sky.left, 
 			sky.right - minWidth
 			);
+
 		//random biases to the right, so skew x values to the left
 		cloudX -= sky.width * 0.2;
 		var cloudY = sky.height * distance * (height/sky.height);
 
 		var l = cloudX;
-		var t = cloudY;
+		var t = cloudY; if(t &lt; 0) t = 0; //top of screen
 		var w = l + width*distance;
 		var h = t + height*distance;
-
-		///TODO INVALID RECT
 
 		//make the cloudRect
 		var cloudRect = factory.Rect(
@@ -1644,6 +1651,9 @@ window.elefart.building = (function () {
 			h
 			);
 
+		//compute the Cloud height
+		var sFactor = ((1.0 - distance) * (sky.height - t));
+
 		//compute the central point of the Cloud
 		var cc = factory.Point(
 				(cloudRect.left + cloudRect.width/2), 
@@ -1651,16 +1661,13 @@ window.elefart.building = (function () {
 			);
 		//console.log("cloudRect:" + cloudRect.top + "," + cloudRect.right + "," + cloudRect.bottom + "," + cloudRect.left);
 
-		var sFactor = ((1.0 - distance) * (sky.height - t));
-		pts = factory.createFlowerShape(
+		var pts = factory.createFlowerShape(
 				cc, //central Point
-				//cloudRect.height/3, //outerRadius
-				//cloudRect.height/4, //inner radius
-				sFactor/3,
-				sFactor/4,
+				sFactor/3, //outer radius
+				sFactor/4, //inner radius
 				factory.getRandomInt(0.95, 1.0), //y distortion to oval
 				factory.getRandomInt(7, 8), //x distortion to oval
-				10
+				10 //number of Points
 			);
 
 		//create the Cloud
@@ -1696,17 +1703,16 @@ window.elefart.building = (function () {
 					pt.y -= (scale * ySkew);
 				}
 			}
+
 			//shadow for Cloud
 			var grd = display.getForegroundTexture(
 				display.MATERIALS.GRADIENT_CLOUD, 
 				0, 
-				c.top, 
+				c.top - (distance * distance * c.top)/2.5, 
 				0, 
 				c.bottom
 			);
 			c.setFill(grd, blendColor); //Cloud fill, plus Sky gradient
-			//TODO: clouds "blue with distance, so set a bluing value"
-
 			c.distance = distance; //used to animate Cloud layers
 			c.name = BUILDING_TYPES.CLOUD;
 			c.instanceName = "Cloud";
@@ -1714,21 +1720,14 @@ window.elefart.building = (function () {
 			display.addToDisplayList(c); //get layer and panel for display
 
 			//update function, affects display variables
-			c.moveInc = factory.getRandomInt(0, 1); //makes Cloud updates less syncronized
-			var d = (1.0 - c.distance);
-			c.moveDist =  d*d/2;
+			c.moveDist = (1.0 - c.distance);
 			c.updateByTime = function () {
 				var sky = c.parent;
 				if(c.left > sky.right) {
 					c.move(-(sky.width + c.width), 0);
 				}
-				c.moveInc += c.moveDist;
-				if(c.moveInc >= 0.1) { //TODO: THIS IS THE MOVE INC!!!!!!!!!!!!! SEE IF WE CAN MAKE IT SMOOTHER
-					c.move(1, 0); //move to right 1 pixel
-					c.moveInc = 0;
-				}
+				c.move(c.moveDist,0)
 			}
-			window.c = c;
 			controller.addToUpdateList(c);
 			return c;
 		}
@@ -1835,7 +1834,7 @@ window.elefart.building = (function () {
 				c.instanceName = "Corona";
 				c.getChildByType = getChildByType; //generic child getter function
 				console.log("adding Corona to display list")
-				display.addToDisplayList(c, display.LAYERS.WORLD); //blend over clouds
+				display.addToDisplayList(c, display.LAYERS.WORLD);
 				return c;
 			}
 		}
@@ -1860,11 +1859,12 @@ window.elefart.building = (function () {
 		var t = DIMENSIONS.SKY.top * world.height;
 		var w = DIMENSIONS.SKY.width * world.width;
 		var h = DIMENSIONS.SKY.height * world.height;
+
 		 if(w > 1000) {
 			w -= 2; //kludge fixing some dimensions
 		}
 
-		//Sky gradient
+		//Sky color gradient
 		var grd = display.getBackgroundTexture(
 			display.MATERIALS.GRADIENT_SKY, 
 			l, 
@@ -1889,7 +1889,6 @@ window.elefart.building = (function () {
 				s.name = BUILDING_TYPES.SKY;
 				s.instanceName = "Sky";
 				s.getChildByType = getChildByType; //generic child getter function
-
 				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
 
 				//getter for the Sun
@@ -1932,22 +1931,36 @@ window.elefart.building = (function () {
 				for(i = 0; i &lt; numClouds; i++) {
 					s.addChild(Cloud(s, 0.4, 0.9*s.width, 0.5*s.height, grd));
 				}
-				numClouds -= 1;
+				numClouds -= 1;if(numClouds &lt; 1) numClouds = 1;
 				for(i = 0; i &lt; numClouds; i++) {
-					s.addChild(Cloud(s, 0.3, 0.9*s.width, 0.5*s.height, grd));
+					s.addChild(Cloud(s, 0.2, 1.0*s.width, 0.5*s.height, grd));
 				}
 				if(numClouds &lt; 1) numClouds = 1;
 				for(i = 0; i &lt; numClouds; i++) {
-					s.addChild(Cloud(s, 0.3, 1.0*s.width, 0.5*s.height, grd));
+					s.addChild(Cloud(s, 0.3, 1.3*s.width, 0.5*s.height, grd));
 				}
 
-				//getter for the Sun
+				//getter for the Sun's corona
 				sun.getCorona = function () {
 					return sun.getChildByType (BUILDING_TYPES.CORONA, false)[0];
 				}
-				//add the Coron as a child of the Sun (but draw OVER Clouds)
+				//add the Coron as a child of the Sun 
 				s.addChild(Corona(sun,s));
-				
+
+				//add a faded Sun to blend over Clouds
+				var sunFade = factory.ScreenCircle(
+					sun.left, 
+					sun.top, 
+					sun.radius,
+					3, 
+					display.COLORS.WHITE,
+					display.COLORS.LIGHT_GREY,
+					display.LAYERS.WORLD
+				);
+				sunFade.instanceName = "Sun Fade";
+				sunFade.setOpacity(0.07);
+				sun.addChild(sunFade);
+				display.addToDisplayList(sunFade, display.LAYERS.CLOUDS);
 				return s;
 			}
 		}
@@ -2172,7 +2185,7 @@ window.elefart.building = (function () {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Wed Jan 28th 2015 using the <a
+		on Fri Jan 30th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

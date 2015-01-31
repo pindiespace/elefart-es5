@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>DocStrap Source: public/js/elefart-netmessage.js</title>
+	<title>DocStrap Class: ScreenBox</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -756,56 +756,414 @@
 	<div class="row-fluid">
 
 		
-			<div class="span12">
-				
+		<div class="span8">
+			
 				<div id="main">
 					
 
 
-		<h1 class="page-title">Source: public/js/elefart-netmessage.js</h1>
-    
+	<h1 class="page-title">Class: ScreenBox</h1>
 <section>
-	<article>
-		<pre
-			class="sunlight-highlight-javascript linenums">/** 
- * @namespace
- * @fileoverview CommonJS object available on client and on server
- * common file between client and server provding
- * a dictionary for decoding messages between user programs
- * each message may be associated with additional data, shown
- * to the right of the message
- * 
- * NOTE: the function is 'wrapped' in an 'exports' object whose 
- * configuration is compatible with what NodeJS needs, and can 
- * also be used by your client. On the browser, the 'common' object
- * is created. On the server, it already exists. Format follows 
- * CommonJS format.
- * 
- * @link http://caolanmcmahon.com/posts/writing_for_node_and_the_browser/
- */
 
-(function(exports){
+<header>
+    <h2>
+    ScreenBox
+    </h2>
+    
+        <div class="class-description"><p>create a ScreenBox object missing one side, optionally rounded corners</p></div>
+    
+</header>
 
-	exports.portNum = 3000,
+<article>
+    <div class="container-overview">
+    
 
-	exports.NEWS = "NEWS",
+    
+        
+<dt>
+    <h4 class="name" id="ScreenBox"><span class="type-signature"></span>new ScreenBox<span class="signature">(x, y, width, height, strokeWidth, strokeStyle, fillStyle, layer, src, callback)</span><span class="type-signature"> &rarr; {<a href="ScreenRect.html">ScreenRect</a>|false}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
 
-	exports.USER_MESSAGE = {
-		USER_JOINED: "USER_JOINED",
-		USER_MOVED: "USER_MOVED",
-		USER_LEFT: "USER_LEFT"
-	};
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
 
-	exports.ELEVATOR_MESSAGE = {
-		ELEVATOR_MOVED: "ELEVATOR_MOVED"
-	};
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
 
-	//the line below is required to export for the web browser
+		<th>Type</th>
 
-}(typeof exports === 'undefined' ? this.common = {} : exports));</pre>
-	</article>
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>x</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the x coordinate of the object</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>y</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the y coordinate of the object</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>width</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the width of the Rect</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>height</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the height of the Rect</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>strokeWidth</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the width of the stroke around the ScreenRect</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>strokeStyle</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#COLORS">COLORS</a></span>
+|
+
+<span class="param-type">CanvasGradient</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the color (rgb or hex) for the stroke, written as 
+a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>fillStyle</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#COLORS">COLORS</a></span>
+|
+
+<span class="param-type">CanvasGradient</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the color (rgb or hex) for the stroke, written as 
+a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>layer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the layer for elefart.display to draw the object into.</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>src</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">HTMLImageElement</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>(optional) if present, add a reference to a JS image object to 
+draw over the ScreenRect fill</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>(optional) function for callback</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-2075">line 2075</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>if OK, return ScreenLine object, else false</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="ScreenRect.html">ScreenRect</a></span>
+|
+
+<span class="param-type">false</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
 </section>
-
 
 
 
@@ -829,6 +1187,10 @@
 				</footer>
 			</div>
 
+			
+			<div class="span3">
+				<div id="toc"></div>
+			</div>
 			
 			<br clear="both">
 		</div>

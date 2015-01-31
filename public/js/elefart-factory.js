@@ -40,6 +40,19 @@ window.elefart.factory = (function () {
 		IMAGE:"IMAGE"
 	};
 
+	/** 
+	 * @readonly
+	 * @enum {Number}
+	 * @typedef SIDES
+	 * @description top, right, bottom, left for Rect
+	 */
+	var SIDES = {
+		TOP:1,
+		RIGHT:2,
+		BOTTOM:3,
+		LEFT:4
+	};
+
 
 	/* 
 	 * ============================
@@ -87,6 +100,12 @@ window.elefart.factory = (function () {
 	 */
 	function getRandomInt(min, max) {
 		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
+	function clampVal(val, min, max) {
+		if(val < min) val = min;
+		if(val > max) val = max;
+		return val;
 	}
 
 	/** 
@@ -404,8 +423,9 @@ window.elefart.factory = (function () {
 	 * @returns {Rect} a Rect object
 	 */
 	function Rect (x, y, width, height) {
-		if(!isNumber(x) || !isNumber(y) || !isNumber(width) || 
-			!isNumber(height) || width < 0 || y < 0) {
+		if(!isNumber(x) || !isNumber(y) || 
+			!isNumber(width) || !isNumber(height) || 
+			width < 0 || height < 0) {
 			elefart.showError(this.type + " in Rect, invalid dimensions x:" + x + " y:" + y + " w:" + width + " h:" + height)
 			return false;
 		}
@@ -910,9 +930,11 @@ window.elefart.factory = (function () {
 						if(pts[i].y > this.bottom) this.bottom = pts[i].y;
 					}
 				}
+				if(this.right < this.left) console.log("ERROR right less than left")
+				if(this.bottom < this.top) console.log("ERROR bottom less than top")
 				this.width = this.right - this.left;
 				this.height = this.bottom - this.top;
-				return Rect(this.left, this.top, this.right, this.bottom);
+				return Rect(this.left, this.top, this.width, this.height);
 				break;
 			default:
 				elefart.showError("tried enclosingRect() for instanceName:" + this.instanceName + " id:" + this.id);
@@ -2016,7 +2038,44 @@ window.elefart.factory = (function () {
 	/** 
 	 * @constructor ScreenRect
 	 * @implements {Rect}
-	 * @classdesc create a ScreenRect object.
+	 * @classdesc create a ScreenRect object, optionally rounded corners
+	 * @param {Number} x the x coordinate of the object
+	 * @param {Number} y the y coordinate of the object
+	 * @param {Number} width the width of the Rect
+	 * @param {Number} height the height of the Rect
+	 * @param {Number} strokeWidth the width of the stroke around the ScreenRect
+	 * @param {COLORS|CanvasGradient} strokeStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
+	 * @param {COLORS|CanvasGradient} fillStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
+	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 * @param {HTMLImageElement} src (optional) if present, add a reference to a JS image object to 
+	 * draw over the ScreenRect fill
+	 * @param {Function} callback (optional) function for callback
+	 * @param {Number} borderRadius (optional) rounding of Rect, in pixels
+	 * @returns {ScreenRect|false} if OK, return ScreenLine object, else false
+	 */
+	function ScreenRect (x, y, width, height, strokeWidth, strokeStyle, fillStyle, layer, src, callback, borderRadius) {
+		var r = Rect(x, y, width, height);
+		if(r) {
+			addFns(r); //convert to ScreenObject
+			if(!strokeWidth) strokeWidth = 0;
+			if(!strokeStyle) strokeStyle = display.COLORS.CLEAR;
+			if(!fillStyle) fillStyle = display.COLORS.CLEAR;
+			if(!layer) layer = display.LAYERS.FLOORS; //top layer
+			if(src && !callback) callback = function () {};
+			r.setStroke(strokeWidth, strokeStyle);
+			r.setFill(fillStyle);
+			if(src) r.setImage(src, callback, false);
+			r.setLayer(layer);
+		}
+		return r;
+	}
+
+	/** 
+	 * @constructor ScreenBox
+	 * @implements {Rect}
+	 * @classdesc create a ScreenBox object missing one side, optionally rounded corners
 	 * @param {Number} x the x coordinate of the object
 	 * @param {Number} y the y coordinate of the object
 	 * @param {Number} width the width of the Rect
@@ -2032,7 +2091,7 @@ window.elefart.factory = (function () {
 	 * @param {Function} callback (optional) function for callback
 	 * @returns {ScreenRect|false} if OK, return ScreenLine object, else false
 	 */
-	function ScreenRect (x, y, width, height, strokeWidth, strokeStyle, fillStyle, layer, src, callback) {
+	function ScreenBox (x, y, width, height, strokeWidth, strokeStyle, fillStyle, layer, src, callback, missingSide) {
 		var r = Rect(x, y, width, height);
 		if(r) {
 			addFns(r); //convert to ScreenObject
@@ -2041,8 +2100,11 @@ window.elefart.factory = (function () {
 			if(!fillStyle) fillStyle = display.COLORS.CLEAR;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
 			if(src && !callback) callback = function () {};
+			if(!missingSide) missingSide = 0;
+			r.missingSide = missingSide; //number of side NOT to draw
 			r.setStroke(strokeWidth, strokeStyle);
 			r.setFill(fillStyle);
+			
 			if(src) r.setImage(src, callback, false);
 			r.setLayer(layer);
 		}
@@ -2200,7 +2262,8 @@ window.elefart.factory = (function () {
 
 	//returned object
 	return {
-		TYPES:TYPES,
+		TYPES:TYPES, //basic shapes
+		SIDES:SIDES, //top, left, bottom,right
 		isNumber:isNumber,
 		isString:isString,
 		isArray:isArray,
@@ -2209,6 +2272,7 @@ window.elefart.factory = (function () {
 		isCanvasGradient:isCanvasGradient,
 		toInt:toInt, //convert to integer floor
 		getRandomInt:getRandomInt, //random integers
+		clampVal:clampVal, //clamp value in range
 		getRandomPoints:getRandomPoints,
 		getRGBAfromRGB:getRGBAFromRGB, //make rgb() strings with opacity
 		Point:Point, //Shape Primitive Constructors
@@ -2228,6 +2292,7 @@ window.elefart.factory = (function () {
 		ScreenPoint:ScreenPoint, //ScreenObjects
 		ScreenLine:ScreenLine,
 		ScreenRect:ScreenRect,
+		ScreenBox:ScreenBox,
 		ScreenCircle:ScreenCircle,
 		ScreenPoly:ScreenPoly,
 		ScreenCloud:ScreenCloud,
