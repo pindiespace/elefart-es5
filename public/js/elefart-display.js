@@ -769,7 +769,9 @@ window.elefart.display = (function () {
 
 
 		//fill the Rect
-		if(obj.fillStyle) ctx.fill();
+		if(obj.fillStyle) {
+			ctx.fill();
+		}
 		//draw clipped image if present
 		if(obj.img) {
 			ctx.clip();

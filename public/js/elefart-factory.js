@@ -2066,7 +2066,7 @@ window.elefart.factory = (function () {
 			if(src && !callback) callback = function () {};
 			r.setStroke(strokeWidth, strokeStyle);
 			r.setFill(fillStyle);
-			if(src) r.setImage(src, callback, false);
+			if(src) r.setImage(src, callback, true);
 			r.setLayer(layer);
 		}
 		return r;
@@ -2105,7 +2105,7 @@ window.elefart.factory = (function () {
 			r.setStroke(strokeWidth, strokeStyle);
 			r.setFill(fillStyle);
 			
-			if(src) r.setImage(src, callback, false);
+			if(src) r.setImage(src, callback, true);
 			r.setLayer(layer);
 		}
 		return r;
@@ -2141,7 +2141,7 @@ window.elefart.factory = (function () {
 			if(src && !callback) callback = function () {};
 			c.setStroke(strokeWidth, strokeStyle);
 			c.setFill(fillStyle);
-			if(src) c.setImage(src, callback, false);
+			if(src) c.setImage(src, callback, true);
 			c.setLayer(layer);
 		}
 		return c;
@@ -2177,7 +2177,7 @@ window.elefart.factory = (function () {
 
 			p.setStroke(strokeWidth, strokeStyle);
 			p.setFill(fillStyle);
-			if(src) p.setImage(src, callback, false);
+			if(src) p.setImage(src, callback, true);
 			p.setLayer(layer);
 			//special function to make polygon invisible
 		}
@@ -2196,7 +2196,7 @@ window.elefart.factory = (function () {
 
 			b.setStroke(strokeWidth, strokeStyle);
 			b.setFill(fillStyle);
-			if(src) b.setImage(src, callback, false);
+			if(src) b.setImage(src, callback, true);
 			b.setLayer(layer);
 		}
 		return b;

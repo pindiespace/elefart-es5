@@ -12,16 +12,15 @@
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: '{"name":"featurephone1","floors":"3","shafts":"3","signx":"0.6","signy":"0.01"}'; display: none; }
+	body:before { content: '{"name":"featurephone1","floors":"3","shafts":"3","signx":"0.05","signw":"0.6","subshaft":"0.9"}'; display: none; }
 }
-
 
 /* old iPhone */
 @media (min-width: 320px) {
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: '{"name":"smartphone","floors":"5","shafts":"4","signx":"0.5","signy":"0.02"}'; display: none; }
+	body:before { content: '{"name":"smartphone","floors":"5","shafts":"4","signx":"0.07","signw":"0.5","subshaft":"0.7"}'; display: none; }
 }
 
 /* Larger than small mobile */
@@ -29,7 +28,7 @@
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: '{"name":"tablet1","floors":"6","shafts":"5","signx":"0.45","signy":"0.03"}'; display: none; }
+	body:before { content: '{"name":"tablet1","floors":"6","shafts":"5","signx":"0.01","signw":"0.4","subshaft":"0.65"}'; display: none; }
 }
 
 /* larger than small tablet */
@@ -37,7 +36,7 @@
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: '{"name":"tablet2","floors":"8","shafts":"6","signx":"0.35","signy":"0.04"}'; display: none; }
+	body:before { content: '{"name":"tablet2","floors":"8","shafts":"6","signx":"0.012","signw":"0.35","subshaft":"0.6"}'; display: none; }
 }
 
 /* small tablet */
@@ -45,31 +44,31 @@
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: '{"name":"tablet2","floors":"8","shafts":"7","signx":"0.3","signy":"0.05"}'; display: none; }
+	body:before { content: '{"name":"tablet2","floors":"8","shafts":"7","signx":"0.015","signw":"0.3","subshaft":"0.55"}'; display: none; }
 
 }
 
 /* Larger than tablet */
-@media (min-width: 750px) {
+@media (min-width: 760px) {
 	#screen-game {
 		width:100%;
 	}
-	body:before { content: '{"name":"laptop","floors":"8","shafts":"8","signx":"0.25","signy":"0.05"}'; display: none; }
+	body:before { content: '{"name":"laptop","floors":"8","shafts":"8","signx":"0.017","signw":"0.25","subshaft":"0.5"}'; display: none; }
 }
 
 /* small desktop */
-@media (min-width: 1024px) {
+@media (min-width: 960px) {
 	#screen-game {
 		width:95%;
 	}
-	body:before { content: '{"name":"desktop1","floors":"8","shafts":"10","signx":"0.2","signy":"0.06"}'; display: none; }
+	body:before { content: '{"name":"desktop1","floors":"8","shafts":"10","signx":"0.02","signw":"0.2","subshaft":"0.5"}'; display: none; }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1100px) {
 	#screen-game {
 		width:90%;
 	}
-	body:before { content: '{"name":"desktop2","floors":"8","shafts":"11","signx":"0.15","signy":"0.05"}'; display: none; }
+	body:before { content: '{"name":"desktop2","floors":"8","shafts":"11","signx":"0.02","signw":"0.16","subshaft":"0.5"}'; display: none; }
 }
 
 /* Larger than Desktop HD */
@@ -77,19 +76,19 @@
 	#screen-game {
 		width:80%;
 	}
-	body:before { content: '{"name":"desktop3","floors":"8","shafts":"12","signx":"0.15","signy":"0.045"}'; display: none; }
+	body:before { content: '{"name":"desktop3","floors":"8","shafts":"12","signx":"0.02","signw":"0.15","subshaft":"0.5"}'; display: none; }
 }
 
 @media (min-width: 1980px) {
 	#screen-game {
 		width:75%;
 	}
-	body:before { content: '{"name":"digitaltv2k","floors":"8","shafts":"13","signx":"0.1","signy":"0.04"}'; display: none; }
+	body:before { content: '{"name":"digitaltv2k","floors":"8","shafts":"13","signx":"0.02","signw":"0.12","subshaft":"0.5"}'; display: none; }
 }
 
 @media (min-width: 3960px) {
 	#screen-game {
 		width:75%;
 	}
-	body:before { content: '{"name":"digitaltv4k","floors":"10","shafts":"16","signx":"0.2","signy":"0.035"}'; display: none; }
+	body:before { content: '{"name":"digitaltv4k","floors":"10","shafts":"16","signx":"0.02","signw":"0.10","subshaft":"0.5"}'; display: none; }
 }
