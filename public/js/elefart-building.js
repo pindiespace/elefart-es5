@@ -108,15 +108,16 @@ window.elefart.building = (function () {
 		maxClouds:20
 	},
 	DIMENSIONS[BUILDING_TYPES.BUILDING] = {
-		top:0.1, //dimensions are relative to World
+		top:0.1, //RELATIVE to World
 		left:0.0,
 		width:1.0,
 		height:0.8, //varies
 		wallSize:0.01,
+		roofWidth:0.75, //RELATIVE to wallSize
 		MIN_WALL:6
 	},
 	DIMENSIONS[BUILDING_TYPES.BUILDING_SIGN] = {
-		top:0.04, //relative to Sky
+		top:0.04, //RELATIVE to Sky
 		left:0.07, //varies
 		width:0.3
 	},
@@ -245,35 +246,42 @@ window.elefart.building = (function () {
 			console.log("LESS THAN 550")
 			DIMENSIONS.BUILDING.top = 0.14;
 			DIMENSIONS.BUILDING.height = 0.72;
-			DIMENSIONS.BUILDING_FLOOR.height = 0.18;
+			DIMENSIONS.BUILDING_FLOOR.height = 0.20;
 			DIMENSIONS.BUILDING_SIGN.height = 0.6;
 		}
 		else if(gh < 760) {
 			console.log("LESS THAN 760")
 			DIMENSIONS.BUILDING.top = 0.14;
 			DIMENSIONS.BUILDING.height = 0.72;
-			DIMENSIONS.BUILDING_FLOOR.height = 0.16;
-			DIMENSIONS.BUILDING_SIGN.height = 0.5;
+			DIMENSIONS.BUILDING_FLOOR.height = 0.18;
+			DIMENSIONS.BUILDING_SIGN.height = 0.55;
 		}
 		else if(gh < 960) {
 			console.log("LESS THAN 960")
 			DIMENSIONS.BUILDING.top = 0.10;
 			DIMENSIONS.BUILDING.height = 0.80;
-			DIMENSIONS.BUILDING_FLOOR.height = 0.12;
-			DIMENSIONS.BUILDING_SIGN.height = 0.45;
+			DIMENSIONS.BUILDING_FLOOR.height = 0.15;
+			DIMENSIONS.BUILDING_SIGN.height = 0.5;
 		}
 		else if(gh < 1100) {
 			console.log("LESS THAN 1100")
 			DIMENSIONS.BUILDING.top = 0.10;
 			DIMENSIONS.BUILDING.height = 0.80;
-			DIMENSIONS.BUILDING_FLOOR.height = 0.10;
+			DIMENSIONS.BUILDING_FLOOR.height = 0.12;
+			DIMENSIONS.BUILDING_SIGN.height = 0.45;
+		}
+		else if(gh < 1400) {
+			console.log("LESS THAN 1400")
+			DIMENSIONS.BUILDING.top = 0.10;
+			DIMENSIONS.BUILDING.height = 0.80;
+			DIMENSIONS.BUILDING_FLOOR.height = 0.11;
 			DIMENSIONS.BUILDING_SIGN.height = 0.45;
 		}
 		else {
 			console.log("Huge dimensions")
 			DIMENSIONS.BUILDING.top = 0.07;
 			DIMENSIONS.BUILDING.height = 0.82;
-			DIMENSIONS.BUILDING_FLOOR.height = 0.08;
+			DIMENSIONS.BUILDING_FLOOR.height = 0.10;
 			DIMENSIONS.BUILDING_SIGN.height = 0.45;
 		}
 
@@ -339,6 +347,13 @@ window.elefart.building = (function () {
 		var l = shaft.left + margin;
 		var h = building.getFloorHeight() - building.getFloor(1).getBaseHeight();
 
+		/** 
+		 * correction for some screen sizes that make Elevator too narrow
+		 * NOTE: this calculation matches the independent calculation 
+		 * in ElevatorShaft
+		 */
+		if(h > w) h = w;
+
 		//create the Elevator
 		var e = factory.ScreenRect(
 				l, 
@@ -353,9 +368,48 @@ window.elefart.building = (function () {
 			if(e) {
 				e.name = BUILDING_TYPES.ELEVATOR;
 				e.instanceName = "Shaft #:" + shaft.shaftNum;
+				e.parent = shaft; //set parent early, before addChild
 				e.setRectBorderRadius(3);
 				e.shaftNum = shaft.shaftNum;
-				display.addToDisplayList(e, display.LAYERS.ELEBACK);
+				display.addToDisplayList(e, display.LAYERS.ELESPACE1);
+
+				//add getters and setters
+
+				/** 
+				 * @method e.whichFloor
+				 * @description determine which Floor the Elevator is at. If the top of the 
+				 * Elevator is more than halfway above the floor base, the elevator is on the 
+				 * floor
+				 * @returns {Number} the floor number.
+				 */
+				e.whichFloor = function () {
+					var starts = e.parent.getFloorStarts(); //get start of BuildingFloors from ElevatorShaft
+					var h = starts[1] - starts[0];
+					console.log("h:" + h)
+					var len = starts.length;
+					var top,bottom,halfway;
+					console.log("e.top:" + e.top)
+					for(var i = 0; i < len; i++) {
+						if(i === 0) top = starts[i] - h; //ROOF
+						else top = starts[i - 1];
+						bottom = starts[i];
+						halfway = bottom + ((top - bottom)/2);
+						console.log("bottom:" + bottom + " halfway:" + halfway + " top:" + top)
+						if(e.top > halfway && e.top < top) {
+							return i-1;//zero-based
+						}
+					}
+					elefart.showError("Elevator couldn't find which Floor it was on")
+					return false;
+				}
+				e.arrivedFloor = function () {
+				}
+
+				e.moveToFloor = function (num, immediate) {
+
+				}
+				window.elev = e; ///////////////////////////////////////
+
 				return e;
 			}
 		return false;
@@ -377,15 +431,10 @@ window.elefart.building = (function () {
 	 * - children: none
 	 * @returns {ElevatorDoors|false} an ElevatorDoors object, or false
 	 */
-	function ElevatorDoors (parent) {
-		if(parent && parent.buildingType === BUILDING_TYPES.BUILDING_FLOOR) {
+	function ElevatorDoors (floor) {
 			var eDoors = factory.ScreenRect(
 
 			);
-		}
-		else {
-			elefart.showError("Tried to create ElevatorDoors without a parent");
-		}
 		//TODO: ElevatorDoors
 		return false;
 	}
@@ -414,19 +463,24 @@ window.elefart.building = (function () {
 		if(building) {
 			var shaftWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.width * building.width);
 			var shaftSubWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.subWidth * shaftWidth);
-			var shaftMargin = (shaftWidth - shaftSubWidth)/2;
 
 			//compute shaft dimensions
 			var t = building.top; //offset so overlaps roof, doesn't overlap bottom floor
-			var l = building.left + (shaftWidth * shaftNum);// + shaftMargin; //zero-based
+			var l = building.left + Math.floor(shaftWidth * shaftNum);// + shaftMargin; //zero-based
 			var w = shaftWidth;
 			var h = building.height;
 
-			
-
-			//if the shaft is the one that goes to the BuildingRoof, change top (y height)
+			/** 
+			 * to create the shaft "punching through" to the BuildingRoof, we 
+			 * have to pre-compute the Elevator size to determine the top of that 
+			 * shaft. Elevators aren't elongated, even if the BuildingFloor spacing 
+			 * increases. This calculation matches the independent calculation in 
+			 * Elevator
+			 */
 			if(shaftNum === hasShaftTop) {
 				var hh = building.getFloorHeight()-building.getWallSize();
+				var ww = w * DIMENSIONS.ELEVATOR.width;
+				if(hh > ww) hh = ww;
 				h += hh;
 				t -= hh;
 			}
@@ -446,13 +500,21 @@ window.elefart.building = (function () {
 				s.name = BUILDING_TYPES.ELEVATOR_SHAFT;
 				s.instanceName = "Shaft #:" + shaftNum;
 				s.shaftNum = shaftNum;
+				s.parent = building; //need early assignment before addChild
 				//assign generic getter function
 				s.getChildByType = getChildByType;
+
+				//functions that Elevator can query for its position
 
 				//draw the visible SubShaft
 				//getter for subShaft
 				s.getSubShaft = function () {
 					return s.getChildByType(BUILDING_TYPES.ELEVATOR_SUBSHAFT, false)[0];
+				}
+				//ask Building for the (walkline) start of a floor, where People and Elevators rest
+				s.getFloorStarts = function () {
+					var building = s.parent;
+					return building.getFloorStarts();
 				}
 
 				//subShaft color
@@ -460,6 +522,11 @@ window.elefart.building = (function () {
 					display.COLORS.PINK, 
 					DIMENSIONS.ELEVATOR_SHAFT.subOpacity
 					);
+
+				var shaftMargin = Math.floor((shaftWidth - shaftSubWidth)/2);
+
+				//correction for odd vs even widths
+				if(shaftWidth % 2) shaftMargin-=1;
 
 				//create the subShaft
 				var sb = factory.ScreenRect(
@@ -667,6 +734,93 @@ window.elefart.building = (function () {
 	}
 
 	/** 
+	 * @constructor BuildingCupola
+	 * @classdesc surrounding BuildingRoof extension for the Elevator that punches
+	 * through to the BuildingRoof.
+	 * @param {Building} building the Building object
+	 * @param {Elevator} elevator a sample Elevator object for calculating Cupola dimensions
+	 * @returns {BuildingCupola|false} if ok return a BuildingCupola object, else false
+	 */
+	function BuildingCupola (building, roofShaft, elevator) {
+			//draw Cupola as a rounded box, open on bottom, around ElevatorShaft punching through Roof
+			var roofWidth = building.lineWidth*DIMENSIONS.BUILDING.roofWidth;
+
+			var lw2 = roofWidth + roofWidth;
+			l = elevator.left-roofWidth;
+			t = roofShaft.top;
+			w = elevator.width + lw2;
+			h = building.top - roofShaft.top;
+			var c = factory.ScreenRect(
+				l,
+				t,
+				w,
+				h, //visible BuildingRoof height
+				roofWidth,
+				display.COLORS.BLACK,
+				display.COLORS.CLEAR, //openBoxes can't be filled!
+				display.LAYERS.ELEBACK
+				);
+			if(c)  {
+				c.instanceName = "Roof Cupola";
+				c.setRectBorderRadius(roofWidth);
+				c.missingSide = factory.SIDES.BOTTOM; //NOTE: this makes it an Open Box
+
+				//add an internal Rect with a yellow background
+				//that punches through the Roof to the top BuildingFloor
+				var cb = factory.ScreenRect(
+					l,
+					t,
+					w,
+					h, //TODO: ADD EXTRA height to PUNCH THROUGH BUILDING FLOOR
+					0,
+					display.COLORS.CLEAR,
+					display.COLORS.YELLOW,
+					display.LAYERS.ELEBACK,
+					display.getHotelWalls()//, //NOTE: ADDING AN IMAGE
+					);
+				cb.setOpacity(0.4);
+				cb.setSpriteCoords({ //where to sample when drawing image
+					rows:13,
+					cols:13,
+					currRow:0,
+					currCol:0
+				});
+
+				cb.instanceName = "Roof Cupola Back";
+				c.addChild(cb);
+
+				//add a shadow
+				//get a shadow gradient
+				var grd = display.getBackgroundTexture(
+					display.MATERIALS.GRADIENT_SHADOW, 
+					l, 
+					t, 
+					l,
+					building.lineWidth*5
+				);
+				//add the shadow Rect
+				var cs = factory.ScreenRect(
+					l,
+					t,
+					w,
+					building.lineWidth*5,
+					0,
+					display.COLORS.CLEAR,
+					grd,
+					display.LAYERS.ELEBACK
+				);
+				cs.setOpacity(0.6);
+				//add to displayList in order
+				display.addToDisplayList(cb, display.LAYERS.ELEBACK); //back of Cupola
+				display.addToDisplayList(cs, display.LAYERS.ELEBACK); //shadow
+				display.addToDisplayList(c, display.LAYERS.ELEBACK);  //rounded Box
+				return c;
+			}
+		elefart.showError("Failed to create BuildingCupola");
+		return false;
+	}
+
+	/** 
 	 * @constructor BuildingRoof
 	 * @classdesc special BuildingFloor, actually the roof of the Building. Draw a roof 
 	 * pattern on the base, extending into the next lower BuildingFloor
@@ -691,9 +845,8 @@ window.elefart.building = (function () {
 			);
 
 		//get the subShaft in roofShaft
-		//////////////var ss = roofShaft.getSubShaft();
 		var ss = roofShaft.getElevator();
-		var roofWidth = building.lineWidth*0.75;
+		var roofWidth = building.lineWidth*DIMENSIONS.BUILDING.roofWidth;
 
 		//create the visible roof (to the left and right of the roofShaft)
 		if(r) {
@@ -735,26 +888,8 @@ window.elefart.building = (function () {
 			r.addChild(roofRight);
 			display.addToDisplayList(roofRight, display.LAYERS.ELEBACK);
 
-			//draw outline along ElevatorShaft punching through Roof
-			l = ss.left;
-			t = building.top - ss.height;
-			w = ss.width;
-			h = ss.height;
-			var cupola = factory.ScreenRect(
-				l,
-				t,
-				w,
-				h, //visible BuildingRoof height
-				building.lineWidth,
-				display.COLORS.BLACK,
-				display.COLORS.CLEAR, //openBoxes can't be filled!
-				display.LAYERS.BUILDING
-				);
-			cupola.instanceName = "Roof Cupola";
-			cupola.borderRadius = building.lineWidth;
-			cupola.missingSide = factory.SIDES.BOTTOM; //NOTE: this makes it an Open Box
-			r.addChild(cupola);
-			display.addToDisplayList(cupola, display.LAYERS.ELEBACK);
+			//add the Building Cupola on the BuildingRoof
+			r.addChild(BuildingCupola(building, roofShaft, ss));
 
 			//TODO: make a background for the Cupola, with gradient
 
@@ -871,6 +1006,9 @@ window.elefart.building = (function () {
 				return b.getChildByType (BUILDING_TYPES.ELEVATOR_SHAFT);
 			}
 
+			//TODO: Get Display List. GET Length. Insert Cupola BEFORE the shafts, even 
+			//TODO: we use the shafts to compute the dimensions of the cupola.
+
 			//create all ElevatorShafts
 			for(i = 0; i < numShafts; i++) {
 				b.addChild(ElevatorShaft(b, i, numShafts, shaftTop));
@@ -886,8 +1024,18 @@ window.elefart.building = (function () {
 			//create and add BuildingRoof, Floor# -1, and with a opening for the roofShaft
 			b.addChild(BuildingRoof(b, roofShaft));
 
-			//return the completed Building
+			//additional getters for Building
+			b.floorStarts = [];
+			var floors = b.getFloors();
+			var len = floors.length;
+			for(var i = 0; i < len; i++) {
+				b.floorStarts.push(floors[i].walkLine);
+			}
+			b.getFloorStarts = function () {
+				return b.floorStarts;
+			}
 
+			//return the completed Building
 
 			window.b = b; ////////////////////////////////////////////////////////////////////////////////////////////////////
 			return b;
@@ -1122,7 +1270,6 @@ window.elefart.building = (function () {
 				c.name = BUILDING_TYPES.CORONA;
 				c.instanceName = "Corona";
 				c.getChildByType = getChildByType; //generic child getter function
-				console.log("adding Corona to display list")
 				display.addToDisplayList(c, display.LAYERS.WORLD);
 				return c;
 			}

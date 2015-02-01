@@ -71,19 +71,26 @@
 	body:before { content: '{"name":"desktop2","floors":"8","shafts":"11","signx":"0.02","signw":"0.16","subshaft":"0.5"}'; display: none; }
 }
 
+@media (min-width: 1400px) {
+	#screen-game {
+		width:90%;
+	}
+	body:before { content: '{"name":"desktop2","floors":"8","shafts":"13","signx":"0.02","signw":"0.16","subshaft":"0.5"}'; display: none; }
+}
+
 /* Larger than Desktop HD */
 @media (min-width: 1600px) {
 	#screen-game {
 		width:80%;
 	}
-	body:before { content: '{"name":"desktop3","floors":"8","shafts":"12","signx":"0.02","signw":"0.15","subshaft":"0.5"}'; display: none; }
+	body:before { content: '{"name":"desktop3","floors":"8","shafts":"14","signx":"0.02","signw":"0.15","subshaft":"0.5"}'; display: none; }
 }
 
 @media (min-width: 1980px) {
 	#screen-game {
 		width:75%;
 	}
-	body:before { content: '{"name":"digitaltv2k","floors":"8","shafts":"13","signx":"0.02","signw":"0.12","subshaft":"0.5"}'; display: none; }
+	body:before { content: '{"name":"digitaltv2k","floors":"8","shafts":"16","signx":"0.02","signw":"0.12","subshaft":"0.5"}'; display: none; }
 }
 
 @media (min-width: 3960px) {

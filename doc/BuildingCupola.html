@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>DocStrap Source: public/js/elefart-dashboard.js</title>
+	<title>DocStrap Class: BuildingCupola</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -760,73 +760,222 @@
 	<div class="row-fluid">
 
 		
-			<div class="span12">
-				
+		<div class="span8">
+			
 				<div id="main">
 					
 
 
-		<h1 class="page-title">Source: public/js/elefart-dashboard.js</h1>
-    
+	<h1 class="page-title">Class: BuildingCupola</h1>
 <section>
-	<article>
-		<pre
-			class="sunlight-highlight-javascript linenums">/** 
- * @namespace
- * @fileoverview elefart.dashboard provides definitions for dashboard controls and HUD screens 
- * used by the application. Equivalent to elefart.building for game objects. Generic objects are 
- * created in elefart.factory.
- * @requires elefart
- * @requires elefart.building
- * @requires elefart.display
- * @requires elefart.controller
- * @version 0.1.1
- * @author Pete Markeiwicz
- * @license MIT
- */
-window.elefart.dashboard = (function () {
 
-	var building,
-	display,
-	controller,
-	firstTime = true;
+<header>
+    <h2>
+    BuildingCupola
+    </h2>
+    
+        <div class="class-description"><p>surrounding BuildingRoof extension for the Elevator that punches
+through to the BuildingRoof.</p></div>
+    
+</header>
 
-	var CONTROL_TYPES = {
-		START:"START",
-		STOP:"STOP"
-	};
+<article>
+    <div class="container-overview">
+    
 
-	/** 
-	 * @method init dashboard
-	 * @description initialize user controls for the game on the canvas.
-	 */
-	function init () {
-		board = elefart.building,
-		display = elefart.display,
-		controller = elefart.controller;
-		firstTime = false;
-	}
+    
+        
+<dt>
+    <h4 class="name" id="BuildingCupola"><span class="type-signature"></span>new BuildingCupola<span class="signature">(building, elevator)</span><span class="type-signature"> &rarr; {<a href="BuildingCupola.html">BuildingCupola</a>|false}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
 
-	/** 
-	 * @method run dashboard
-	 * @description enable user controls during the active game.
-	 */
-	function run () {
-		if(firstTime) {
-			init();
-		}
-	}
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
 
-	//returned object
-	return {
-		init:init,
-		run:run
-	};
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
 
-})();</pre>
-	</article>
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>building</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Building.html">Building</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the Building object</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>elevator</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Elevator.html">Elevator</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>a sample Elevator object for calculating Cupola dimensions</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-736">line 736</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>if ok return a BuildingCupola object, else false</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="BuildingCupola.html">BuildingCupola</a></span>
+|
+
+<span class="param-type">false</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
 </section>
-
 
 
 
@@ -850,6 +999,10 @@ window.elefart.dashboard = (function () {
 				</footer>
 			</div>
 
+			
+			<div class="span3">
+				<div id="toc"></div>
+			</div>
 			
 			<br clear="both">
 		</div>

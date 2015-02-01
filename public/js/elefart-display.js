@@ -78,12 +78,12 @@ window.elefart.display = (function () {
 		CLOUDS: "CLOUDS",      //Clouds in the Sky
 		BUILDINGBACK:"BUILDINGBACK", //extreme back of building (includes ElevatorShafts)
 		BUILDING:"BUILDING",   //main Building
-		SHAFTS:"SHAFTS",       //elevator shafts in building
 		ELEBACK:"ELEBACK",     //back wall of elevators
-		ELESPACE1:"ELESPACE1", //places for People to stand
-		ELESPACE2:"ELESPCE2",
-		ELESPACE3:"ELESPACE3",
-		ELESPACE4:"ELESPCE4",
+		SHAFTS:"SHAFTS",       //elevator shafts in building
+		ELESPACE1:"ELESPACE1", //back of elevator proper
+		ELESPACE2:"ELESPCE2",  //a layer above the back for people
+		ELESPACE3:"ELESPACE3", //a layer above the back for people
+		ELESPACE4:"ELESPACE4", //a layer above the back for people
 		WALLS:"WALLS",         //building walls
 		DOORS:"DOORS",         //elevator doors
 		FLOORS:"FLOORS",       //objects in the room floors
@@ -109,6 +109,7 @@ window.elefart.display = (function () {
 		LIGHT_GREY:"rgb(128,128,128)",
 		DARK_GREY:"rgb(64,64,64)",
 		YELLOW:"rgb(248, 237, 29)",
+		LIGHT_YELLOW:"rgb(255,249,225)",
 		RED:"rgb(0,255,0)",
 		BROWN:"rgb(139,69,19)",
 		PINK: "rgb(190,30,45)" //TODO: convert to RGBA (e.g. rgba from rgb)
@@ -127,6 +128,121 @@ window.elefart.display = (function () {
 		GRADIENT_SHADOW:"GRADIENT_SHADOW",
 		GRADIENT_CLOUD:"GRADIENT_CLOUD"
 	};
+
+	/*
+	 * =========================================
+	 * TEXTURES (CANVAS GRADIENTS)
+	 * =========================================
+	 */
+
+	/** 
+	 * @method getBackgroundTexture 
+	 * @description create and/or get a specific background 
+	 * gradient. Gradients are identified by their MATERIALS 
+	 * naming.
+	 * @param {MATERIALS} material the gradient to use
+	 * @returns {CanvasGradient} the CanvasGradient reference
+	 */
+	function getBackgroundTexture (material, x, y, x2, y2) {
+		var grd = null;
+		//create the linear gradient
+
+		switch(material) {
+			case MATERIALS.GRADIENT_SKY:
+				grd = bctx.createLinearGradient(
+					x, y,  //starting coordinates of gradient
+					x2, y2 //ending coordinates of gradient
+					);
+				grd.addColorStop(0.000, 'rgba(34,133,232,1.0)');
+				grd.addColorStop(0.180, 'rgba(71,151,211,1.0)');
+				grd.addColorStop(0.400, 'rgba(102,164,214,1.0)');
+				grd.addColorStop(0.900, 'rgba(227,238,247,1.0)');
+				grd.addColorStop(1.000, 'rgba(240,255,250,1.0)');
+				break;
+			case MATERIALS.GRADIENT_SUN:
+				grd = bctx.createRadialGradient(
+					x, y, //starting circle x and y coordinate
+					x2,   //starting circle radius
+					x, y, //ending circle x and y coordinate
+					y2    //ending circle radius
+					);
+				grd.addColorStop(0.050, 'rgba(255,255,0,1.0)');
+				grd.addColorStop(0.390, 'rgba(255,222,180,1.0)');
+				grd.addColorStop(1.000, 'rgba(255,137,0,1.0)');
+				break;
+			case MATERIALS.GRADIENT_CORONA:
+				grd = bctx.createRadialGradient(
+					x, y, //starting circle x and y coordinate
+					x2,   //starting circle radius
+					x, y, //ending circle x and y coordinate
+					y2    //ending circle radius
+					);
+				grd.addColorStop(0.000, 'rgba(255,255,255,0.0)');
+				grd.addColorStop(x2/y2, 'rgba(255,255,255,0.4)');
+				grd.addColorStop(1.000, 'rgba(255,255,255,0.0)');
+				break;
+			case MATERIALS.GRADIENT_SHADOW:
+				grd = bctx.createLinearGradient(
+					x, y,  //starting coordinates of gradient
+					x2, y2 //ending coordinates of gradient
+					);
+				grd.addColorStop(0.000, 'rgba(32,32,32,1.0)');
+				grd.addColorStop(0.450, 'rgba(96,96,96,0.9)');
+				grd.addColorStop(1.000, 'rgba(200,200,200,0.4)');
+				break;
+			default:
+				elefart.showError("getBackgroundTexture received invalid CanvasGradient index:" + material);
+				break;
+			}
+		return grd;
+	}
+
+	/** 
+	 * @method getForegroundTexture
+	 * @description create and/or get a specific background 
+	 * gradient. Gradients are identified by their MATERIALS 
+	 * naming.
+	 * @param {MATERIALS} material the gradient to use
+	 * @returns {CanvasGradient} the CanvasGradient reference
+	 */
+	function getForegroundTexture (material, x, y, x2, y2) {
+		var grd = null;
+		switch(material) {
+			case MATERIALS.GRADIENT_CLOUD:
+				grd = bctx.createLinearGradient(
+					x, y,  //starting coordinates of gradient
+					x2, y2 //ending coordinates of gradient
+					);
+				grd.addColorStop(0.000, 'rgba(255,255,255,1.0)');
+				grd.addColorStop(0.400, 'rgba(250,250,250,1.0)');
+				grd.addColorStop(0.500, 'rgba(240,240,240,1.0)');
+				grd.addColorStop(0.600, 'rgba(220,220,220,1.0)');
+				break;
+			default:
+				elefart.showError("getForegroundgroundTexture received invalid CanvasGradient index:" + material);
+				break;
+		}
+		return grd;
+	}
+
+	/** 
+	 * @method getControlTexture
+	 * @description create and/or get a specific background 
+	 * gradient. Gradients are identified by their MATERIALS 
+	 * naming.
+	 * @param {MATERIALS} material the gradient to use
+	 * @returns {CanvasGradient} the CanvasGradient reference
+	 */
+	function getControlTexture (material, x, y, x2, y2) {
+		var grd = null;
+		switch(material) {
+			//TODO: foreground textures
+			default:
+				elefart.showError("getForegroundgroundTexture received invalid CanvasGradient index:" + material);
+				break;
+		}
+		return grd;
+	}
 
 	/*
 	 * =========================================
@@ -462,123 +578,6 @@ window.elefart.display = (function () {
 	function changeDisplayList (obj, layer1, layer2) {
 
 	}
-
-	/*
-	 * =========================================
-	 * TEXTURES (CANVAS GRADIENTS)
-	 * =========================================
-	 */
-
-	/** 
-	 * @method getBackgroundTexture 
-	 * @description create and/or get a specific background 
-	 * gradient. Gradients are identified by their MATERIALS 
-	 * naming.
-	 * @param {MATERIALS} material the gradient to use
-	 * @returns {CanvasGradient} the CanvasGradient reference
-	 */
-	function getBackgroundTexture (material, x, y, x2, y2) {
-		var grd = null;
-		//create the linear gradient
-
-		switch(material) {
-			case MATERIALS.GRADIENT_SKY:
-				grd = bctx.createLinearGradient(
-					x, y,  //starting coordinates of gradient
-					x2, y2 //ending coordinates of gradient
-					);
-				grd.addColorStop(0.000, 'rgba(34,133,232,1.0)');
-				grd.addColorStop(0.180, 'rgba(71,151,211,1.0)');
-				grd.addColorStop(0.400, 'rgba(102,164,214,1.0)');
-				grd.addColorStop(0.900, 'rgba(227,238,247,1.0)');
-				grd.addColorStop(1.000, 'rgba(240,255,250,1.0)');
-				break;
-			case MATERIALS.GRADIENT_SUN:
-				grd = bctx.createRadialGradient(
-					x, y, //starting circle x and y coordinate
-					x2,   //starting circle radius
-					x, y, //ending circle x and y coordinate
-					y2    //ending circle radius
-					);
-				grd.addColorStop(0.050, 'rgba(255,255,0,1.0)');
-				grd.addColorStop(0.390, 'rgba(255,222,180,1.0)');
-				grd.addColorStop(1.000, 'rgba(255,137,0,1.0)');
-				break;
-			case MATERIALS.GRADIENT_CORONA:
-				grd = bctx.createRadialGradient(
-					x, y, //starting circle x and y coordinate
-					x2,   //starting circle radius
-					x, y, //ending circle x and y coordinate
-					y2    //ending circle radius
-					);
-				grd.addColorStop(0.000, 'rgba(255,255,255,0.0)');
-				grd.addColorStop(x2/y2, 'rgba(255,255,255,0.4)');
-				grd.addColorStop(1.000, 'rgba(255,255,255,0.0)');
-				break;
-			case MATERIALS.GRADIENT_SHADOW:
-				grd = bctx.createLinearGradient(
-					x, y,  //starting coordinates of gradient
-					x2, y2 //ending coordinates of gradient
-					);
-				grd.addColorStop(0.000, 'rgba(32,32,32,1.0)');
-				grd.addColorStop(0.450, 'rgba(96,96,96,0.9)');
-				grd.addColorStop(1.000, 'rgba(200,200,200,0.4)');
-				break;
-			default:
-				elefart.showError("getBackgroundTexture received invalid CanvasGradient index:" + material);
-				break;
-			}
-		return grd;
-	}
-
-
-	/** 
-	 * @method getForegroundTexture
-	 * @description create and/or get a specific background 
-	 * gradient. Gradients are identified by their MATERIALS 
-	 * naming.
-	 * @param {MATERIALS} material the gradient to use
-	 * @returns {CanvasGradient} the CanvasGradient reference
-	 */
-	function getForegroundTexture (material, x, y, x2, y2) {
-		var grd = null;
-		switch(material) {
-			case MATERIALS.GRADIENT_CLOUD:
-				grd = bctx.createLinearGradient(
-					x, y,  //starting coordinates of gradient
-					x2, y2 //ending coordinates of gradient
-					);
-				grd.addColorStop(0.000, 'rgba(255,255,255,1.0)');
-				grd.addColorStop(0.400, 'rgba(250,250,250,1.0)');
-				grd.addColorStop(0.500, 'rgba(240,240,240,1.0)');
-				grd.addColorStop(0.600, 'rgba(220,220,220,1.0)');
-				break;
-			default:
-				elefart.showError("getForegroundgroundTexture received invalid CanvasGradient index:" + material);
-				break;
-		}
-		return grd;
-	}
-
-	/** 
-	 * @method getControlTexture
-	 * @description create and/or get a specific background 
-	 * gradient. Gradients are identified by their MATERIALS 
-	 * naming.
-	 * @param {MATERIALS} material the gradient to use
-	 * @returns {CanvasGradient} the CanvasGradient reference
-	 */
-	function getControlTexture (material, x, y, x2, y2) {
-		var grd = null;
-		switch(material) {
-			//TODO: foreground textures
-			default:
-				elefart.showError("getForegroundgroundTexture received invalid CanvasGradient index:" + material);
-				break;
-		}
-		return grd;
-	}
-
 
 	/*
 	 * =========================================
@@ -1212,17 +1211,11 @@ window.elefart.display = (function () {
 	function drawBackground () {
 		bctx.save();
 		bctx.clearRect(0, 0, background.width, background.height)
-		//yellow background
-		//bctx.fillStyle = "rgba(248, 237, 29, 1.0)";
-		//bctx.rect(0, 0, rect.width, rect.height);
-		//bctx.fill();
-
 		//execute the display list
 		drawLayer(bctx, displayList[LAYERS.WORLD]);
 		drawLayer(bctx, displayList[LAYERS.BUILDINGBACK]);
 		drawLayer(bctx, displayList[LAYERS.BUILDING]);
 		bctx.restore();
-
 	}
 
 	/*
@@ -1253,10 +1246,10 @@ window.elefart.display = (function () {
 
 		//elevator shafts are in the foreground
 		drawLayer(fctx, displayList[LAYERS.CLOUDS]);
-		drawLayer(fctx, displayList[LAYERS.SHAFTS]);
 		drawLayer(fctx, displayList[LAYERS.ELEBACK]);
-		/*
+		drawLayer(fctx, displayList[LAYERS.SHAFTS]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE1]);
+		/*
 		drawLayer(fctx, displayList[LAYERS.ELESPACE2]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE3]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE4]);
