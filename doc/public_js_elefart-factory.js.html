@@ -186,6 +186,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#buildingSelected">buildingSelected</a>
+						</li>
+						
+						<li>
 							<a href="global.html#buildWorld">buildWorld</a>
 						</li>
 						
@@ -714,15 +718,15 @@
 						</li>
 						
 						<li>
-							<a href="global.html#setRectPadding">setRectPadding</a>
-						</li>
-						
-						<li>
 							<a href="global.html#setSpriteCoords">setSpriteCoords</a>
 						</li>
 						
 						<li>
 							<a href="global.html#setStroke">setStroke</a>
+						</li>
+						
+						<li>
+							<a href="global.html#shaftFloorSelected">shaftFloorSelected</a>
 						</li>
 						
 						<li>
@@ -908,7 +912,8 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean} if a number, return true, else false
 	 */
 	function isNumber (obj) { 
-		return !isNaN(parseFloat(obj))
+		if(obj === undefined) return false;
+		return !isNaN(parseFloat(obj));
 	}
 
 	/** 
@@ -1151,7 +1156,7 @@ window.elefart.factory = (function () {
 	/** 
 	 * @constructor Line
 	 * @classdesc ScreenObject type LINE. Creates a Line object from two Points. Does not 
-	 * support child objects or padding.{
+	 * support child objects.
 	 * @param {Point} pt1 a Point object defining the start of the line
 	 * @param {Point} pt2 a point object defining the end of the line
 	 * @returns {Line} a Line object
@@ -1186,7 +1191,7 @@ window.elefart.factory = (function () {
 	 * @constructor Rect
 	 * @classdesc ScreenObject.type RECT. Similar to DOMRect, but only 
 	 * containing information needed to draw on 2D Canvas. 
-	 * Allows for border, padding and a constant borderRadius. 
+	 * Allows for border and a constant borderRadius. 
 	 * the actual Canvas drawing routine uses Rect, or a set of 
 	 * arcs (borderRadius > 0)
 	 * @param {Number} x the x coordinate onscreen (Integer)
@@ -1213,7 +1218,6 @@ window.elefart.factory = (function () {
 			height:toInt(height),
 			opacity:1.0,
 			borderRadius:0,
-			padding:{top:0, left:0, bottom:0, right:0, width:0, height:0},
 			img:null, //IMAGE IN OBJECT
 			parent:null,
 			children:[],
@@ -1257,7 +1261,6 @@ window.elefart.factory = (function () {
 			radius:toInt(radius),
 			opacity:1.0,
 			borderRadius:radius,
-			padding:{radius:0},
 			img:null,
 			parent:null,
 			children:[],
@@ -1306,7 +1309,6 @@ window.elefart.factory = (function () {
 			points:clone(pts),
 			opacity:1.0,
 			borderRadius:0,
-			padding:getInitedArray(pts.length, 0),
 			img:null,
 			parent:null,
 			children:[],
@@ -1416,13 +1418,11 @@ window.elefart.factory = (function () {
 				skew = 1.0 - Math.sin(cdist/dist);
 				if(pt.y &lt; center.y) {
 					//top left
-					///////////////console.log("topleft skew:" + skew)
 					pt.y -= (skew * top);
 					pt.x += ((1.0 - skew) * left);
 				}
 				else {
 					//bottom left
-					//////////////////console.log("bottomleft")
 					pt.y -= (skew * bottom);
 					pt.x += ((1.0 - skew) * left);
 				}
@@ -1433,13 +1433,11 @@ window.elefart.factory = (function () {
 				skew = 1.0 - Math.sin(cdist/dist);
 				if(pt.y &lt; center.y) {
 					//top right
-					////////////////console.log("topright skew:" + skew)
 					pt.y -= (skew * top);
 					pt.x -= ((1.0 - skew) * right);
 				}
 				else {
 					//bottom right
-					////////////////console.log("bottomright")
 					pt.y -= (skew * bottom);
 					pt.x -= ((1.0 - skew) * right);
 				}
@@ -1931,6 +1929,10 @@ window.elefart.factory = (function () {
 	 */ 
 	function moveTo(x, y, recurse) {
 		var dx, dy;
+		if(!isNumber(x) || !isNumber(y)) {
+			elefart.showError(".moveTo() invalid, x:" + x + " y:" + y);
+			return false;
+		}
 		switch(this.type) {
 			case TYPES.POINT:
 				dx = x - this.x;
@@ -2028,6 +2030,9 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean} if centered, return true, else false
 	 */
 	function centerInRect (centerRect, recurse) {
+		if(!centerRect.valid.apply(centerRect,[])) {
+			return false;
+		}
 		switch(this.type) {
 			case TYPES.POINT:
 				var c = getCenter.apply(centerRect);
@@ -2080,45 +2085,6 @@ window.elefart.factory = (function () {
 			return false;
 		}
 		this.borderRadius = borderRadius;
-		return true;
-	}
-
-	/** 
-	 * @method setRectPadding
-	 * @description set the padding on a Rect, moving any child objects, but not 
-	 * resizing. This means that objects may overhang their container.
-	 * @param {Padding} padding the padding object, with padding for 
-	 * top, right, bottom, left
-	 * @returns {Boolean} if set, return true, else false
-	 */
-	function setPadding (padding) {
-		var x, y;
-		switch(this.type) {
-			case TYPES.RECT:
-				this.padding.top = padding.top;
-				this.padding.left = padding.left;
-				this.padding.bottom = padding.bottom;
-				this.padding.right = padding.right;
-				x = this.top + this.padding.top, y = this.left + this.padding.left;
-				//check if valid padding
-				if((padding.left + padding.right) > this.width || 
-					(padding.top + padding.bottom) > this.height) {
-					elefart.showError(this.type + " padding exceeds width and height of its Rect");
-				}
-				break;
-			case TYPES.CIRCLE:
-					this.padding.radius = padding;
-				break;
-			case TYPES.POLYGON:
-				for(var i = 0; i &lt; len; i++) {
-					this.padding[i] = padding;
-				}
-				break;
-			default:
-				elefart.showError(this.type + " padding not allowed");
-				return false;
-				break;
-		}
 		return true;
 	}
 
@@ -2733,7 +2699,6 @@ window.elefart.factory = (function () {
 		obj.centerInRect = centerInRect,
 		obj.setDimensions = setDimensions,
 		obj.setRectBorderRadius = setRectBorderRadius,
-		obj.setPadding = setPadding,
 		obj.shrink = shrink,
 		obj.scale = scale,
 		//parents and childen

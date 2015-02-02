@@ -59,14 +59,21 @@
 /* small desktop */
 @media (min-width: 960px) {
 	#screen-game {
-		width:95%;
+		width:100%;
 	}
 	body:before { content: '{"name":"desktop1","floors":"8","shafts":"10","signx":"0.02","signw":"0.2","subshaft":"0.5"}'; display: none; }
 }
 
-@media (min-width: 1100px) {
+@media (min-width:1024px) {
 	#screen-game {
-		width:90%;
+		width:100%;
+	}
+	body:before { content: '{"name":"ipadlandscape","floors":"8","shafts":"10","signx":"0.02","signw":"0.2","subshaft":"0.5"}'; display: none; }
+}
+
+@media (min-width: 1200px) {
+	#screen-game {
+		width:95%;
 	}
 	body:before { content: '{"name":"desktop2","floors":"8","shafts":"11","signx":"0.02","signw":"0.16","subshaft":"0.5"}'; display: none; }
 }
@@ -81,7 +88,7 @@
 /* Larger than Desktop HD */
 @media (min-width: 1600px) {
 	#screen-game {
-		width:80%;
+		width:85%;
 	}
 	body:before { content: '{"name":"desktop3","floors":"8","shafts":"14","signx":"0.02","signw":"0.15","subshaft":"0.5"}'; display: none; }
 }

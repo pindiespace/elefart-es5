@@ -1408,6 +1408,7 @@ window.elefart.display = (function () {
 		getBackgroundTexture:getBackgroundTexture, //needed by elefart.display
 		getForegroundCanvas:getForegroundCanvas,
 		getForegroundTexture:getForegroundTexture, //needed by elefart.display
+		getControlCanvas:getControlCanvas,
 		drawPoint:drawPoint,
 		drawLine:drawLine,
 		drawRect:drawRect,

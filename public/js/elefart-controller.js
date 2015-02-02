@@ -68,7 +68,14 @@ window.elefart.controller = (function () {
 	 */
 	function handleTouchPoint (touchPoint) {
 		console.log("touch:" + touchPoint.x + "," + touchPoint.y);
+
+		//check if we've selected the Building or Controls
+		var b = building.getWorld().getBuilding().selected(touchPoint);
+		//if building, use mouseclick to move elevator
+		var e = b.shaft.getElevator();
+		e.moveToFloor(b.floor.floorNum); //TODO: GET FLOORNUM IN SYNC WITH e.moveToFloor()
 	}
+
 
 	/** 
 	 * @method setGameHandlers
@@ -76,6 +83,8 @@ window.elefart.controller = (function () {
 	 * @param {Canvas} gameCanvas the HTML5 Canvas object
 	 */
 	function setGameHandlers (gameCanvas) {
+
+		console.log("in gameHandler, gameCanvas:" + gameCanvas)
 
 		//window resizing events (redraw world)
 		dom.bind(window, "resize", function (e) {
@@ -249,7 +258,7 @@ window.elefart.controller = (function () {
 
 		//TODO: probaby need a switch here for other screens
 		//set handlers associate with an active game
-		setGameHandlers(display.getForegroundCanvas());
+		setGameHandlers(display.getControlCanvas()); //Topmost Canvas Object
 		//initialize FPS variables
 
 		//start the loop
