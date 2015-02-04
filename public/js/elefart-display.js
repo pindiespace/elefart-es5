@@ -283,11 +283,15 @@ window.elefart.display = (function () {
 	 * @method getGameRect
 	 * @description get the current dimensions of the game
 	 * NOTE: have to fire it when the screen size changes!
-	 * @returns {DOMRect} a DOMRect 
-	 * DOMRect {left:0, top:0, right:0, bottom:0, width:0, height:0}
+	 * @returns {DOMRect} a DOMRect {left:0, top:0, right:0, bottom:0, width:0, height:0}
 	 */
-	function getGameRect() {
-		return setGameRect(); //might have resized;
+	function getGameRect () {
+		rect = panel.getBoundingClientRect();
+		if(background.width !== factory.toInt(rect.width)) {
+			console.log("GAME RECT CHANGED, rect.width:" + rect.width + " background.width:" + background.width)
+			setGameRect();
+		}
+		return rect;
 	}
 
 	/**

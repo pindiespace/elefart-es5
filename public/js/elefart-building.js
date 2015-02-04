@@ -367,7 +367,7 @@ window.elefart.building = (function () {
 			);
 			if(e) {
 				e.name = BUILDING_TYPES.ELEVATOR;
-				e.instanceName = "Shaft #:" + shaft.shaftNum;
+				e.instanceName = "Elevator #:" + shaft.shaftNum;
 				e.parent = shaft; //set parent early, before addChild
 				e.setRectBorderRadius(3);
 				e.shaftNum = shaft.shaftNum;
@@ -414,8 +414,7 @@ window.elefart.building = (function () {
 					var walkLine, floorHeight,
 					starts = e.parent.getFloorStarts(),
 					len = starts.length;
-
-					if(num > len-1) {
+					if(num > len) {
 						elefart.showError("Elevator.moveToFloor out of range floor:" + num);
 						return false;
 					}
@@ -433,8 +432,8 @@ window.elefart.building = (function () {
 						//where to rest Elevator
 						walkLine = starts[0] - floorHeight;
 					}
-					else if (num < len - 1) {
-						walkLine = starts[len - num];
+					else if (num <= len) {
+						walkLine = starts[len - num]; //NOTE: invert num from screen number to get actual floor
 					}
 					else {
 						elefart.showError("Elevator moveToFloor out of range floor:" + num);
@@ -460,30 +459,6 @@ window.elefart.building = (function () {
 
 	/* 
 	 * ============================
-	 * ELEVATOR DOORS
-	 * ============================
-	 */
-
-	/** 
-	 * @constructor ElevatorDoors
-	 * @classdesc elevator doors consist of an enclosing rect, with 
-	 * two smaller Rects functioning as the sliding doors. They are 
-	 * part of the Building, rather than the elevator
-	 * - parent: BuildingFloor
-	 * - grandparent: Building
-	 * - children: none
-	 * @returns {ElevatorDoors|false} an ElevatorDoors object, or false
-	 */
-	function ElevatorDoors (floor) {
-			var eDoors = factory.ScreenRect(
-
-			);
-		//TODO: ElevatorDoors
-		return false;
-	}
-
-	/* 
-	 * ============================
 	 * ELEVATOR SHAFTS
 	 * ============================
  	 */
@@ -502,14 +477,15 @@ window.elefart.building = (function () {
  	 * punch through the Building
  	 * @returns {ElevatorShaft|false} an ElevatorShaft object, or false
  	 */
-	function ElevatorShaft (building, shaftNum, numShafts, hasShaftTop) {
+	function ElevatorShaft (building, shaftNum, hasShaftTop) {
 		if(building) {
 			var shaftWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.width * building.width);
 			var shaftSubWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.subWidth * shaftWidth);
 
-			//compute shaft dimensions
+			//calculate ElevatorShaft position
 			var t = building.top; //offset so overlaps roof, doesn't overlap bottom floor
-			var l = building.left + Math.floor(shaftWidth * shaftNum);// + shaftMargin; //zero-based
+			//NOTE: adjust shaftNum from one-based to zero-based
+			var l = building.left + Math.floor(shaftWidth * (shaftNum-1));// + shaftMargin;
 			var w = shaftWidth;
 			var h = building.height;
 
@@ -541,10 +517,13 @@ window.elefart.building = (function () {
 
 			if(s) {
 				s.name = BUILDING_TYPES.ELEVATOR_SHAFT;
-				s.instanceName = "Shaft #:" + shaftNum;
-				s.shaftNum = shaftNum;
+				s.shaftNum = shaftNum;                  //NOTE: ZERO-BASED
+				s.instanceName = "Shaft #:" + shaftNum; //NOTE: ONE-BASED
 				if(shaftNum === hasShaftTop) {
 					s.hasShaftTop = true;
+				}
+				else {
+					s.hasShaftTop = false;
 				}
 				s.parent = building; //need early assignment before addChild
 				//assign generic getter function
@@ -574,7 +553,7 @@ window.elefart.building = (function () {
 				//correction for odd vs even widths
 				if(shaftWidth % 2) shaftMargin-=1;
 
-				//create the subShaft
+				//create the ElevatorShaft subShaft
 				var sb = factory.ScreenRect(
 						l + shaftMargin,
 						t,
@@ -586,7 +565,7 @@ window.elefart.building = (function () {
 						display.LAYERS.SHAFTS
 					);
 				if(sb) {
-					//add the shaft rect
+					//add the ElevatorShaft rect
 					sb.name = BUILDING_TYPES.ELEVATOR_SUBSHAFT;
 					sb.instanceName = "Elevator SubShaft for #:" + shaftNum;
 					s.addChild(sb);
@@ -598,7 +577,7 @@ window.elefart.building = (function () {
 						return s.getChildByType(BUILDING_TYPES.ELEVATOR, false)[0];
 					}
 					//add Elevator
-					s.addChild(Elevator(building, s, sb, 1)); //building, shaft, subshaft, floor
+					s.addChild(Elevator(building, s, sb, 1)); //building, shaft, subshaft, floorNum
 
 					return s;
 				}
@@ -606,6 +585,30 @@ window.elefart.building = (function () {
 		}
 		//fallthrough
 		elefart.showError("failed to create Elevator Shaft:" + shaftNum);
+		return false;
+	}
+
+	/* 
+	 * ============================
+	 * ELEVATOR DOORS
+	 * ============================
+	 */
+
+	/** 
+	 * @constructor ElevatorDoors
+	 * @classdesc elevator doors consist of an enclosing rect, with 
+	 * two smaller Rects functioning as the sliding doors. They are 
+	 * part of the Building, rather than the elevator
+	 * - parent: BuildingFloor
+	 * - grandparent: Building
+	 * - children: none
+	 * @returns {ElevatorDoors|false} an ElevatorDoors object, or false
+	 */
+	function ElevatorDoors (floor) {
+			var eDoors = factory.ScreenRect(
+
+			);
+		//TODO: ElevatorDoors
 		return false;
 	}
 
@@ -792,6 +795,7 @@ window.elefart.building = (function () {
 			var roofWidth = building.lineWidth*DIMENSIONS.BUILDING.roofWidth;
 			var elevBuffer = 4, elevBufferWidth = elevBuffer*2;
 			//correct for even/odd
+			window.rs = roofShaft;
 
 			var lw2 = roofWidth + roofWidth;
 			l = elevator.left-roofWidth - elevBuffer;
@@ -1009,8 +1013,13 @@ window.elefart.building = (function () {
 
 			//getters for BuildingFloors
 			b.getFloor = function (floorNum) {
+				if(floorNum < 1) {
+					elefart.showError("building.getFloor() invalid floor number:" + floorNum);
+					return false;
+				}
 				return b.getChildByType(BUILDING_TYPES.BUILDING_FLOOR, false, "floorNum", floorNum)[0];
 			}
+			//NOTE: these getters return results based on CALCULATED, not actual BuildingFloors and ElevatorShafts
 			b.getFloors = function () {
 				return b.getChildByType(BUILDING_TYPES.BUILDING_FLOOR);
 			}
@@ -1055,6 +1064,9 @@ window.elefart.building = (function () {
 				if(!pt || !factory.isNumber(pt.x) || !factory.isNumber(pt.y)) {
 					elefart.showError("Building.selected() invalid coords, x:" + x + " y:" + y);
 				}
+				//correct global pt to game coordinates
+
+				//recover Building objects under this click
 				var result = {}, i, sf, len, shaft;
 				sf = b.getShafts();
 				len = sf.length;
@@ -1063,6 +1075,8 @@ window.elefart.building = (function () {
 					if(pt.x > shaft.left && pt.x < shaft.right) {
 						if(pt.y > shaft.top && pt.y < shaft.bottom) {
 							result.shaft = shaft;
+							console.log("Selected Result shaft:"+shaft.instanceName + " shaftNum:" + shaft.shaftNum)
+							break;
 						}
 					}
 				}
@@ -1073,28 +1087,24 @@ window.elefart.building = (function () {
 					if(pt.y > floor.top && pt.y < floor.bottom) {
 						if(pt.x > floor.left && pt.x < floor.right) {
 							result.floor = floor;
+							console.log("floor:" + floor.instanceName + " floorNum:" + floor.floorNum)
+							break;
 						}
 					}
 				}
 				return result;
 			}
 
-			//add ElevatorShafts
+			//get the number of ElevatorShafts we WILL create (getNumShafts() calcs number needed)
 			var numShafts = b.getNumShafts();
 
-			//compute which shaft will go to the BuildingRoof
-			var shaftTop = 0;
-			var min = Math.floor(numShafts/2);
-			var ceil = numShafts - 1;
-			if(ceil <= min) {
-				shaftTop = ceil;
-			}
-			else {
-				shaftTop = factory.getRandomInt(Math.ceil(numShafts/2), numShafts-1);
-			}
+
 
 			//getters for ElevatorShafts
 			b.getShaft = function (shaftNum) {
+				if(shaftNum < 1) {
+					elefart.showError("building.getShaft(), invalid shaft number:" + shaftNum);
+				}
 				return b.getChildByType(BUILDING_TYPES.ELEVATOR_SHAFT, false, "shaftNum", shaftNum)[0];
 			}
 
@@ -1102,9 +1112,20 @@ window.elefart.building = (function () {
 				return b.getChildByType(BUILDING_TYPES.ELEVATOR_SHAFT);
 			}
 
+
+			//compute which shaft will go to the BuildingRoof
+			var numRoofShaft = 0;
+			var min = Math.floor(numShafts/2);
+			var ceil = numShafts - 1;
+			if(ceil <= min) {
+				shaftTop = ceil;
+			}
+			else {
+				numRoofShaft = factory.getRandomInt(Math.ceil(numShafts/2), numShafts-1);
+			}
 			//create all ElevatorShafts
-			for(i = 0; i < numShafts; i++) {
-				b.addChild(ElevatorShaft(b, i, numShafts, shaftTop));
+			for(i = 1; i <= numShafts; i++) {
+				b.addChild(ElevatorShaft(b, i, numRoofShaft));
 			}
 
 			//getter for BuildingRoof
@@ -1113,7 +1134,7 @@ window.elefart.building = (function () {
 			}
 
 			//create and add BuildingRoof, Floor# -1, and with a opening for the roofShaft
-			var roofShaft = b.getShaft(shaftTop);
+			var roofShaft = b.getShaft(numRoofShaft);
 			b.addChild(BuildingRoof(b, roofShaft));
 
 			//return the completed Building
@@ -1420,7 +1441,7 @@ window.elefart.building = (function () {
 					return s.getChildByType(BUILDING_TYPES.CLOUDS);
 				}
 
-				//create Clouds and add to Sky
+				//create a set of Clouds with different sizes, shapes, distances, and add to Sky
 				var numClouds = factory.getRandomInt(DIMENSIONS[BUILDING_TYPES.CLOUD].minClouds, 
 					DIMENSIONS[BUILDING_TYPES.CLOUD].maxClouds);
 				var i;
@@ -1496,7 +1517,7 @@ window.elefart.building = (function () {
 	function World () {
 
 		//game dimensions set by browser viewport
-		var r = display.getGameRect();
+		var r = display.setGameRect();
 		var w = r.right - r.left;
 		var h = r.bottom - r.top;
 
@@ -1640,6 +1661,20 @@ window.elefart.building = (function () {
 		} //end of if w
 	}
 
+	/** 
+	 * @method getBuilding
+	 * @description return the Building object
+	 * @returns {Building|false}
+	 */
+	function getBuilding () {
+		return world.getBuilding();
+	}
+
+	/** 
+	 * @method getWorld
+	 * @description return the World object
+	 * @returns {World|false}
+	 */
 	function getWorld () {
 		return world;
 	}
@@ -1679,8 +1714,10 @@ window.elefart.building = (function () {
 
 	//returned object
 	return {
-		getWorld:getWorld, //the hierarchical world object
-		buildWorld:buildWorld,
+		setDimensions:setDimensions,
+		getBuilding:getBuilding, //the Building object
+		getWorld:getWorld, //the World which holds Building
+		buildWorld:buildWorld, //completely re-create World and Building
 		init:init,
 		run:run
 	};

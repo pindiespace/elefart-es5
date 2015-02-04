@@ -70,12 +70,17 @@ window.elefart.controller = (function () {
 		console.log("touch:" + touchPoint.x + "," + touchPoint.y);
 
 		//check if we've selected the Building or Controls
-		var b = building.getWorld().getBuilding().selected(touchPoint);
+		//the left coordinate must be adjusted if the GameRect is smaller than window's viewport
+		var gr = display.getGameRect();
+		//touchPoint.x -= gr.left;
+		var tp = building.getBuilding().selected({x:touchPoint.x-gr.left, y:touchPoint.y});
 		//if building, use mouseclick to move elevator
-		var e = b.shaft.getElevator();
-		e.moveToFloor(b.floor.floorNum); //TODO: GET FLOORNUM IN SYNC WITH e.moveToFloor()
-	}
+		if(tp.shaft && tp.floor) {
+			var e = tp.shaft.getElevator();
+			e.moveToFloor(tp.floor.floorNum); //TODO: GET FLOORNUM IN SYNC WITH e.moveToFloor()
+		}
 
+	}
 
 	/** 
 	 * @method setGameHandlers
@@ -239,7 +244,7 @@ window.elefart.controller = (function () {
 	function init () {
 		building = elefart.building,
 		display = elefart.display,
-		panels = display.PANELDRAW;
+		panels = display.PANELDRAW; //attach to draw object, with canvas and its ticks
 		dashboard = elefart.dashboard;
 		then = now = Date.now(); //fps
 		initUpdateList(); //initialize the update list
