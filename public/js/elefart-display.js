@@ -1188,6 +1188,10 @@ window.elefart.display = (function () {
 					console.log("drawLayer unknown type:" + obj.type);
 					break;
 			}
+			//if there are special required drawing routines, execute
+			if(obj.customDraw) {
+				obj.customDraw(ctx);
+			}
 		}
 	}
 
