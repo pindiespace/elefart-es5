@@ -152,9 +152,18 @@ window.elefart.controller = (function () {
 	 * @description add an object to the visual display list
 	 * @param {Point|Line|Rect|Circle|Polygon|ScreenSprite} obj the object to draw
 	 * @param {PANELS} panel (optional) the panel where the object is drawn by display
+	 * @returns {Boolean} if added, return true, else false
 	 */
 	function addToUpdateList (obj) {
 		if(obj && obj.type) {
+			if(!obj.panel) {
+				elefart.showError("controller.addToUpdateList(), MUST add ScreenObject:" + obj.instanceName + " to display list first!");
+				return false;
+			}
+			if(!obj.updateByTime) {
+				elefart.showError("controller.addToUpdateList() " + obj.instanceName + " missing updateByTime() function");
+				return false;
+			}
 			var panel = updateList[obj.panel];
 			var len = panel.length;
 			for(var i = 0; i < len; i++) {
@@ -174,6 +183,7 @@ window.elefart.controller = (function () {
 	 * @description remove an object from drawing display list
 	 * @param {Point|Line|Rect|Circle|Polygon|ScreenSprite} obj the object to draw
 	 * @param {PANELS} panel (optional) the display list panel to draw in (optional)
+	 * @returns {Boolean} if removed, else false;
 	 */
 	function removeFromUpdateList (obj) {
 		if(obj && obj.type) {

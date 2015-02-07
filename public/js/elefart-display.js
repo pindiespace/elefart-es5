@@ -288,7 +288,7 @@ window.elefart.display = (function () {
 	function getGameRect () {
 		rect = panel.getBoundingClientRect();
 		if(background.width !== factory.toInt(rect.width)) {
-			console.log("GAME RECT CHANGED, rect.width:" + rect.width + " background.width:" + background.width)
+			//console.log("GAME RECT CHANGED, rect.width:" + rect.width + " background.width:" + background.width)
 			setGameRect();
 		}
 		return rect;

@@ -1365,21 +1365,22 @@ window.elefart.factory = (function () {
 	/** 
 	 * @method shrink
 	 * @descripion integer-based centered shrinking of an object. The pixel 
-	 * value is applied on ALL SIDES of the object. This allows objects with 
+	 * value is applied on ALL SIDES of the object (object center x and center y 
+	 * are unchanged). This allows objects with 
 	 * a border to have their overall size shrunk so it does not include the border.
 	 * @param {Number} pixels the number of pixels to take off each side of the Rect.
 	 * @param {Boolean} recurse if true, shrink children
 	 * @returns {Boolean} if shrink ok, return true, else false
 	 */
 	function shrink (pixels, recurse) {
-		var shrink = 2 * pixels, scaleX, scaleY;
+		var shrink = pixels + pixels, scaleX, scaleY;
 
 		if(!isNumber(pixels) || pixels < 0) {
 			elefart.showError(this.type + " invalid shrink:" + pixels);
 			return false;
 		}
 		if(this.width) { //enclosing Rect
-			this.left += pixels; this.right -= pixels;
+			this.left += pixels;this.right -= pixels;
 			this.top += pixels;this.bottom -= pixels;
 			scaleX = (this.width - shrink)/this.width;
 			this.width -= shrink;
@@ -1816,14 +1817,15 @@ window.elefart.factory = (function () {
 		if(!this.img || !coordsObj || 
 			!coordsObj.rows || !coordsObj.cols) {
 			elefart.showError("can't set sprite coordinates on a non-image object:" + coordsObj);
+			return false;
 		}
 		this.spriteCoords = {
 			rows:coordsObj.rows,
 			cols:coordsObj.cols,
 			currRow:coordsObj.currRow,
 			currCol:coordsObj.currCol,
-			cellWidth:this.img.width/(coordsObj.cols),
-			cellHeight:this.img.height/(coordsObj.rows),
+			cellWidth:toInt(this.img.width/(coordsObj.cols)),
+			cellHeight:toInt(this.img.height/(coordsObj.rows)),
 			getCellRect:function (row, col) {
 				if(!row) {
 					row = this.currRow;

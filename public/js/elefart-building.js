@@ -39,6 +39,46 @@ window.elefart.building = (function () {
 	 */
 	var ROOF = -1;
 
+	/** 
+	 * @readonly
+	 * @description constant for no floor, e.g. when a search for a BuildingFloor
+	 * yields no result
+	 */
+	var NO_FLOOR = -2;
+
+	/** 
+	 * @readonly
+	 * @description constant of movement is "on"
+	 */
+	var ON = true;
+
+	/** 
+	 * @readonly
+	 * @description contant of movement is "off"
+	 */
+	var OFF = false;
+
+	/** 
+	 * @readonly
+	 * @description constant for upward movement
+	 */
+	var UP = -1;
+	/** 
+	 * @readonly
+	 * @description constant for downward movement
+	 */
+	var DOWN = +1;
+	/** 
+	 * @readonly
+	 * @description constant for leftward movement
+	 */
+	var LEFT = -1;
+	/** 
+	 * @readonly
+	 * @description constant for rightward movement
+	 */
+	var RIGHT = +1;
+
 	/**
 	 * @readonly
 	 * @enum {String}
@@ -115,7 +155,7 @@ window.elefart.building = (function () {
 		left:0.0,
 		width:1.0,
 		height:0.8, //varies
-		wallSize:0.01,
+		wallSize:0.007,
 		roofWidth:0.75, //RELATIVE to wallSize
 		MIN_WALL:6
 	},
@@ -348,17 +388,19 @@ window.elefart.building = (function () {
 	function Elevator (building, shaft, subShaft, floorNum) {
 		var numFloors = Math.ceil(1/DIMENSIONS.BUILDING_FLOOR.height);
 		var t = building.top;
-		var w = shaft.width * DIMENSIONS.ELEVATOR.width;
-		var margin = (shaft.width - w)/2;
+		var w = factory.toInt(shaft.width * DIMENSIONS.ELEVATOR.width);
+		var margin = factory.toInt((shaft.width - w)/2);
 		var l = shaft.left + margin;
-		var h = building.getFloorHeight() - building.getFloor(1).getBaseHeight();
+		var h = factory.toInt(building.getFloorHeight() - building.getFloor(1).getBaseHeight());
 
 		/** 
 		 * correction for some screen sizes that make Elevator too narrow
 		 * NOTE: this calculation matches the independent calculation 
 		 * in ElevatorShaft
 		 */
-		if(h > w) h = w;
+		if(h > w) {
+			h = w;
+		}
 
 		//create the Elevator
 		var e = factory.ScreenRect(
@@ -374,45 +416,96 @@ window.elefart.building = (function () {
 			if(e) {
 				e.name = BUILDING_TYPES.ELEVATOR;
 				e.instanceName = "Elevator #:" + shaft.shaftNum;
-				e.parent = shaft; //set parent early, before addChild
+				e.parent = shaft;      //set parent early, before addChild
 				e.setRectBorderRadius(3);
-				e.shaftNum = shaft.shaftNum;
 				e.floorNum = undefined; //until moved at bottom of this constructor
+				e.floorQueue = [];
+
+				//animation movement params
+				e.engine = {
+					is:ON,
+					speed:1 //may be positive or negative
+				};
 
 				//custom drawing routine
 				e.customDraw = function (ctx) {
-					//draw wires for shaft
+					//draw wires for Elevator in Shaft
+				}
+
+				//time-dependent update function
+				e.updateByTime = function () {
+					var engine = e.engine;
+					if(engine.is === ON) {
+						e.move(0, engine.speed);
+					}
 				}
 
 				//add getters and setters
+				e.getShaft = function () {
+					return e.parent;
+				}
+
+				//get the number of floors our ElevatorShaft goes to
+				e.getNumFloors = function () {
+					return e.parent.getFloors().length;
+				}
 
 				/** 
 				 * @method e.getFloor
 				 * @description determine which Floor the Elevator is at. If the top of the 
 				 * Elevator is more than halfway above the floor base, the elevator is on the 
 				 * floor
-				 * @returns {Number|false} the floor number, or Boolean false if it can't be found
+				 * @returns {Number|false} the floor number, NO_FLOOR if it is in transit, or 
+				 * or Boolean false if there is an error
 				 */
-				e.getFloor = function () {
-					var starts = e.parent.getFloorStarts(); //get start of BuildingFloors from ElevatorShaft
-					var h = starts[1] - starts[0];
-					var len = starts.length;
-					var top,bottom,halfway;
+				e.closestFloor = function () {
+					var h, len,dist, top, bottom, floorNum,
+					starts = e.parent.getFloorStarts(); //get start of BuildingFloors from ElevatorShaft
+					if(!starts) {
+						elefart.showError("in e.getFloor(), no BuildingFloor starts");
+						return false;
+					}
+					if(starts.length > 1) {
+						h = starts[1] - starts[0];
+					}
+					else {
+						h = e.getShaft().parent.height; //Building has 1 floor
+					}
+					len = starts.length;
+					dist = e.getShaft.height; //biggest possible
 					for(var i = 0; i < len; i++) {
-						if(i === 0) top = starts[i] - h; //ROOF
-						else top = starts[i - 1];
-						bottom = starts[i];
-						halfway = bottom + ((top - bottom)/2);
-						//console.log("bottom:" + bottom + " halfway:" + halfway + " top:" + top)
-						if(e.bottom > halfway && e.bottom < bottom) {
-							return len - i;//zero-based
+						top = starts[i] - h; //top of BuildingRoof
+						bottom = starts[i]; //pixel position of BuildingFloor start
+						console.log("e.bottom:" + e.bottom + " bottom:" + bottom)
+						if(e.bottom === bottom) { //EXACTLY AT THE FLOOR
+							return {
+								floor:len - i,
+								dist:0
+							};
+						}
+						var dd = Math.abs(bottom - e.bottom);
+						if(dd < dist) { //COMPUTE PRECENT FROM NEAREST FLOOR
+							floorNum = len - i;
 						}
 					}
+					//we are in transit, find the closest floor
 					elefart.showError("Elevator.getFloor, couldn't find which Floor it was on")
-					return false;
+					return {
+						floor:floorNum,
+						dist:0 //TODO: COMPUTE A PERCENT!!!!!!!!!!!!!!!!
+					}
 				}
-				e.arrivedFloor = function () {
+
+				e.atFloor = function () {
+					var floor = e.closestFloor();
+					if(floor.dist < 1) { //TODO: CAN KLUDGE THIS!!!!!!!!!!!!!!!!
+						return floor.dist;
+					}
+					else {
+						return NO_FLOOR;
+					}
 				}
+
 				/** 
 				 * @method e.moveToFloor 
 				 * @description move Elevator to a given BuildingFloor
@@ -424,8 +517,8 @@ window.elefart.building = (function () {
 				 */
 				e.moveToFloor = function (num, animate) {
 					var walkLine, floorHeight,
-					starts = e.parent.getFloorStarts(),
-					len = starts.length;
+					floors = e.parent.getFloors(), //floors covered by ElevatorShaft
+					len = floors.length;
 					if(num === e.floorNum) {
 						console.log("Elevator already on floor " + num + ", not moved");
 						return true;
@@ -438,13 +531,13 @@ window.elefart.building = (function () {
 						console.log("shaft goes to roof, get roof")
 						e.floorNum = ROOF;
 						//we subtract the width of the Elevator walls only for BuildingRoof (more space for BuildingCupola)
-						walkLine = getBuilding().getBuildingRoof().walkLine + e.lineWidth;
+						walkLine = factory.toInt(getBuilding().getRoof().walkLine + e.lineWidth);
 					}
 					else {
 						var cnum = len - num; //reverse since BuildingFloors goe up, but y pixels go down
 						if (num >= 0) {
 							e.floorNum = num;
-							walkLine = starts[cnum]; //NOTE: invert num from screen number to get actual floor
+							walkLine = floors[cnum].walkLine; //NOTE: invert num from screen number to get actual floor
 						}
 						else {
 							elefart.showError("Elevator moveToFloor out of range floor:" + num);
@@ -453,14 +546,70 @@ window.elefart.building = (function () {
 					//now actually move
 					if(animate) {
 						//TODO: trigger animation here
+						//TURN e.busy = true here
 					}
 					else {
+						e.floorNum = num;
 						return e.moveTo(e.left, walkLine-e.height, true); //move children
 					}
 					return false;
 				}
 
+				//Elevator logic
+
+				/** 
+				 * @method floorInQueue
+				 * @description find a BuildingFloor by its floorNumber or 
+				 * with the BuildingFloor object itself
+				 */
+				e.floorInQueue = function (floor) {
+					var whichFloor;
+					if(floor.floorNum) {
+						whichFloor = floor.floorNum;
+					}
+					if(factory.isNumber(whichFloor)) {
+						var len = e.floorQueue.length;
+						for(var i = 0; i < len; i++) {
+							if(e.floorQueue[i].floorNum === whichFloor) {
+								return i;
+							}
+						}
+					}
+					return NO_FLOOR;
+				}
+
+				e.initQueue = function () {
+					e.floorQueue = [];
+				}
+
+				e.addFloorToQueue = function (floor) {
+					var fl = e.parent.floorInShaft(floor);
+					console.log("fl:" + fl)
+					if(fl) {
+						e.floorQueue.push(floor);
+						return true;
+					}
+					return false;
+				}
+
+				//TODO: set up floor queue in update loop
+				//TODO: if instant, make elevator speed equal to the number of pixels to move
+				//TODO: if not instant, increment elevator
+				//TODO: test in update loop, if arrived, stop moving
+
+				e.removeFloorFromQueue = function (floor) {
+					var whichFloor;
+					if(!factory.isNumber(floor)) { //a BuildingFloor object
+						whichFloor = e.floorInQueue(floor); //handle passed object, return its queue index
+					}
+					if(whichFloor.floorNum !== NO_FLOOR) {
+						return e.floorQueue.splice(whichFloor.floorNum, 1);
+					}
+					return false;
+				}
+
 				//set default floor
+				e.addFloorToQueue(floorNum)
 				e.moveToFloor(floorNum);
 				display.addToDisplayList(e, display.LAYERS.ELESPACE1);
 
@@ -489,9 +638,12 @@ window.elefart.building = (function () {
  	 * @param {Number} numShafts the total number of elevator shafts
  	 * @param {Boolean} hasShaftTop if true, there is a shaft top that should 
  	 * punch through the Building
+ 	 * @param {Number} startFloor (optional) the starting floor of the ElevatorShart, out of all BuildingFloors
+ 	 * @param {Number} endFloor (optional) the ending floor of the ElevatorShaft. If the hasShaftTop was set to 
+ 	 * true, it overrides this number.
  	 * @returns {ElevatorShaft|false} an ElevatorShaft object, or false
  	 */
-	function ElevatorShaft (building, shaftNum, hasShaftTop) {
+	function ElevatorShaft (building, shaftNum, hasShaftTop, startFloor, endFloor) {
 		if(building) {
 			var shaftWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.width * building.width);
 			var shaftSubWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.subWidth * shaftWidth);
@@ -517,6 +669,11 @@ window.elefart.building = (function () {
 				h += hh;
 				t -= hh;
 			}
+
+			/** 
+			 * not all ElevatorShafts go to all floors
+			 */
+
 			//create the ElevatorShaft
 			var s = factory.ScreenRect(
 				l,
@@ -550,11 +707,51 @@ window.elefart.building = (function () {
 				s.getSubShaft = function () {
 					return s.getChildByType(BUILDING_TYPES.ELEVATOR_SUBSHAFT, false)[0];
 				};
-				//ask Building for the (walkline) start of a floor, where People and Elevators rest
-				s.getFloorStarts = function () {
-					var building = s.parent;
-					return building.getFloorStarts();
+
+				/* 
+				 * ask Building for the (walkline) start of each BuildingFloor the ElevatorShaft 
+				 * goes to, where People and Elevators rest
+				 */
+				s.floors = [];
+				var fls = building.getFloors();
+					var len =fls.length;
+					for(var i = 0; i < len; i++) {
+						var fl = fls[i],
+						start = fl.bottom;
+						console.log("start:" + start + " bottom:" + s.bottom + " top:" + s.top)
+						if(start <= s.bottom && start >= s.top) {
+							s.floors.push(fl); //only Floors that Shaft goes to
+						}
+					}
+
+				s.getFloors = function () {
+					return s.floors;
 				};
+
+				/** 
+				 * @method s.floorInShaft
+				 * @description see if a BuildingFloor intersects our ElevatorShaft, 
+				 * @param {BuildingFloor|Number} floor either the floor.floorNum, or 
+				 * the BuildingFloor object itself
+				 * @returns {BuildingFloor|false} if true, the BuildingFloor, else false
+				 */
+				s.floorInShaft = function (floor) {
+					var whichFloor;
+					if(!factory.isNumber(floor)) {
+						whichFloor = floor.floorNum;
+					}
+					else {
+						whichFloor = floor;
+					}
+					var len = s.floors.length;
+					for(var i = 0; i < len; i++) {
+						var floor = s.floors[i];
+						if(floor.floorNum === whichFloor) {
+							return floor;
+						}
+					}
+					return false;
+				}
 
 				//subShaft color
 				var rgbaColor = factory.getRGBAfromRGB(
@@ -586,7 +783,7 @@ window.elefart.building = (function () {
 					display.addToDisplayList(sb, display.LAYERS.SHAFTS);
 
 					//Create Elevator
-					//getters
+					//getters for the Shaft
 					s.getElevator = function () {
 						return s.getChildByType(BUILDING_TYPES.ELEVATOR, false)[0];
 					}
@@ -646,11 +843,10 @@ window.elefart.building = (function () {
 	function BuildingFloor (building, floorNum, numFloors) {
 
 		//compute BuildingFloor based on dimensions
-		var h = building.height/numFloors;
+		var h = factory.toInt(building.height/numFloors);
 		var t = building.top + (floorNum * h);
 		var l = building.left;
 		var w = building.width;
-
 		//create the BuildingFloor
 		var f = factory.ScreenRect(
 			l,
@@ -661,7 +857,7 @@ window.elefart.building = (function () {
 			display.COLORS.BROWN,
 			display.COLORS.YELLOW, 
 			display.LAYERS.BUILDING,
-			display.getHotelWalls()//, //NOTE: ADDING AN IMAGE
+			display.getHotelWalls() //NOTE: ADDING AN IMAGE
 			//function () {console.log("loading hotel walls in floor");}
 			);
 
@@ -683,7 +879,7 @@ window.elefart.building = (function () {
 
 			//getters
 			f.getBaseHeight = function () {
-				var baseHeight = DIMENSIONS.BUILDING.wallSize * building.height;
+				var baseHeight = factory.toInt(DIMENSIONS.BUILDING.wallSize * building.height);
 				if(baseHeight > MAX_WALLS) baseHeight = MAX_WALLS;
 				return baseHeight;
 			}
@@ -700,7 +896,7 @@ window.elefart.building = (function () {
 				t,
 				w,
 				baseHeight, //Rect drawn downwards into lower floor
-				5,
+				5, //stroke
 				display.COLORS.BROWN,
 				display.COLORS.BROWN,
 				display.LAYERS.BUILDING
@@ -801,16 +997,14 @@ window.elefart.building = (function () {
 	 * @classdesc surrounding BuildingRoof extension for the Elevator that punches
 	 * through to the BuildingRoof.
 	 * @param {Building} building the Building object
+	 * @param {BuildingRoof} roof the BuildingRoof (for early parent assignment)
 	 * @param {Elevator} elevator a sample Elevator object for calculating Cupola dimensions
 	 * @returns {BuildingCupola|false} if ok return a BuildingCupola object, else false
 	 */
-	function BuildingCupola (building, roofShaft, elevator) {
+	function BuildingCupola (building, roof, roofShaft, elevator) {
 			//draw Cupola as a rounded box, open on bottom, around ElevatorShaft punching through Roof
 			var roofWidth = building.lineWidth*DIMENSIONS.BUILDING.roofWidth;
 			var elevBuffer = 4, elevBufferWidth = elevBuffer*2;
-			//correct for even/odd
-			window.rs = roofShaft;
-
 			var lw2 = roofWidth + roofWidth;
 			l = elevator.left-roofWidth - elevBuffer;
 			t = roofShaft.top-elevBufferWidth;
@@ -829,10 +1023,19 @@ window.elefart.building = (function () {
 			if(c)  {
 				c.name = BUILDING_TYPES.BUILDING_ROOF_CUPOLA;
 				c.instanceName = "Roof Cupola";
+				c.parent = roof; //early assignment
 				c.setRectBorderRadius(roofWidth);
 				c.missingSide = factory.SIDES.BOTTOM; //NOTE: this makes it an Open Box
-				c.customDraw = function (ctx) {
-					//custom drawing into the object
+				c.roofShaft = roofShaft;
+
+				//getters for ElevatorShaft punching through BuildingRoof
+				c.getRoofShaft = function () {
+					return c.roofShaft;
+				}
+
+				//time-based updates
+				//ask if Elevator arrived. If so, change RoofCupola features
+				c.updateByTime = function () {
 				}
 
 				//add an internal Rect with a yellow background
@@ -857,6 +1060,8 @@ window.elefart.building = (function () {
 				});
 
 				cb.instanceName = "Roof Cupola Back";
+				cb.roofShaft = roofShaft;
+
 				c.addChild(cb);
 
 				//add a shadow
@@ -883,9 +1088,10 @@ window.elefart.building = (function () {
 				);
 				cs.setOpacity(0.6);
 				//add to displayList in order
-				display.addToDisplayList(cb, display.LAYERS.ELEBACK); //back of Cupola
+				display.addToDisplayList(cb, display.LAYERS.ELEBACK); //back of BuildingCupola
 				display.addToDisplayList(cs, display.LAYERS.ELEBACK); //shadow
 				display.addToDisplayList(c, display.LAYERS.ELEBACK);  //rounded Box
+
 				return c;
 			}
 		elefart.showError("Failed to create BuildingCupola");
@@ -897,6 +1103,8 @@ window.elefart.building = (function () {
 	 * @classdesc special BuildingFloor, actually the roof of the Building. Draw a roof 
 	 * pattern on the base, extending into the next lower BuildingFloor
 	 * @param {Building} building the Building object, linked as parent to this class
+	 * @param {ElevatorShaft} roofShaft the shaft punching through the BuildingRoof to the 
+	 * BuildingCupola.
 	 * @returns {BuildingRoof|false} a BuildingRoof, or false
 	 */
 	function BuildingRoof (building, roofShaft) {
@@ -926,10 +1134,15 @@ window.elefart.building = (function () {
 			r.getChildByType = getChildByType; //generic child getter function
 			r.floorNum = ROOF;
 			r.walkLine = building.top-roofWidth;
+			r.roofShaft = roofShaft; //store local reference to the ElevatorShaft
 
 			//getters
 			r.getRoofSides = function () {
 				return r.getChildByType(BUILDING_TYPES.BUILDING_ROOF_SIDE, false);
+			}
+
+			r.getRoofShaft = function () {
+				return r.roofShaft;
 			}
 
 			//LEFT side of BuildingRoof, visible Rect
@@ -977,7 +1190,7 @@ window.elefart.building = (function () {
 				return r.getChildByType(BUILDING_TYPES.BUILDING_ROOF_CUPOLA, false)[0];
 			}
 			//add the Building Cupola on the BuildingRoof
-			r.addChild(BuildingCupola(building, roofShaft, ss));
+			r.addChild(BuildingCupola(building, r, roofShaft, ss));
 
 			return r;
 		}
@@ -1005,11 +1218,11 @@ window.elefart.building = (function () {
 		var i; //counter
 
 		//compute Building sizes based on dimensions
-		var ww = DIMENSIONS.BUILDING.wallSize * world.height;
-		var l = (DIMENSIONS.BUILDING.left * world.width);
-		var t = (DIMENSIONS.BUILDING.top * world.height);
-		var w = (DIMENSIONS.BUILDING.width * world.width) +1;// +1 fixes width at some dimensions
-		var h = DIMENSIONS.BUILDING.height * world.height;
+		var ww = factory.toInt(DIMENSIONS.BUILDING.wallSize * world.height);
+		var l = factory.toInt(DIMENSIONS.BUILDING.left * world.width);
+		var t = factory.toInt(DIMENSIONS.BUILDING.top * world.height); //identical to Sky.bottom
+		var w = factory.toInt(DIMENSIONS.BUILDING.width * world.width);// +1 fixes width at some dimensions
+		var h = factory.toInt(DIMENSIONS.BUILDING.height * world.height);
 
 		//create Building
 		var b = factory.ScreenRect(
@@ -1025,7 +1238,9 @@ window.elefart.building = (function () {
 
 		//set additional Building properties and add child objects
 		if(b) {
-			b.shrink((ww/2)-1); //shrink so stroke shows on left and right of window
+			if(ww) {
+				b.shrink(ww); //shrink so stroke shows on left and right of window
+			}
 			b.name = BUILDING_TYPES.BUILDING;
 			b.instanceName = "GasLight Building";
 			b.parent = world; //NOTE: have to do here since addChild hasn't happened
@@ -1076,17 +1291,6 @@ window.elefart.building = (function () {
 				b.addChild(BuildingFloor(b, i, numFloors));
 			}
 
-			//additional getters for Building requiring instantated BuildingFloors
-			b.floorStarts = [];
-			var floors = b.getFloors();
-			var len = floors.length;
-			for(var i = 0; i < len; i++) {
-				b.floorStarts.push(floors[i].walkLine);
-			}
-			b.getFloorStarts = function () {
-				return b.floorStarts;
-			}
-
 			/** 
 			 * @method shaftFloorSelected 
 			 * @description stats for a selected Point (e.g. from a mouseclick)
@@ -1130,15 +1334,13 @@ window.elefart.building = (function () {
 				//if not found check the BuildingRoof
 				if(!result.floor && shaft.top < b.top) {
 					console.log("checking for ROOF")
-					result.floor = b.getBuildingRoof();
+					result.floor = b.getRoof();
 				}
 				return result;
 			}
 
 			//get the number of ElevatorShafts we WILL create (getNumShafts() calcs number needed)
 			var numShafts = b.getNumShafts();
-
-
 
 			//getters for ElevatorShafts
 			b.getShaft = function (shaftNum) {
@@ -1151,7 +1353,6 @@ window.elefart.building = (function () {
 			b.getShafts = function () {
 				return b.getChildByType(BUILDING_TYPES.ELEVATOR_SHAFT);
 			}
-
 
 			//compute which shaft will go to the BuildingRoof
 			var numRoofShaft = 0;
@@ -1169,7 +1370,7 @@ window.elefart.building = (function () {
 			}
 
 			//getter for BuildingRoof
-			b.getBuildingRoof = function () {
+			b.getRoof = function () {
 				return b.getChildByType(BUILDING_TYPES.BUILDING_ROOF, false)[0];
 			}
 
@@ -1305,7 +1506,7 @@ window.elefart.building = (function () {
 				}
 				c.move(c.moveDist,0)
 			}
-			controller.addToUpdateList(c);
+			controller.addToUpdateList(c); //note should come AFTER .addToDisplayList
 			return c;
 		}
 
@@ -1431,14 +1632,10 @@ window.elefart.building = (function () {
 	function Sky (world) {
 
 		//compute Sky sizes based on World relative dimensions
-		var l = DIMENSIONS.SKY.left * world.width;
-		var t = DIMENSIONS.SKY.top * world.height;
-		var w = DIMENSIONS.SKY.width * world.width;
-		var h = DIMENSIONS.SKY.height * world.height;
-
-		 if(w > 1000) {
-			w -= 2; //kludge fixing some dimensions
-		}
+		var l = factory.toInt(DIMENSIONS.SKY.left * world.width);
+		var t = factory.toInt(DIMENSIONS.SKY.top * world.height);
+		var w = factory.toInt(DIMENSIONS.SKY.width * world.width);
+		var h = factory.toInt(DIMENSIONS.SKY.height * world.height);
 
 		//Sky color gradient
 		var grd = display.getBackgroundTexture(
@@ -1558,12 +1755,12 @@ window.elefart.building = (function () {
 
 		//game dimensions set by browser viewport
 		var r = display.setGameRect();
-		var w = r.right - r.left;
-		var h = r.bottom - r.top;
+		var w = factory.toInt(r.right - r.left);
+		var h = factory.toInt(r.bottom - r.top);
 
 		//create the World
 		if(r) {
-			var w = factory.ScreenRect(
+			var wo = factory.ScreenRect(
 			0, 
 			0, 
 			w, 
@@ -1575,20 +1772,20 @@ window.elefart.building = (function () {
 			);
 
 			//set additional World propeties
-			if(w) {
-				w.name = BUILDING_TYPES.WORLD;
-				w.instanceName = "World of Elefart";
-				w.getChildByType = getChildByType; //generic child getter function
-				w.parent = null; //World has no parent
-				w.setRectBorderRadius(0); //no border
-				w.setOpacity(0.0); //World is invisible
+			if(wo) {
+				wo.name = BUILDING_TYPES.WORLD;
+				wo.instanceName = "World of Elefart";
+				wo.getChildByType = getChildByType; //generic child getter function
+				wo.parent = null; //World has no parent
+				wo.setRectBorderRadius(0); //no border
+				wo.setOpacity(0.0); //World is invisible
 
 				//getters
-				w.getBuilding = function () {
-					return w.getChildByType(BUILDING_TYPES.BUILDING, false)[0];
+				wo.getBuilding = function () {
+					return wo.getChildByType(BUILDING_TYPES.BUILDING, false)[0];
 				};
-				w.getSky = function () {
-					return w.getChildByType(BUILDING_TYPES.SKY, false)[0];
+				wo.getSky = function () {
+					return wo.getChildByType(BUILDING_TYPES.SKY, false)[0];
 				};
 				//we don't add World to display list
 
@@ -1599,7 +1796,7 @@ window.elefart.building = (function () {
 				 * @returns {Building|false} if selected, return a reference to the 
 				 * Building, otherwise false
 				 */
-				w.buildingSelected = function (pt) {
+				wo.buildingSelected = function (pt) {
 					var building = w.getBuilding();
 					if(pt.y > building.top && pt.y < building.bottom) {
 						if(pt.x > building.left && pt.x < building.right) {
@@ -1609,7 +1806,7 @@ window.elefart.building = (function () {
 					return false;
 				};
 
-				return w;
+				return wo;
 				}
 		}
 

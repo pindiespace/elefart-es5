@@ -70,6 +70,7 @@ main {
 	width:100%;
 	height:100%;
 	margin:0 auto;
+	padding:0;
 	color:rgb(200,200,100);
 	background-color:rgb(60,60,40);
 	background-size:10px 10px;
@@ -174,7 +175,6 @@ ul.menu li button:active {
 	top:0;
 	width:100%;
 	height:100%;
-	border:1px solid white;
 }
 
 #screen-join {
