@@ -77,7 +77,8 @@ window.elefart.controller = (function () {
 		//if building, use mouseclick to move elevator
 		if(tp.shaft && tp.floor) {
 			var e = tp.shaft.getElevator();
-			e.moveToFloor(tp.floor.floorNum); //TODO: GET FLOORNUM IN SYNC WITH e.moveToFloor()
+			/////////////e.moveToFloor(tp.floor.floorNum); //TODO: GET FLOORNUM IN SYNC WITH e.moveToFloor()
+			e.addFloorToQueue(tp.floor.floorNum);
 		}
 
 	}
@@ -88,8 +89,6 @@ window.elefart.controller = (function () {
 	 * @param {Canvas} gameCanvas the HTML5 Canvas object
 	 */
 	function setGameHandlers (gameCanvas) {
-
-		console.log("in gameHandler, gameCanvas:" + gameCanvas)
 
 		//window resizing events (redraw world)
 		dom.bind(window, "resize", function (e) {
@@ -180,13 +179,17 @@ window.elefart.controller = (function () {
 
 	/** 
 	 * @method removeFromUpdateList
-	 * @description remove an object from drawing display list
+	 * @description remove an object from drawing display list. By default, it is non-recursive.
 	 * @param {Point|Line|Rect|Circle|Polygon|ScreenSprite} obj the object to draw
 	 * @param {PANELS} panel (optional) the display list panel to draw in (optional)
 	 * @returns {Boolean} if removed, else false;
 	 */
 	function removeFromUpdateList (obj) {
 		if(obj && obj.type) {
+			if(!obj.panel) {
+				elefart.showError("controller.removeFromUpdateList(), MUST add ScreenObject:" + obj.type + " to display list first!");
+				return false;
+			}
 			var panel = updateList[obj.panel];
 			var len = panel.length;
 			for(var i = 0; i < len; i++) {

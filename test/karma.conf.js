@@ -3,6 +3,7 @@
  * without using requireJS
  * to see detailed output, press the "DEBUG" button, then open "inspect element" in 
  * the blank page that loads
+ * @link http://karma-runner.github.io/0.8/config/files.html
  */
 module.exports = function(config){
 	
@@ -31,8 +32,10 @@ module.exports = function(config){
 		{pattern: 'public/js/screen-scores.js', watched: true, included: true, served: true},
 		{pattern: 'public/js/screen-exit.js', watched: true, included: true, served: true}
 	],
-
-	proxies: { //add so tested modules can load assets from the site
+	
+	//add so tested modules can load media assets from the site
+	//NOTE: NOT THE SAME as the Karma test port! (this is the port of the local web server you are using)
+	proxies: { 
 		'/img/': 'http://localhost:3000/img/'
 	},
 
@@ -48,10 +51,17 @@ module.exports = function(config){
 	colors: true,
 
 	//test browser
-	browsers : ['Chrome'],
+	//switch to a headless brower
+	//http://kroltech.com/2013/11/javascript-tdd-with-jasmine-and-karma/#.VNYyTfk7tcY
+	//npm install karma-jasmine --save-dev
+	//npm install karma-phantomjs-launcher --save-dev
+	//browsers : ['Chrome'],
+	browsers : ['PhantomJS'],
 
 	plugins : [
 		'karma-junit-reporter',
+		'karma-jasmine', 
+		'karma-phantomjs-launcher',
 		'karma-chrome-launcher',
 		'karma-firefox-launcher',
 		'karma-jasmine'

@@ -7,7 +7,7 @@
 
 "use strict";
 
-describe("Counter tests", function () {
+describe("elefart and elefart.factory tests", function () {
 
 	it("Add gives the correct result", function () {
 	// Arrange
@@ -56,11 +56,18 @@ describe('Elefart base', function() {
 describe('Elefart factory', function () {
 
 	beforeEach(function () {
-
+		var article, docBody;
 		//initialize so we can load a 'dummy' HTML screen correctly
-		var article = document.createElement('article');
+		article = document.createElement('article');
 		article.id = 'screen-splash';
-		var docBody = document.getElementsByTagName("body")[0];
+		article.style.width = "1024px";
+		article.style.height = "800px";
+		docBody = document.getElementsByTagName("body")[0];
+		if(!docBody) {
+			docBody = document.createElement('body');
+		}
+		docBody.style.width = "1024px";
+		docBody.style.height = "800px";
 		docBody.appendChild(article);
 
 		//initializations will work, and allow feature tests in elefart to run
@@ -69,7 +76,7 @@ describe('Elefart factory', function () {
 		elefart.factory.init();
 	});
 
-	it('should have ScreenObjects', function () {
+	it('should have factory ScreenObjects', function () {
 
 		expect(typeof elefart.factory).toBe('object');
 
@@ -290,9 +297,9 @@ describe('Elefart factory', function () {
 		expect(foundChild.id).toBe(childId);
 
 		//check removeChild
-		foundChild = mv.removeChild(childId);
-		expect(foundChild.id).toBe(childId); //fails, does not return a value!!!!!!!!!!!
+		foundChild = mv.removeChild(foundChild);
 		expect(mv.children.length).toBe(2);
+		expect(foundChild.id).toBe(childId); //fails, does not return a value!!!!!!!!!!!
 
 		/*
 		 * ============================
@@ -326,7 +333,7 @@ describe('Elefart factory', function () {
 		//check setImage
 		vis.setImage(path, 
 			function (imgObj) {
-				console.log("img width:" + imgObj.img.width);
+				console.log("factory.setImage(), img width:" + imgObj.img.width);
 			});
 
 		//check Image features are ok
@@ -359,36 +366,4 @@ describe('Elefart factory', function () {
 
 });
 
-describe('Elefart building', function () {
 
-	beforeEach(function () {
-		elefart.building.init();
-	});
-
-	it('should have screen objects attached', function () {
-		expect(typeof elefart.building).toBe('object');
-		//var r = new elefart.building.Elevator();
-		
-	});
-
-	afterEach(function () {
-
-	});
-});
-
-
-describe('Elefart display', function () {
-
-	beforeEach(function () {
-		elefart.display.init();
-	});
-
-	it('should have screen objects attached', function () {
-		expect(typeof elefart.display).toBe('object');
-	});
-
-	afterEach(function () {
-
-	});
-
-});

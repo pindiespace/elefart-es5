@@ -1585,14 +1585,14 @@ window.elefart.factory = (function () {
 	/** 
 	 * @method removeFromLists
 	 * @description allows a ScreenObject to remove itself from 
-	 * all Lists (World, display drawing, controller updates)
+	 * all Lists (elefart.display and elefart.controller update lists)
 	 */
 	function removeFromLists () {
 		display.removeFromDisplayList(this);
 		controller.removeFromUpdateList(this);
 		var children = this.children;
 		var len = children.length;
-		console.log("removing " + this.instanceName + " from lists, now looping through its children");
+		console.log("removing " + this.type + " from lists, now looping through its children");
 		for(var i = 0; i < len; i++) {
 			children[i].removeFromLists();
 		}

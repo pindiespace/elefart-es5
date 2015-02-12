@@ -1,37 +1,39 @@
 {
-	"name": "Elefart",
-	"version": "1.1.0",
-	"license": "MIT",
-	"repository": "https://github.com/pindiespace/Elefart",
-	"description": "HTML5 game illustrating dev concepts",
-	"main": "server.js",
-	"scripts": {
-		"start": "node server.js",
-		"test": "node node_modules/karma/bin/karma start test/karma.conf.js",
-		"doc": "node node_modules/.bin/jsdoc",
-		"dist": ""
-	},
-	"dependencies": {
-		"path": "latest",
-		"express": "4.x",
-		"socket.io": "1.2.x",
-		"serve-favicon": "~2.x",
-		"karma": "latest",
-		"karma-jasmine": "latest",
-		"karma-junit-reporter": "latest",
-		"karma-chrome-launcher": "latest",
-		"karma-firefox-launcher": "latest",
-		"grunt": "latest",
-		"jsdoc": "<=3.3.0",
-		"grunt-jsdoc": "beta"
-	},
-	"devDependencies": {
-		"grunt" : "latest",
-		"jsdoc": "<=3.3.0",
-		"grunt-jsdoc": "beta",
-		"karma": "latest",
-		"karma-chrome-launcher": "latest",
-		"karma-jasmine": "latest",
-		"karma-junit-reporter": "latest"
-	}
+  "name": "Elefart",
+  "version": "1.1.0",
+  "license": "MIT",
+  "repository": "https://github.com/pindiespace/Elefart",
+  "description": "HTML5 game illustrating dev concepts",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node node_modules/karma/bin/karma start test/karma.conf.js",
+    "doc": "node node_modules/.bin/jsdoc",
+    "dist": ""
+  },
+  "dependencies": {
+    "path": "latest",
+    "express": "4.x",
+    "socket.io": "1.2.x",
+    "serve-favicon": "~2.x",
+    "karma": "latest",
+    "karma-jasmine": "latest",
+    "karma-junit-reporter": "latest",
+    "karma-chrome-launcher": "latest",
+    "karma-firefox-launcher": "latest",
+    "grunt": "latest",
+    "jsdoc": "<=3.3.0",
+    "grunt-jsdoc": "beta"
+  },
+  "devDependencies": {
+    "grunt": "latest",
+    "grunt-jsdoc": "beta",
+    "grunt-karma": "^0.10.1",
+    "jsdoc": "<=3.3.0",
+    "karma": "latest",
+    "karma-chrome-launcher": "latest",
+    "karma-jasmine": "latest",
+    "karma-junit-reporter": "latest",
+    "karma-phantomjs-launcher": "^0.1.4"
+  }
 }

@@ -131,7 +131,115 @@ window.elefart.display = (function () {
 
 	/*
 	 * =========================================
-	 * TEXTURES (CANVAS GRADIENTS)
+	 * SPECIAL PRELOADS AND UTILITIES
+	 * =========================================
+	 */
+
+	/** 
+	 * @method preload
+	 * @description start game images loading before other JS libraries and 
+	 * initialization. Ensures that images are immediately available when the 
+	 * game starts.
+	 */
+	function preload () {
+
+		//hotel wallpaper
+		hotelWalls = new Image();
+			hotelWalls.onload = function() {
+			console.log("display::preload(), loaded background patterns");
+		};
+		hotelWalls.src = "img/bkgnd/wallpaper.png";
+
+		//hotel sign
+		hotelSign = new Image();
+		hotelSign.onload = function () {
+			console.log("display::preload(), loaded hotel sign");
+		}
+		hotelSign.src = "img/game/hotel_sign.png";
+
+		//character sprites
+		characterBoard = new Image();
+		characterBoard.onload = function () {
+			console.log("display::preload(), loaded character sprites");
+		}
+		characterBoard.src = "img/game/characterboard.png";
+	}
+
+	/*
+	 * =========================================
+	 * CSS BREAKPOINT READER
+	 * =========================================
+	 */
+
+	/** 
+	 * @method getCSSBreakpoint
+	 * @description read the current CSS breakpoint from 
+	 * the CSS. Allows JS to respond to events in CSS 
+	 * (e.g., responsive design changes). The function returns the 
+	 * value inserted in the before: pseudo-query in the CSS file, typically 
+	 * named screen or device breakpoints ('cellphone', 'tablet', 'desktop')
+	 * CSS code:
+	 * body:before { content: 'iphone'; display: none; }
+	 * this should be added to each breakpoint. this function will read 
+	 * the content: value
+	 * @link http://demosthenes.info/blog/948/Triggering-JavaScript-Actions-With-CSS-Media-Queries
+	 * @returns {String|false} if there is a new breakpoint, return its name as 
+	 * defined in the body:before element (invisible), otherwise return false if 
+	 * we are in the same CSS breakpoint.
+	 */
+	function getCSSBreakpoint () {
+		state = window.getComputedStyle(document.body,':before').content;
+		state = state || false;
+		if (state !== cssBreakpoint) {
+			// do something when viewport moves out of its last breakpoint
+			cssBreakpoint = state;
+			return cssBreakpoint;
+		}
+		else {
+			return false;
+		}
+	}
+
+	/** 
+	 * @method getGameRect
+	 * @description get the current dimensions of the game
+	 * NOTE: have to fire it when the screen size changes!
+	 * @returns {DOMRect} a DOMRect {left:0, top:0, right:0, bottom:0, width:0, height:0}
+	 */
+	function getGameRect () {
+		rect = panel.getBoundingClientRect();
+		if(background.width !== factory.toInt(rect.width)) {
+			//console.log("GAME RECT CHANGED, rect.width:" + rect.width + " background.width:" + background.width)
+			setGameRect();
+		}
+		return rect;
+	}
+
+	/**
+	 * @method setGameRect
+	 * @description set the size of the overall game via the enclosng 
+	 * DOM element the HTML5 Canvas object is attached to.
+	 */
+	function setGameRect () {
+		rect = panel.getBoundingClientRect();
+		if(background) {
+			background.width = rect.width;
+			background.height = rect.height;
+		}
+		if(foreground) {
+			foreground.width = rect.width;
+			foreground.height = rect.height;
+		}
+		if(controls) {
+			controls.width = rect.width;
+			controls.height = rect.height;
+		}
+		return rect;
+	}
+
+	/*
+	 * =========================================
+	 * GETTERS FOR IMAGES, TEXTURES (CANVAS GRADIENTS)
 	 * =========================================
 	 */
 
@@ -244,113 +352,6 @@ window.elefart.display = (function () {
 		return grd;
 	}
 
-	/*
-	 * =========================================
-	 * SPECIAL PRELOADS AND UTILITIES
-	 * =========================================
-	 */
-
-	/** 
-	 * @method getCSSBreakpoint
-	 * @description read the current CSS breakpoint from 
-	 * the CSS. Allows JS to respond to events in CSS 
-	 * (e.g., responsive design changes). The function returns the 
-	 * value inserted in the before: pseudo-query in the CSS file, typically 
-	 * named screen or device breakpoints ('cellphone', 'tablet', 'desktop')
-	 * CSS code:
-	 * body:before { content: 'iphone'; display: none; }
-	 * this should be added to each breakpoint. this function will read 
-	 * the content: value
-	 * @link http://demosthenes.info/blog/948/Triggering-JavaScript-Actions-With-CSS-Media-Queries
-	 * @returns {String|false} if there is a new breakpoint, return its name as 
-	 * defined in the body:before element (invisible), otherwise return false if 
-	 * we are in the same CSS breakpoint.
-	 */
-	function getCSSBreakpoint () {
-		state = window.getComputedStyle(document.body,':before').content;
-		state = state || false;
-		if (state !== cssBreakpoint) {
-			// do something when viewport moves out of its last breakpoint
-			cssBreakpoint = state;
-			return cssBreakpoint;
-		}
-		else {
-			return false;
-		}
-	}
-
-	/** 
-	 * @method getGameRect
-	 * @description get the current dimensions of the game
-	 * NOTE: have to fire it when the screen size changes!
-	 * @returns {DOMRect} a DOMRect {left:0, top:0, right:0, bottom:0, width:0, height:0}
-	 */
-	function getGameRect () {
-		rect = panel.getBoundingClientRect();
-		if(background.width !== factory.toInt(rect.width)) {
-			//console.log("GAME RECT CHANGED, rect.width:" + rect.width + " background.width:" + background.width)
-			setGameRect();
-		}
-		return rect;
-	}
-
-	/**
-	 * @method setGameRect
-	 * @description set the size of the overall game via the enclosng 
-	 * DOM element the HTML5 Canvas object is attached to.
-	 */
-	function setGameRect () {
-		rect = panel.getBoundingClientRect();
-		if(background) {
-			background.width = rect.width;
-			background.height = rect.height;
-		}
-		if(foreground) {
-			foreground.width = rect.width;
-			foreground.height = rect.height;
-		}
-		if(controls) {
-			controls.width = rect.width;
-			controls.height = rect.height;
-		}
-		return rect;
-	}
-
-	/** 
-	 * @method preload
-	 * @description start game images loading before other JS libraries and 
-	 * initialization. Ensures that images are immediately available when the 
-	 * game starts.
-	 */
-	function preload () {
-
-		//hotel wallpaper
-		hotelWalls = new Image();
-			hotelWalls.onload = function() {
-			console.log("display::preload(), loaded background patterns");
-		};
-		hotelWalls.src = "img/bkgnd/wallpaper.png";
-
-		//hotel sign
-		hotelSign = new Image();
-		hotelSign.onload = function () {
-			console.log("display::preload(), loaded hotel sign");
-		}
-		hotelSign.src = "img/game/hotel_sign.png";
-
-		//character sprites
-		characterBoard = new Image();
-		characterBoard.onload = function () {
-			console.log("display::preload(), loaded character sprites");
-		}
-		characterBoard.src = "img/game/characterboard.png";
-	}
-
-	/*
-	 * =========================================
-	 * GETTERS FOR ScreenSprit images
-	 * =========================================
-	 */
 	function getHotelWalls () {
 		if(hotelWalls) {
 			return hotelWalls;
@@ -1306,6 +1307,7 @@ window.elefart.display = (function () {
 	function drawFail () {
 		//TODO: need to draw a fail screen with 
 		//DOM methods
+		console.log("elefart.display drawing failed");
 		console.log("elefart:" + elefart);
 		console.log("elefart features:" + elefart.features);
 		console.log("elefart createelement:" + elefart.features.createelement);
@@ -1369,7 +1371,7 @@ window.elefart.display = (function () {
 		if(firstTime) {
 			init();
 		}
-		console.log("in display.run");
+		console.log("in elefart.display.run()");
 
 		/* 
 		 * the panel is assigned by elefart.screens['screen-game'], which is 

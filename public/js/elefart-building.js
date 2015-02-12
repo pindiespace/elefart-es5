@@ -185,6 +185,14 @@ window.elefart.building = (function () {
 		right:1.0
 	};
 
+	var ELEVATOR_STATES = {
+		OPENING_DOORS:"OPENING_DOORS",
+		OPEN:"OPEN_DOORS",
+		CLOSING_DOORS: "CLOSING_DOORS",
+		CLOSED:"CLOSED",
+		MOVING:"MOVING"
+	};
+
 	/*
 	 * ===========================
 	 * UTILITIES
@@ -423,20 +431,43 @@ window.elefart.building = (function () {
 
 				//animation movement params
 				e.engine = {
-					is:ON,
+					is:OFF,
 					speed:1 //may be positive or negative
 				};
 
 				//custom drawing routine
 				e.customDraw = function (ctx) {
-					//draw wires for Elevator in Shaft
+					//TODO:draw wires for Elevator in Shaft
 				}
 
 				//time-dependent update function
 				e.updateByTime = function () {
 					var engine = e.engine;
 					if(engine.is === ON) {
-						e.move(0, engine.speed);
+						if(e.floorQueue.length > 0) {
+							//console.log("floorQueue length:" + e.floorQueue.length)
+							//TODO: determine our final destination
+							var dest = e.floorQueue[0]; //oldest in queue
+							//find any intermediate floors between
+							if(e.bottom === dest.bottom) {
+								console.log("removing dest")
+								e.removeFloorFromQueue(dest);
+								console.log("floorQueue length now:" + e.floorQueue.length)
+							}
+							else if(e.bottom > dest.bottom) {
+								//move up
+								e.move(0, -engine.speed);
+							}
+							else {
+								e.move(0, engine.speed);
+							}
+
+						}
+						else {
+							//idle at last BuildingFloor, do nothing
+							//change elevator state to idling
+							engine.is = OFF;
+						}
 					}
 				}
 
@@ -445,65 +476,55 @@ window.elefart.building = (function () {
 					return e.parent;
 				}
 
+				e.getFloors = function () {
+					return e.parent.getFloors();
+				}
+
 				//get the number of floors our ElevatorShaft goes to
 				e.getNumFloors = function () {
 					return e.parent.getFloors().length;
 				}
 
 				/** 
-				 * @method e.getFloor
+				 * @method e.closestFloor
 				 * @description determine which Floor the Elevator is at. If the top of the 
 				 * Elevator is more than halfway above the floor base, the elevator is on the 
 				 * floor
 				 * @returns {Number|false} the floor number, NO_FLOOR if it is in transit, or 
 				 * or Boolean false if there is an error
 				 */
-				e.closestFloor = function () {
-					var h, len,dist, top, bottom, floorNum,
-					starts = e.parent.getFloorStarts(); //get start of BuildingFloors from ElevatorShaft
-					if(!starts) {
-						elefart.showError("in e.getFloor(), no BuildingFloor starts");
+				e.getClosestFloor = function () {
+					var h, len, dist, floorNum, bottom,
+					shaft = e.parent;
+					var floors = shaft.getFloors(); //get BuildingFloors from ElevatorShaft
+					if(!floors) {
+						elefart.showError("in e.getFloor(), no BuildingFloor floors");
 						return false;
 					}
-					if(starts.length > 1) {
-						h = starts[1] - starts[0];
-					}
-					else {
-						h = e.getShaft().parent.height; //Building has 1 floor
-					}
-					len = starts.length;
-					dist = e.getShaft.height; //biggest possible
+					len = floors.length,
+					dist = shaft.height; //biggest possible distance between floor and elevator
+					res = {};
 					for(var i = 0; i < len; i++) {
-						top = starts[i] - h; //top of BuildingRoof
-						bottom = starts[i]; //pixel position of BuildingFloor start
-						console.log("e.bottom:" + e.bottom + " bottom:" + bottom)
-						if(e.bottom === bottom) { //EXACTLY AT THE FLOOR
-							return {
-								floor:len - i,
-								dist:0
-							};
+						var floor = floors[i];
+						//Elevator arrived at a floor
+						if(e.bottom === floor.bottom) { 
+							res.floor = floor, //exactly at the BuildingFloor
+							res.dist = 0;
+							return res;
 						}
-						var dd = Math.abs(bottom - e.bottom);
-						if(dd < dist) { //COMPUTE PRECENT FROM NEAREST FLOOR
-							floorNum = len - i;
+						else {
+							var dd = Math.abs(bottom - e.bottom);
+							if(dd < dist) {
+								floorNum = len - i;
+								dist = dd - h;
+								//convert dist to a percent
+								dist = dist/h;
+								res.floor = floor,
+								res.dist = dist; 
+							}
 						}
-					}
-					//we are in transit, find the closest floor
-					elefart.showError("Elevator.getFloor, couldn't find which Floor it was on")
-					return {
-						floor:floorNum,
-						dist:0 //TODO: COMPUTE A PERCENT!!!!!!!!!!!!!!!!
-					}
-				}
-
-				e.atFloor = function () {
-					var floor = e.closestFloor();
-					if(floor.dist < 1) { //TODO: CAN KLUDGE THIS!!!!!!!!!!!!!!!!
-						return floor.dist;
-					}
-					else {
-						return NO_FLOOR;
-					}
+					} //end of for loop
+					return res;
 				}
 
 				/** 
@@ -555,24 +576,36 @@ window.elefart.building = (function () {
 					return false;
 				}
 
-				//Elevator logic
+				//messages to the ElevatorDoors (children of ElevatorShaft)
+				e.closeElevatorDoors = function () {
+
+				}
+				e.openElevatorDoors = function () {
+
+				}
+				//Elevator floor queue
 
 				/** 
 				 * @method floorInQueue
 				 * @description find a BuildingFloor by its floorNumber or 
 				 * with the BuildingFloor object itself
+				 * @param {ElevatorFloor|Number} floor the ElevatorFloor, or its 
+				 * floorNumber. 
+				 * @returns {Number} if the ElevatorFloor is in the elevatorQueue, return 
+				 * its index in the queue, else return NO_FLOOR constant.
 				 */
 				e.floorInQueue = function (floor) {
-					var whichFloor;
-					if(floor.floorNum) {
-						whichFloor = floor.floorNum;
+					var floorNum;
+					if(!factory.isNumber(floor)) {
+						floorNum = floor.floorNum;
 					}
-					if(factory.isNumber(whichFloor)) {
-						var len = e.floorQueue.length;
-						for(var i = 0; i < len; i++) {
-							if(e.floorQueue[i].floorNum === whichFloor) {
-								return i;
-							}
+					else {
+						floorNum = floor;
+					}
+					var len = e.floorQueue.length;
+					for(var i = 0; i < len; i++) {
+						if(e.floorQueue[i].floorNum === floorNum) {
+							return true;
 						}
 					}
 					return NO_FLOOR;
@@ -582,36 +615,90 @@ window.elefart.building = (function () {
 					e.floorQueue = [];
 				}
 
+				/** 
+				 * @method addFloorToQueue 
+				 */
 				e.addFloorToQueue = function (floor) {
-					var fl = e.parent.floorInShaft(floor);
-					console.log("fl:" + fl)
+					var floorNum, len;
+					if(!factory.isNumber(floor)) {
+						floorNum = floor.floorNum;
+					}
+					else {
+						floorNum = floor;
+						console.log("getting floor with floorNum:" + floorNum)
+						var floors = e.getFloors();
+						len = floors.length;
+						for(var i = 0; i < len; i++) {
+							if(floors[i].floorNum === floorNum) {
+								floor = floors[i];
+							}
+						}
+					}
+					if(!floor.floorNum) {
+						console.log("couldn't find floor:" + floor);
+						return false;
+					}
+					//make sure floor isn't alredy in queue
+					len = e.floorQueue.length;
+					for(var i = 0; i < len; i++) {
+						if(floorNum === e.floorQueue[i].floorNum) {
+							console.log("floor:" + floorNum + " already in queue");
+							return false;
+						}
+					}
+					if(floorNum === ROOF && e.parent.hasShaftTop) {
+						console.log("add ROOF:" + floor + " to elevator:" + e.id + " queue")
+						e.engine.is = ON;
+						e.floorQueue.push(world.getBuilding().getRoof());
+						return true;
+					}
+					var fl = e.parent.floorInShaft(floor); //some shafts don't go to all floors
 					if(fl) {
+						console.log("add ElevatorFloor:" + floor + " to Elevator:" + e.id + " queue")
+						e.engine.is = ON;
 						e.floorQueue.push(floor);
 						return true;
 					}
 					return false;
 				}
 
-				//TODO: set up floor queue in update loop
-				//TODO: if instant, make elevator speed equal to the number of pixels to move
-				//TODO: if not instant, increment elevator
-				//TODO: test in update loop, if arrived, stop moving
-
+				/** 
+				 * @method removeFloorFromQueue
+				 * @description remove an ElevatorFloor from the Elevator elevatorQueue
+				 * @param {BuildingFloor|Number} a BuildingFloor, or its floor number
+				 * @returns {BuildingFloor|null} the BuildingFloor number, or nothing
+				 */
 				e.removeFloorFromQueue = function (floor) {
-					var whichFloor;
+					var floorNum;
 					if(!factory.isNumber(floor)) { //a BuildingFloor object
-						whichFloor = e.floorInQueue(floor); //handle passed object, return its queue index
+						floorNum = floor.floorNum;
 					}
-					if(whichFloor.floorNum !== NO_FLOOR) {
-						return e.floorQueue.splice(whichFloor.floorNum, 1);
+					else {
+						floorNum = floor;
 					}
-					return false;
+					//if we are on ROOF, return it
+					if(floorNum === ROOF && e.parent.hasShaftTop) {
+						return world.getBuilding().getRoof();
+					}
+					//otherwise, remove the BuildingFloor from floorQueue
+					var len = e.floorQueue.length;
+					for(var i = 0; i < len; i++) {
+						if(e.floorQueue[i].floorNum === floorNum) {
+							floor = e.floorQueue.splice(i, 1);
+							if(e.floorQueue.length < 1) {
+								e.engine.is = OFF; //no more BuildingFloors to go to
+							}
+							return floor;
+						}
+					}
+					return NO_FLOOR;
 				}
 
 				//set default floor
 				e.addFloorToQueue(floorNum)
 				e.moveToFloor(floorNum);
 				display.addToDisplayList(e, display.LAYERS.ELESPACE1);
+				controller.addToUpdateList(e);
 
 				window.elev = e; ///////////////////////////////////////
 
@@ -718,7 +805,7 @@ window.elefart.building = (function () {
 					for(var i = 0; i < len; i++) {
 						var fl = fls[i],
 						start = fl.bottom;
-						console.log("start:" + start + " bottom:" + s.bottom + " top:" + s.top)
+						//console.log("start:" + start + " bottom:" + s.bottom + " top:" + s.top)
 						if(start <= s.bottom && start >= s.top) {
 							s.floors.push(fl); //only Floors that Shaft goes to
 						}
@@ -953,7 +1040,6 @@ window.elefart.building = (function () {
 	 * @returns {BuildingSign|false} a BuildingSign object, or false
 	 */
 	function BuildingSign (building) {
-
 		var signImg = display.getHotelSign();
 		var ar = signImg.width/signImg.height;
 		var sky = building.parent.getSky();
@@ -1718,7 +1804,7 @@ window.elefart.building = (function () {
 					return sun.getChildByType (BUILDING_TYPES.CORONA, false)[0];
 				}
 				//add the Coron as a child of the Sun 
-				s.addChild(Corona(sun,s));
+				s.addChild(Corona(sun, s));
 
 				//add a faded Sun to blend over Clouds
 				var sunFade = factory.ScreenCircle(
@@ -1730,6 +1816,7 @@ window.elefart.building = (function () {
 					display.COLORS.LIGHT_GREY,
 					display.LAYERS.WORLD
 				);
+				sunFade.name = BUILDING_TYPES.CORONA;
 				sunFade.instanceName = "Sun Fade";
 				sunFade.setOpacity(0.07);
 				sun.addChild(sunFade);
