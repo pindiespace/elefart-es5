@@ -130,9 +130,6 @@ describe('Elefart building tests', function () {
 		var res = elevator.moveToFloor(3);
 		var res2 = elevator.moveToFloor(ROOF);
 
-		//FAILED
-		var closestFloor = elevator.getClosestFloor();
-
 		//Elevator Floor Queue
 		
 		elevator.initQueue ();

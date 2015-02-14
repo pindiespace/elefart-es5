@@ -28,6 +28,10 @@
 					<ul class="dropdown-menu ">
 						
 						<li>
+							<a href="BadBird.html">BadBird</a>
+						</li>
+						
+						<li>
 							<a href="Building.html">Building</a>
 						</li>
 						
@@ -76,11 +80,7 @@
 						</li>
 						
 						<li>
-							<a href="Gas.html">Gas</a>
-						</li>
-						
-						<li>
-							<a href="Goodie.html">Goodie</a>
+							<a href="FloorGoodie.html">FloorGoodie</a>
 						</li>
 						
 						<li>
@@ -89,6 +89,10 @@
 						
 						<li>
 							<a href="Person.html">Person</a>
+						</li>
+						
+						<li>
+							<a href="PersonGas.html">PersonGas</a>
 						</li>
 						
 						<li>
@@ -167,10 +171,6 @@
 						
 						<li>
 							<a href="global.html#addEvent">addEvent</a>
-						</li>
-						
-						<li>
-							<a href="global.html#addFloorToQueue">addFloorToQueue</a>
 						</li>
 						
 						<li>
@@ -1023,7 +1023,7 @@ true, it overrides this number.</p></td>
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-716">line 716</a>
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-800">line 800</a>
 			</li>
 		</ul>
 	</dd>
@@ -1092,6 +1092,462 @@ true, it overrides this number.</p></td>
     
 
     
+        <h3 class="subsection-title">Methods</h3>
+
+        <dl>
+            
+<dt>
+    <h4 class="name" id="floorInShaft"><span class="type-signature">&lt;static> </span>floorInShaft<span class="signature">(floor)</span><span class="type-signature"> &rarr; {<a href="BuildingFloor.html">BuildingFloor</a>|false}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>see if a BuildingFloor intersects our ElevatorShaft,</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>floor</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="BuildingFloor.html">BuildingFloor</a></span>
+|
+
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>either the floor.floorNum, or 
+the BuildingFloor object itself</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-917">line 917</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>if true, the BuildingFloor, else false</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="BuildingFloor.html">BuildingFloor</a></span>
+|
+
+<span class="param-type">false</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getElevator"><span class="type-signature">&lt;static> </span>getElevator<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="Elevator.html">Elevator</a>}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>get the Elevator in the ElevatorShaft</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-973">line 973</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>the (single) Elevator in the ElevatorShaft</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="Elevator.html">Elevator</a></span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getFloors"><span class="type-signature">&lt;static> </span>getFloors<span class="signature">()</span><span class="type-signature"> &rarr; {Array.&lt;<a href="BuildingFloor.html">BuildingFloor</a>>}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>get BuildingFloors that ElevatorShaft goes to</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-908">line 908</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>a list of BuildingFloors</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">Array.&lt;<a href="BuildingFloor.html">BuildingFloor</a>></span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getSubShaft"><span class="type-signature">&lt;static> </span>getSubShaft<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="ScreenRect.html">ScreenRect</a>}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>get the visible subshaft in the ElevatorShaft</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-879">line 879</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>returns the visible Rect defining the subshaft</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="ScreenRect.html">ScreenRect</a></span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        </dl>
+    
 
     
 
@@ -1116,7 +1572,7 @@ true, it overrides this number.</p></td>
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Wed Feb 11th 2015 using the <a
+		on Fri Feb 13th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

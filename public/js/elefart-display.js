@@ -1254,18 +1254,18 @@ window.elefart.display = (function () {
 		fctx.clearRect(0, 0, foreground.width, foreground.height);
 
 		//elevator shafts are in the foreground
-		drawLayer(fctx, displayList[LAYERS.CLOUDS]);
-		drawLayer(fctx, displayList[LAYERS.ELEBACK]);
-		drawLayer(fctx, displayList[LAYERS.SHAFTS]);
-		drawLayer(fctx, displayList[LAYERS.ELESPACE1]);
+		drawLayer(fctx, displayList[LAYERS.CLOUDS]); //clouds and flying creatures
+		drawLayer(fctx, displayList[LAYERS.ELEBACK]); //back wall of Building
+		drawLayer(fctx, displayList[LAYERS.SHAFTS]); //ElevatorShaft wall
+		drawLayer(fctx, displayList[LAYERS.ELESPACE1]); //back wall of Elevator
 		/*
 		drawLayer(fctx, displayList[LAYERS.ELESPACE2]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE3]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE4]);
 		drawLayer(fctx, displayList[LAYERS.WALLS]);
-		drawLayer(fctx, displayList[LAYERS.DOORS]);
-		drawLayer(fctx, displayList[LAYERS.FLOORS]);
 		*/
+		drawLayer(fctx, displayList[LAYERS.FLOORS]); //BuildingFloor
+		drawLayer(fctx, displayList[LAYERS.DOORS]);  //ElevatorDoors
 
 		//restore
 		fctx.restore();

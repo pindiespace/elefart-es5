@@ -175,6 +175,10 @@ window.elefart.building = (function () {
 		subWidth:0.5, //RELATIVE the ElevatorShaft (visible band)
 		subOpacity:0.2 //opacity of central colored region of shaft
 	},
+	DIMENSIONS[BUILDING_TYPES.ELEVATOR_DOORS] = {
+		width:1.0, //RELATIVE TO ElevatorShaft
+		height:0.8 //RELATIVE to BuildingFloor
+	},
 	DIMENSIONS[BUILDING_TYPES.ELEVATOR] = {
 		width:0.65 //width increase RELATIVE to ElevatorShaft width
 	},
@@ -377,6 +381,46 @@ window.elefart.building = (function () {
 
 	/* 
 	 * ============================
+	 * GAS FROM PEOPLE
+	 * ============================
+	 */
+
+	/** 
+	 * @constructor PersonGas
+	 * @classdesc the gas used as a weapon in the game
+	 * - parent: Person(s) or Elevators (can transfer)
+	 * - grandparent: ElevatorFloor or Building
+	 * - children: none
+	 * @returns {Gas|false} a Gas object, or false
+	 */
+	function PersonGas () {
+		return false;
+	}
+
+
+
+	/* 
+	 * ============================
+	 * PEOPLE
+	 * ============================
+	 */
+
+	/** 
+	 * @constructor Person
+	 * @classdesc individual who rides Elevators
+	 * - parent: Elevator or BuildingFloor
+	 * - grandparent: ElevatorShaft or Building
+	 * - children: Gas, Goodie(s)
+	 * @param {ElevatorFloor} the default BuildingFloor the Person starts on. Persons 
+	 * "attach" to both BuildingFloors (includng the BuildingRoof) and Elevators.
+	 * @returns {Person|false} a Person object, or false
+	 */
+	function Person (floor) {
+		return false;
+	}
+
+	/* 
+	 * ============================
 	 * ELEVATORS
 	 * ============================
 	 */
@@ -432,12 +476,36 @@ window.elefart.building = (function () {
 				//animation movement params
 				e.engine = {
 					is:OFF,
-					speed:1 //may be positive or negative
+					speed:1, //may be positive or negative
+					teleport:false //move immediately to next destination in elevatorQueue
 				};
 
 				//custom drawing routine
 				e.customDraw = function (ctx) {
 					//TODO:draw wires for Elevator in Shaft
+				}
+
+				/** 
+				 * @method e.fixOvershoot 
+				 * @description if the Elevator goes past its destination, 
+				 * pull it back
+				 * @param {ElevatorFloor} destFloor the destination floor
+				 */
+				e.fixOvershoot = function (destFloor) {
+					if(e.engine.speed < 0) {
+						if(e.bottom < destFloor.bottom) {
+							e.bottom = destFloor.bottom;
+							e.engine.is = OFF;
+							elefart.showError("elevator:" + e.id + " going up, overshoot of floor:" + destFloor);
+						}
+					}
+					else {
+						if(e.bottom > destFloor.bottom) {
+							e.bottom = destFloor.bottom;
+							e.engine.is = OFF;
+							elefart.showError("elevator:" + e.id + " going down, overshoot of floor:" + destFloor);
+						}
+					}
 				}
 
 				//time-dependent update function
@@ -448,13 +516,29 @@ window.elefart.building = (function () {
 							//console.log("floorQueue length:" + e.floorQueue.length)
 							//TODO: determine our final destination
 							var dest = e.floorQueue[0]; //oldest in queue
-							//find any intermediate floors between
+
+							//adjust for overshoot
+							///////////PROBLEM HERE!!!!!!!e.fixOvershoot(dest);
+
+							//TODO: IF THERE IS AN INTERMEDIATE FLOOR, MAKE IT THE "OLDESTs"
+
+							//TODO: find any intermediate floors between
+
+							//TODO: WHEN ARRIVED, OPEN AND LATER CLOSE ELEVATOR DOORS
+
 							if(e.bottom === dest.bottom) {
 								console.log("removing dest")
 								e.removeFloorFromQueue(dest);
+								e.engine.teleport = false; //never teleport by default
+								e.floorNum = dest.floorNum; //local copy of floor numberF
 								console.log("floorQueue length now:" + e.floorQueue.length)
 							}
+							else if(engine.teleport === true) {
+								var diff = dest.bottom - e.bottom;
+								e.move(0, diff);
+							}
 							else if(e.bottom > dest.bottom) {
+								//handle case of instant motion
 								//move up
 								e.move(0, -engine.speed);
 							}
@@ -465,7 +549,7 @@ window.elefart.building = (function () {
 						}
 						else {
 							//idle at last BuildingFloor, do nothing
-							//change elevator state to idling
+							//change Elevator state to idling
 							engine.is = OFF;
 						}
 					}
@@ -486,48 +570,6 @@ window.elefart.building = (function () {
 				}
 
 				/** 
-				 * @method e.closestFloor
-				 * @description determine which Floor the Elevator is at. If the top of the 
-				 * Elevator is more than halfway above the floor base, the elevator is on the 
-				 * floor
-				 * @returns {Number|false} the floor number, NO_FLOOR if it is in transit, or 
-				 * or Boolean false if there is an error
-				 */
-				e.getClosestFloor = function () {
-					var h, len, dist, floorNum, bottom,
-					shaft = e.parent;
-					var floors = shaft.getFloors(); //get BuildingFloors from ElevatorShaft
-					if(!floors) {
-						elefart.showError("in e.getFloor(), no BuildingFloor floors");
-						return false;
-					}
-					len = floors.length,
-					dist = shaft.height; //biggest possible distance between floor and elevator
-					res = {};
-					for(var i = 0; i < len; i++) {
-						var floor = floors[i];
-						//Elevator arrived at a floor
-						if(e.bottom === floor.bottom) { 
-							res.floor = floor, //exactly at the BuildingFloor
-							res.dist = 0;
-							return res;
-						}
-						else {
-							var dd = Math.abs(bottom - e.bottom);
-							if(dd < dist) {
-								floorNum = len - i;
-								dist = dd - h;
-								//convert dist to a percent
-								dist = dist/h;
-								res.floor = floor,
-								res.dist = dist; 
-							}
-						}
-					} //end of for loop
-					return res;
-				}
-
-				/** 
 				 * @method e.moveToFloor 
 				 * @description move Elevator to a given BuildingFloor
 				 * @param {Number} num the floor, in building coordinates (opposite actual 
@@ -537,46 +579,13 @@ window.elefart.building = (function () {
 				 * @return {Boolean} if moved, returned true, else false
 				 */
 				e.moveToFloor = function (num, animate) {
-					var walkLine, floorHeight,
-					floors = e.parent.getFloors(), //floors covered by ElevatorShaft
-					len = floors.length;
-					if(num === e.floorNum) {
-						console.log("Elevator already on floor " + num + ", not moved");
-						return true;
+					if(!animate) {
+						e.engine.teleport = true;
 					}
-					else if(num === ROOF) {
-						if(!e.parent.hasShaftTop) {
-							elefart.showError("Elevator.moveToFloor can't go to Roof");
-							return false;
-						}
-						console.log("shaft goes to roof, get roof")
-						e.floorNum = ROOF;
-						//we subtract the width of the Elevator walls only for BuildingRoof (more space for BuildingCupola)
-						walkLine = factory.toInt(getBuilding().getRoof().walkLine + e.lineWidth);
-					}
-					else {
-						var cnum = len - num; //reverse since BuildingFloors goe up, but y pixels go down
-						if (num >= 0) {
-							e.floorNum = num;
-							walkLine = floors[cnum].walkLine; //NOTE: invert num from screen number to get actual floor
-						}
-						else {
-							elefart.showError("Elevator moveToFloor out of range floor:" + num);
-						}
-					}
-					//now actually move
-					if(animate) {
-						//TODO: trigger animation here
-						//TURN e.busy = true here
-					}
-					else {
-						e.floorNum = num;
-						return e.moveTo(e.left, walkLine-e.height, true); //move children
-					}
-					return false;
+					return e.addFloorToQueue(num);
 				}
 
-				//messages to the ElevatorDoors (children of ElevatorShaft)
+				//messages to the ElevatorDoors (children of BuildingFloor)
 				e.closeElevatorDoors = function () {
 
 				}
@@ -616,7 +625,9 @@ window.elefart.building = (function () {
 				}
 
 				/** 
-				 * @method addFloorToQueue 
+				 * @method Elevator.addFloorToQueue 
+				 * @description add a floor to the Elevator.floorQueue, moving it
+				 * at updates
 				 */
 				e.addFloorToQueue = function (floor) {
 					var floorNum, len;
@@ -625,12 +636,16 @@ window.elefart.building = (function () {
 					}
 					else {
 						floorNum = floor;
-						console.log("getting floor with floorNum:" + floorNum)
-						var floors = e.getFloors();
-						len = floors.length;
-						for(var i = 0; i < len; i++) {
-							if(floors[i].floorNum === floorNum) {
-								floor = floors[i];
+						if(floorNum === ROOF && e.parent.hasShaftTop) {
+							floor = getBuilding().getRoof();
+						}
+						else {
+							var floors = e.getFloors();
+							len = floors.length;
+							for(var i = 0; i < len; i++) {
+								if(floors[i].floorNum === floorNum) {
+									floor = floors[i];
+								}
 							}
 						}
 					}
@@ -638,6 +653,7 @@ window.elefart.building = (function () {
 						console.log("couldn't find floor:" + floor);
 						return false;
 					}
+					console.log("getting floor with floorNum:" + floorNum)
 					//make sure floor isn't alredy in queue
 					len = e.floorQueue.length;
 					for(var i = 0; i < len; i++) {
@@ -650,14 +666,14 @@ window.elefart.building = (function () {
 						console.log("add ROOF:" + floor + " to elevator:" + e.id + " queue")
 						e.engine.is = ON;
 						e.floorQueue.push(world.getBuilding().getRoof());
-						return true;
+						return floor;
 					}
 					var fl = e.parent.floorInShaft(floor); //some shafts don't go to all floors
 					if(fl) {
 						console.log("add ElevatorFloor:" + floor + " to Elevator:" + e.id + " queue")
 						e.engine.is = ON;
 						e.floorQueue.push(floor);
-						return true;
+						return floor;
 					}
 					return false;
 				}
@@ -676,11 +692,12 @@ window.elefart.building = (function () {
 					else {
 						floorNum = floor;
 					}
-					//if we are on ROOF, return it
-					if(floorNum === ROOF && e.parent.hasShaftTop) {
-						return world.getBuilding().getRoof();
+					if(!floor.floorNum) {
+						console.log("couldn't find floor:" + floor);
+						return false;
 					}
 					//otherwise, remove the BuildingFloor from floorQueue
+					console.log("removing floor with floorNum:"+ floor.floorNum)
 					var len = e.floorQueue.length;
 					for(var i = 0; i < len; i++) {
 						if(e.floorQueue[i].floorNum === floorNum) {
@@ -704,6 +721,73 @@ window.elefart.building = (function () {
 
 				return e;
 			}
+				//fallthrough
+		elefart.showError("failed to create Elevator at shaft:" + shaft.shaftNum);
+		return false;
+	}
+
+	/* 
+	 * ============================
+	 * ELEVATOR DOORS
+	 * ============================
+	 */
+
+	/** 
+	 * @constructor ElevatorDoors
+	 * @classdesc elevator doors consist of an enclosing rect, with 
+	 * two smaller Rects functioning as the sliding doors. They are 
+	 * part of the Building, rather than the elevator
+	 * - parent: BuildingFloor
+	 * - grandparent: Building
+	 * - children: none
+	 * @param {ElevatorShaft} shaft the ElevatorShaft that the doors open to
+	 * @param {BuildingFloor} floor the BuildingFloor that the doors are situated on
+	 * @returns {ElevatorDoors|false} an ElevatorDoors object, or false
+	 */
+	function ElevatorDoors (shaft, floor) {
+			//calculate ElevatorShaft position
+			var l = shaft.left;
+			var w = shaft.width * DIMENSIONS.ELEVATOR_DOORS.width;
+			var h = DIMENSIONS.ELEVATOR_DOORS.height * floor.height;
+			var t = floor.bottom - h; //offset so overlaps roof, doesn't overlap bottom floor
+			var doorMargin = factory.toInt((shaft.width - w)/2);
+			var d = factory.ScreenRect(
+				l+doorMargin,
+				t,
+				w,
+				h, //we don't include the walking surface
+				1,
+				display.COLORS.WHITE,
+				display.COLORS.CLEAR, //TODO: OVERLAPPING FLOORS, PARTIALLY OPAQUE
+				display.LAYERS.DOORS  //display ABOVE Elevators
+			);
+			if(d) {
+				d.name = BUILDING_TYPES.ELEVATOR_DOORS;
+				d.instanceName = "ElevatorDoor, floor:"+ floor.floorNum + "shaft:" + shaft.shaftNum; //NOTE: ONE-BASED
+				d.parent = shaft; //do before adding to displayList
+				d.getChildByType = getChildByType;
+
+				d.setOpacity(0.2); ////////////////////////////////////////////almost transparent for now
+
+				//update routine
+				d.updateByTime = function () {
+					//TODO: function animating ElevatorDoors
+				}
+
+				d.close = function () {
+					//TODO: function animating ElevatorDoor closing
+				}
+
+				d.open = function () {
+					//TODO: function animating ElevatorDoor opening
+				}
+
+				display.addToDisplayList(d, display.LAYERS.DOORS);
+
+				return d;
+			}
+		//fallthrough
+		elefart.showError("failed to create Elevator Doors at floor:" + floor.floorNum + " shaft:" + shaft.shaftNum);
 		return false;
 	}
 
@@ -772,6 +856,7 @@ window.elefart.building = (function () {
 				display.COLORS.CLEAR, //TODO: OVERLAPPING FLOORS, PARTIALLY OPAQUE
 				display.LAYERS.SHAFTS
 				);
+			/////////////////display.addToDisplayList(s, display.LAYERS.SHAFTS)
 
 			if(s) {
 				s.name = BUILDING_TYPES.ELEVATOR_SHAFT;
@@ -790,7 +875,12 @@ window.elefart.building = (function () {
 				//functions that Elevator can query for its position
 
 				//draw the visible SubShaft
-				//getter for subShaft
+
+				/** 
+				 * @method ElevatorShaft.getSubShaft
+				 * @description get the visible subshaft in the ElevatorShaft
+				 * @returns {ScreenRect} returns the visible Rect defining the subshaft
+				 */
 				s.getSubShaft = function () {
 					return s.getChildByType(BUILDING_TYPES.ELEVATOR_SUBSHAFT, false)[0];
 				};
@@ -807,16 +897,25 @@ window.elefart.building = (function () {
 						start = fl.bottom;
 						//console.log("start:" + start + " bottom:" + s.bottom + " top:" + s.top)
 						if(start <= s.bottom && start >= s.top) {
+							//only BuildingFloors that ElevatorShaft goes to
+							//add the ElevatorDoor for each BuildingFloor
+							var ed = ElevatorDoors(s, fl); //added as child to ElevatorShaft
+							//add the floors
 							s.floors.push(fl); //only Floors that Shaft goes to
 						}
 					}
 
+				/** 
+				 * @method ElevatorShaft.getFloors
+				 * @description get BuildingFloors that ElevatorShaft goes to
+				 * @return {Array<BuildingFloor>} a list of BuildingFloors
+				 */
 				s.getFloors = function () {
 					return s.floors;
 				};
 
 				/** 
-				 * @method s.floorInShaft
+				 * @method ElevatorShaft.floorInShaft
 				 * @description see if a BuildingFloor intersects our ElevatorShaft, 
 				 * @param {BuildingFloor|Number} floor either the floor.floorNum, or 
 				 * the BuildingFloor object itself
@@ -870,7 +969,12 @@ window.elefart.building = (function () {
 					display.addToDisplayList(sb, display.LAYERS.SHAFTS);
 
 					//Create Elevator
-					//getters for the Shaft
+
+					/**
+					 * @method ElevatorShaft.getElevator
+					 * @description get the Elevator in the ElevatorShaft
+					 * @returns {Elevator} the (single) Elevator in the ElevatorShaft
+					 */
 					s.getElevator = function () {
 						return s.getChildByType(BUILDING_TYPES.ELEVATOR, false)[0];
 					}
@@ -888,26 +992,20 @@ window.elefart.building = (function () {
 
 	/* 
 	 * ============================
-	 * ELEVATOR DOORS
+	 * FLOOR GOODIES
 	 * ============================
 	 */
 
 	/** 
-	 * @constructor ElevatorDoors
-	 * @classdesc elevator doors consist of an enclosing rect, with 
-	 * two smaller Rects functioning as the sliding doors. They are 
-	 * part of the Building, rather than the elevator
-	 * - parent: BuildingFloor
-	 * - grandparent: Building
+	 * @constructor FloorGoodie
+	 * @classdesc an item which helps a Person withstand a Gas attack
+	 * - parent: BuildingFloor or Person
+	 * - grandparent: Building or Elevator
 	 * - children: none
-	 * @returns {ElevatorDoors|false} an ElevatorDoors object, or false
+	 * @returns {Goodie|false} a Goodie object, or false
 	 */
-	function ElevatorDoors (floor) {
-			var eDoors = factory.ScreenRect(
+	function FloorGoodie () {
 
-			);
-		//TODO: ElevatorDoors
-		return false;
 	}
 
 	/* 
@@ -965,11 +1063,23 @@ window.elefart.building = (function () {
 			display.addToDisplayList(f, display.LAYERS.BUILDING);
 
 			//getters
+
+			/** 
+			 * @method BuildingFloor.getBaseHeight
+			 * @description get the height for the visible walking floor for a BuildingFloor
+			 * @returns {Number} the height of the visible floor
+			 */
 			f.getBaseHeight = function () {
 				var baseHeight = factory.toInt(DIMENSIONS.BUILDING.wallSize * building.height);
 				if(baseHeight > MAX_WALLS) baseHeight = MAX_WALLS;
 				return baseHeight;
 			}
+
+			/** 
+			 * @method BuildingFloor.getFloorBase
+			 * @description get the visible floor base for a BuildingFloor
+			 * @returns {ScreenRect} the ScreenRect creating the visible floor.
+			 */
 			f.getFloorBase = function () {
 				return f.getChildByType(BUILDING_TYPES.BUILDING_FLOORBASE);
 			}
@@ -988,13 +1098,11 @@ window.elefart.building = (function () {
 				display.COLORS.BROWN,
 				display.LAYERS.BUILDING
 				);
-			//TODO: also add elevator doors where shafts are
 			if(fb) {
 				fb.name = BUILDING_TYPES.BUILDING_FLOORBASE;
 				fb.instanceName = "FloorBase #" + f.floorNum;
 				f.addChild(fb);
 				display.addToDisplayList(fb, display.LAYERS.BUILDING);
-
 				//get a shadow gradient
 				var grd = display.getBackgroundTexture(
 					display.MATERIALS.GRADIENT_SHADOW, 
@@ -1707,6 +1815,19 @@ window.elefart.building = (function () {
 	}
 
 	/** 
+	 * @constructor BadBird
+	 * @classdesc a bird in the Sky that attack People on the BuildingRoof with 
+	 * the appropriate bird bombs.
+	 * - parent: Sky
+	 * - grandparent: World
+	 * - children: none
+	 * @returns {BadBird|false} a BadBird object, or false
+	 */
+	function BadBird () {
+		return false;
+	}
+
+	/** 
 	 * @constructor Sky
 	 * @classdesc the sky over the Building, a rect with a color gradient.
 	 * - parent: World
@@ -1900,60 +2021,6 @@ window.elefart.building = (function () {
 		//fallthrough
 		elefart.showError("Failed to create World");
 		return false;
-	}
-
-	/* 
-	 * ============================
-	 * GAS
-	 * ============================
-	 */
-
-	/** 
-	 * @constructor Gas
-	 * @classdesc the gas used as a weapon in the game
-	 * - parent: Person(s) or Elevators (can transfer)
-	 * - grandparent: ElevatorFloor or Building
-	 * - children: none
-	 * @returns {Gas|false} a Gas object, or false
-	 */
-	function Gas () {
-
-	}
-
-	/* 
-	 * ============================
-	 * GOODIES
-	 * ============================
-	 */
-
-	/** 
-	 * @constructor Goodie
-	 * @classdesc an item which helps a Person withstand a Gas attack
-	 * - parent: BuildingFloor or Person
-	 * - grandparent: Building or Elevator
-	 * - children: none
-	 * @returns {Goodie|false} a Goodie object, or false
-	 */
-	function Goodie () {
-
-	}
-
-	/* 
-	 * ============================
-	 * PEOPLE
-	 * ============================
-	 */
-
-	/** 
-	 * @constructor Person
-	 * @classdesc individual who rides Elevators
-	 * - parent: Elevator or BuildingFloor
-	 * - grandparent: ElevatorShaft or Building
-	 * - children: Gas, Goodie(s)
-	 * @returns {Person|false} a Person object, or false
-	 */
-	function Person () {
-
 	}
 
 	/* 
