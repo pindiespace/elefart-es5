@@ -1675,6 +1675,7 @@ window.elefart.factory = (function () {
 	 * @description set the opacity of a ScreenObject
 	 * @param {Number} opacity the opacity of the object
 	 * @param {Number} (optional) imageOpacity the opacity of an image fill, if present
+	 * @param {Number} (optiona) if a blend color is present, its opacity
 	 * @returns {Boolean} if ok, return true, else false
 	 */
 	function setOpacity (opacity, imageOpacity, blendOpacity) {

@@ -438,6 +438,44 @@ window.elefart.display = (function () {
 
 	/*
 	 * =========================================
+	 * EASING ANIMATION CALCS
+	 * =========================================
+	 */
+
+	/** 
+	 * @method cubicIn
+	 * @description compute easing animation with cubic calculation.
+	 * @link http://www.robertpenner.com/easing/
+	 * @link http://joshondesign.com/2013/03/01/improvedEasingEquations
+	 * @link http://www.joshy.org/demos/leonardosketch.amino3/site/
+	 * @param {Number} t an interval number between 0 (start) and 
+	 * 1 (end) of the animation
+	 * @returns {Number} the adjusted easing in value
+	 */
+	function cubicIn (t, inc) {
+		var val = Math.pow(t, 2);
+		if(val < 0.01) val = 0;
+		return val;
+	}
+
+	/** 
+	 * @method cubicOut
+	 * @description compute easing out animation with cubic calculation.
+	 * @link http://www.robertpenner.com/easing/
+	 * @link http://joshondesign.com/2013/03/01/improvedEasingEquations
+	 * @link http://www.joshy.org/demos/leonardosketch.amino3/site/
+	 * @param {Number} t an interval number between 0 (start) and 
+	 * 1 (end) of the animation
+	 * @returns {Number} the adjusted easing out value
+	 */
+	function cubicOut (t) {
+		var val = 1.0 - cubicIn(1-t);
+		if(val < 0.01) val = 0;
+		return val;
+	}
+
+	/*
+	 * =========================================
 	 * DISPLAY LIST
 	 * =========================================
 	 */
@@ -687,6 +725,9 @@ window.elefart.display = (function () {
 		//overlay stroke on top of fill and any images
 		if(obj.lineWidth && obj.strokeStyle) {
 			ctx.stroke();
+		}
+		if(obj.customDraw) {
+			obj.customDraw(ctx);
 		}
 		ctx.restore();
 	}
@@ -1419,6 +1460,8 @@ window.elefart.display = (function () {
 		getForegroundCanvas:getForegroundCanvas,
 		getForegroundTexture:getForegroundTexture, //needed by elefart.display
 		getControlCanvas:getControlCanvas,
+		cubicIn:cubicIn,
+		cubicOut:cubicOut,
 		drawPoint:drawPoint,
 		drawLine:drawLine,
 		drawRect:drawRect,

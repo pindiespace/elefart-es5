@@ -230,6 +230,14 @@
 						</li>
 						
 						<li>
+							<a href="global.html#cubicIn">cubicIn</a>
+						</li>
+						
+						<li>
+							<a href="global.html#cubicOut">cubicOut</a>
+						</li>
+						
+						<li>
 							<a href="global.html#DisplayList">DisplayList</a>
 						</li>
 						
@@ -977,7 +985,9 @@ window.elefart.building = (function () {
 		height:0.8 //RELATIVE to BuildingFloor
 	},
 	DIMENSIONS[BUILDING_TYPES.ELEVATOR] = {
-		width:0.65 //width increase RELATIVE to ElevatorShaft width
+		width:0.65, //width increase RELATIVE to ElevatorShaft width
+		speed:6, //pixel movement
+		adjust:1.8 //braking on overshooting a floor
 	},
 	DIMENSIONS[BUILDING_TYPES.CONTROL_PANEL] = {
 		top: 0.8,
@@ -1267,88 +1277,106 @@ window.elefart.building = (function () {
 				e.instanceName = "Elevator #:" + shaft.shaftNum;
 				e.parent = shaft;      //set parent early, before addChild
 				e.setRectBorderRadius(3);
-				e.floorNum = undefined; //until moved at bottom of this constructor
+				e.floor = shaft.getFloor(floorNum); //get the default assigned BuildingFloor
 				e.floorQueue = [];
 
 				//animation movement params
 				e.engine = {
 					is:OFF,
-					speed:1, //may be positive or negative
+					speed:DIMENSIONS.ELEVATOR.speed, //may be positive or negative
+					adjust:DIMENSIONS.ELEVATOR.adjust, //slow engine speed back on overshoot, lower bound 1.0, higher values reduce slow bounce
 					teleport:false //move immediately to next destination in elevatorQueue
 				};
 
-				//custom drawing routine
+				//custom drawing routine for Elevator cables
 				e.customDraw = function (ctx) {
 					//TODO:draw wires for Elevator in Shaft
-				}
-
-				/** 
-				 * @method e.fixOvershoot 
-				 * @description if the Elevator goes past its destination, 
-				 * pull it back
-				 * @param {ElevatorFloor} destFloor the destination floor
-				 */
-				e.fixOvershoot = function (destFloor) {
-					if(e.engine.speed &lt; 0) {
-						if(e.bottom &lt; destFloor.bottom) {
-							e.bottom = destFloor.bottom;
-							e.engine.is = OFF;
-							elefart.showError("elevator:" + e.id + " going up, overshoot of floor:" + destFloor);
-						}
-					}
-					else {
-						if(e.bottom > destFloor.bottom) {
-							e.bottom = destFloor.bottom;
-							e.engine.is = OFF;
-							elefart.showError("elevator:" + e.id + " going down, overshoot of floor:" + destFloor);
-						}
-					}
+					var center = e.parent.left + (e.parent.width/2);
+					var elevTop = e.top - ctx.lineWidth;
+					var oldWidth = ctx.lineWidth;
+					ctx.lineWidth = 1.0;
+					ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+					ctx.beginPath();
+					ctx.moveTo(center - 2, e.parent.top);
+					ctx.lineTo(center - 2, elevTop);
+					ctx.moveTo(center + 2, e.parent.top);
+					ctx.lineTo(center + 2, elevTop);
+					ctx.stroke();
+					ctx.fillStyle = ctx.strokeStyle;
+					ctx.fillRect(center-8, e.top - 10, 16, 8); //TODO MAKE PERCENTS
 				}
 
 				//time-dependent update function
 				e.updateByTime = function () {
-					var engine = e.engine;
+					var engine = e.engine,
+					dest = e.floorQueue[0], 
+					speed = engine.speed,
+					inc;
 					if(engine.is === ON) {
+
 						if(e.floorQueue.length > 0) {
-							//console.log("floorQueue length:" + e.floorQueue.length)
-							//TODO: determine our final destination
-							var dest = e.floorQueue[0]; //oldest in queue
 
-							//adjust for overshoot
-							///////////PROBLEM HERE!!!!!!!e.fixOvershoot(dest);
-
-							//TODO: IF THERE IS AN INTERMEDIATE FLOOR, MAKE IT THE "OLDESTs"
-
-							//TODO: find any intermediate floors between
-
-							//TODO: WHEN ARRIVED, OPEN AND LATER CLOSE ELEVATOR DOORS
-
-							if(e.bottom === dest.bottom) {
-								console.log("removing dest")
-								e.removeFloorFromQueue(dest);
-								e.engine.teleport = false; //never teleport by default
-								e.floorNum = dest.floorNum; //local copy of floor numberF
-								console.log("floorQueue length now:" + e.floorQueue.length)
-							}
-							else if(engine.teleport === true) {
+							if(engine.teleport === true) {
+								console.log("teleport")
 								var diff = dest.bottom - e.bottom;
 								e.move(0, diff);
+								engine.teleport = false;
 							}
-							else if(e.bottom > dest.bottom) {
-								//handle case of instant motion
-								//move up
-								e.move(0, -engine.speed);
+							else if(e.bottom === dest.bottom) {
+								console.log("removing dest")
+								engine.teleport = false; //never teleport by default
+								//engine.is = OFF;
+								e.floor = dest; //local copy of BuildingFloor
+								e.removeFloorFromQueue(dest);
+								console.log("floorQueue length now:" + e.floorQueue.length)
 							}
-							else {
-								e.move(0, engine.speed);
+							else if(e.floor.bottom > dest.bottom) {
+								//going up, check for overshoot
+								//console.log("up")
+								if(e.bottom &lt; dest.bottom) { //overshoot!
+									////////console.log("UP inc:"+inc)
+									inc = (dest.bottom - e.bottom);///engine.adjust;
+									///////console.log("INC:"+inc)
+									if(inc &lt; 1) {
+										/////////console.log("REMOVING")
+										e.floor = dest;
+										e.removeFloorFromQueue(dest);
+										e.moveTo(e.left, dest.bottom - e.height);
+									}
+									else {
+										inc /= engine.adjust; //slow the return
+										e.move(0, inc); //bounce
+									}
+								}
+								else {
+									//TODO: ADD SLOW HERE AS A PARAMETER
+									//var slow = ((e.bottom - dest.bottom)/e.height);
+									//if(slow &lt; 1.0) speed *= slow;
+									//if(speed &lt; 2.0) speed = 1.0;
+									e.move(0, -speed); //default speed
+								}
 							}
-
-						}
-						else {
-							//idle at last BuildingFloor, do nothing
-							//change Elevator state to idling
-							engine.is = OFF;
-						}
+							else if(e.floor.bottom &lt; dest.bottom) {
+								//going down, check for overshoot
+								//console.log("down")
+								if(e.bottom > dest.bottom) { //overshoot!
+									inc = (dest.bottom - e.bottom);///engine.adjust;
+									////////console.log("INC:"+inc)
+									if(inc > -1) {
+										e.floor = dest;
+										e.removeFloorFromQueue(dest);
+										e.moveTo(e.left, dest.bottom - e.height);
+									}
+									else {
+										inc /= engine.adjust; //slow the return
+										e.move(0, inc); //bounce
+									}
+								}
+								else {
+									e.move(0, speed); //default speed
+								}
+							}
+						} //floorQueue > 0
 					}
 				}
 
@@ -1509,7 +1537,6 @@ window.elefart.building = (function () {
 				}
 
 				//set default floor
-				e.addFloorToQueue(floorNum)
 				e.moveToFloor(floorNum);
 				display.addToDisplayList(e, display.LAYERS.ELESPACE1);
 				controller.addToUpdateList(e);
@@ -1705,11 +1732,27 @@ window.elefart.building = (function () {
 				/** 
 				 * @method ElevatorShaft.getFloors
 				 * @description get BuildingFloors that ElevatorShaft goes to
-				 * @return {Array&lt;BuildingFloor>} a list of BuildingFloors
+				 * @returns {Array&lt;BuildingFloor>} a list of BuildingFloors
 				 */
 				s.getFloors = function () {
 					return s.floors;
 				};
+
+				/** 
+				 * @method ElevatorShaft.getFloor
+				 * @description get a specific BuildingFloor
+				 * @returns {BuildingFloor|false} the BuildingFloor. If the shaft doesn't 
+				 * go to that floor, return false
+				 */
+				s.getFloor = function (floorNum) {
+					var len = s.floors.length;
+					for(var i = 0; i &lt; len; i++) {
+						if(s.floors[i].floorNum === floorNum) {
+							return s.floors[i];
+						}
+					}
+					elevfart.showError("Invalid floor for this shaft:" + s.instanceName + " floorNum:" + floorNum);
+				}
 
 				/** 
 				 * @method ElevatorShaft.floorInShaft
@@ -2211,7 +2254,7 @@ window.elefart.building = (function () {
 		//compute Building sizes based on dimensions
 		var ww = factory.toInt(DIMENSIONS.BUILDING.wallSize * world.height);
 		var l = factory.toInt(DIMENSIONS.BUILDING.left * world.width);
-		var t = factory.toInt(DIMENSIONS.BUILDING.top * world.height); //identical to Sky.bottom
+		var t = factory.toInt(DIMENSIONS.BUILDING.top * world.height)-1; //overlap slightly onto Sky
 		var w = factory.toInt(DIMENSIONS.BUILDING.width * world.width);// +1 fixes width at some dimensions
 		var h = factory.toInt(DIMENSIONS.BUILDING.height * world.height);
 
@@ -2656,7 +2699,8 @@ window.elefart.building = (function () {
 				t, 
 				w, 
 				h,
-				0, display.COLORS.BLACK, //stroke
+				0, 
+				display.COLORS.BLACK, //stroke
 				grd,                     //fill
 				display.LAYERS.WORLD
 			);
@@ -2931,7 +2975,7 @@ window.elefart.building = (function () {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Fri Feb 13th 2015 using the <a
+		on Sat Feb 14th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
