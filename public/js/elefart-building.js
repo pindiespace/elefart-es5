@@ -181,7 +181,7 @@ window.elefart.building = (function () {
 	},
 	DIMENSIONS[BUILDING_TYPES.ELEVATOR] = {
 		width:0.65, //width increase RELATIVE to ElevatorShaft width
-		speed:5, //pixel movement
+		speed:6, //pixel movement
 		adjust:1.8 //braking on overshooting a floor
 	},
 	DIMENSIONS[BUILDING_TYPES.CONTROL_PANEL] = {
@@ -480,25 +480,35 @@ window.elefart.building = (function () {
 					is:OFF,
 					speed:DIMENSIONS.ELEVATOR.speed, //may be positive or negative
 					adjust:DIMENSIONS.ELEVATOR.adjust, //slow engine speed back on overshoot, lower bound 1.0, higher values reduce slow bounce
-					teleport:false //move immediately to next destination in elevatorQueue
+					teleport:false, //move immediately to next destination in elevatorQueue
+					turn:0 //animation of elevator cables
 				};
 
-				//custom drawing routine for Elevator cables
+				//custom drawing routine
 				e.customDraw = function (ctx) {
 					//TODO:draw wires for Elevator in Shaft
 					var center = e.parent.left + (e.parent.width/2);
 					var elevTop = e.top - ctx.lineWidth;
-					var oldWidth = ctx.lineWidth;
-					ctx.lineWidth = 1.0;
-					ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-					ctx.beginPath();
-					ctx.moveTo(center - 2, e.parent.top);
-					ctx.lineTo(center - 2, elevTop);
-					ctx.moveTo(center + 2, e.parent.top);
-					ctx.lineTo(center + 2, elevTop);
-					ctx.stroke();
-					ctx.fillStyle = ctx.strokeStyle;
-					ctx.fillRect(center-8, e.top - 10, 16, 8); //TODO MAKE PERCENTS
+					//var oldWidth = ctx.lineWidth;
+					if(e.top > e.parent.top + 10) {
+						ctx.lineWidth = 1.0;
+						ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+						//Elevator cables
+						ctx.moveTo(center - 2, e.parent.top);
+						ctx.lineTo(center - 2, elevTop);
+						ctx.moveTo(center + 2, e.parent.top);
+						ctx.lineTo(center + 2, elevTop);
+						ctx.stroke();
+						//on top of Elevator
+						ctx.fillStyle = ctx.strokeStyle;
+						ctx.fillRect(center-8, e.top - 10, 16, 8); //TODO MAKE PERCENTS
+						e.engine.turn++; if(e.engine.turn > 30) e.engine.turn = 0;
+						ctx.moveTo(center -4, e.top -8);
+						if(e.engine.is === ON && e.engine.turn > 10 && e.engine.turn < 20) {
+							ctx.fillStyle = 'rgba(255,0,0,0.5)';
+							ctx.fillRect(center -4, e.top - 8, 8, 6);
+						}
+					}
 				}
 
 				//time-dependent update function
@@ -506,6 +516,7 @@ window.elefart.building = (function () {
 					var engine = e.engine,
 					dest = e.floorQueue[0], 
 					speed = engine.speed,
+					slow,
 					inc;
 					if(engine.is === ON) {
 
@@ -546,8 +557,8 @@ window.elefart.building = (function () {
 								else {
 									//TODO: ADD SLOW HERE AS A PARAMETER
 									//var slow = ((e.bottom - dest.bottom)/e.height);
-									//if(slow < 1.0) speed *= slow;
-									//if(speed < 2.0) speed = 1.0;
+									if(slow < 1.0) speed *= slow;
+									if(speed < 2.0) speed = 1.0;
 									e.move(0, -speed); //default speed
 								}
 							}
