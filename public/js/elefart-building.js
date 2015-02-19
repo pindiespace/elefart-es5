@@ -465,7 +465,7 @@ window.elefart.building = (function () {
 				8,                //stroke width
 				display.COLORS.BLACK,  //stroke color
 				display.COLORS.WHITE,  //fill color
-				display.LAYERS.ELEBACK //bottom layer
+				display.LAYERS.ELESPACE1 //bottom layer
 			);
 			if(e) {
 				e.name = BUILDING_TYPES.ELEVATOR;
@@ -492,7 +492,7 @@ window.elefart.building = (function () {
 					//var oldWidth = ctx.lineWidth;
 					if(e.top > e.parent.top + 10) {
 						ctx.lineWidth = 1.0;
-						ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+						//ctx.strokeStyle = 'rgba(0,0,0,0.2)';
 						//Elevator cables
 						ctx.moveTo(center - 2, e.parent.top);
 						ctx.lineTo(center - 2, elevTop);
@@ -511,15 +511,18 @@ window.elefart.building = (function () {
 					}
 				}
 
-				//time-dependent update function
+				/** 
+				 * @method Elevator.updateByTime()
+				 * @description update Elevator position
+				 * @returns {Boolean} if object changed in any way, return true, else false
+				 */
 				e.updateByTime = function () {
-					var engine = e.engine,
-					dest = e.floorQueue[0], 
-					speed = engine.speed,
-					slow,
-					inc;
-					if(engine.is === ON) {
-
+					if(e.engine.is === ON) {
+						var engine = e.engine,
+						dest = e.floorQueue[0], 
+						speed = engine.speed,
+						slow,
+						inc;
 						if(e.floorQueue.length > 0) {
 
 							if(engine.teleport === true) {
@@ -581,9 +584,11 @@ window.elefart.building = (function () {
 								else {
 									e.move(0, speed); //default speed
 								}
+								return true;
 							}
 						} //floorQueue > 0
 					}
+					return false;
 				}
 
 				//add getters and setters
@@ -799,9 +804,14 @@ window.elefart.building = (function () {
 
 				d.setOpacity(0.2); ////////////////////////////////////////////almost transparent for now
 
-				//update routine
+				/** 
+				 * @method ElevatorDoor.updateByTime()
+			 	* @description update ElevatorDoor positions in time
+				 * @returns {Boolean} if updated in any way, return true, else false
+				 */
 				d.updateByTime = function () {
 					//TODO: function animating ElevatorDoors
+					return false;
 				}
 
 				d.close = function () {
@@ -1215,7 +1225,7 @@ window.elefart.building = (function () {
 			0, 
 			display.COLORS.CLEAR, 
 			display.COLORS.CLEAR, 
-			display.LAYERS.BUILDINGBACK, 
+			display.LAYERS.BUILDLING, 
 			signImg
 			);
 
@@ -1223,7 +1233,7 @@ window.elefart.building = (function () {
 		if(s) {
 			s.name = BUILDING_TYPES.BUILDING_SIGN;
 			s.instanceName = "GasLight Building Sign";
-			display.addToDisplayList(s, display.LAYERS.ELEBACK);
+			display.addToDisplayList(s, display.LAYERS.BUILDING);
 			return s;
 			}
 
@@ -1250,15 +1260,16 @@ window.elefart.building = (function () {
 			t = roofShaft.top-elevBufferWidth;
 			w = elevator.width + lw2 + elevBufferWidth;
 			h = building.top - roofShaft.top+elevBufferWidth;
+			//cupola outline
 			var c = factory.ScreenRect(
 				l,
 				t,
 				w,
 				h, //visible BuildingRoof height
-				roofWidth,
+				roofWidth*2,
 				display.COLORS.BLACK,
 				display.COLORS.CLEAR, //openBoxes can't be filled!
-				display.LAYERS.ELEBACK
+				display.LAYERS.BUILDING
 				);
 			if(c)  {
 				c.name = BUILDING_TYPES.BUILDING_ROOF_CUPOLA;
@@ -1273,25 +1284,33 @@ window.elefart.building = (function () {
 					return c.roofShaft;
 				}
 
-				//time-based updates
-				//ask if Elevator arrived. If so, change RoofCupola features
+				/** 
+				 * @method RoofCupola.updateByTime()
+				 * @description update RoofCupola appearance
+				 * @returns {Boolean} if updated in any way, return true, else false
+				 */
 				c.updateByTime = function () {
+					return false;
 				}
 
 				//add an internal Rect with a yellow background
 				//that punches through the Roof to the top BuildingFloor
+				//l+= roofWidth;
+				//t+= roofWidth;
+				//w-=(roofWidth*2);
+				//h = h + elevBuffer - roofWidth;
 				var cb = factory.ScreenRect(
 					l,
 					t,
 					w,
-					h + elevBuffer, //TODO: ADD EXTRA height to PUNCH THROUGH BUILDING FLOOR
+					h+lw2,
 					0,
 					display.COLORS.CLEAR,
 					display.COLORS.YELLOW,
-					display.LAYERS.ELEBACK,
+					display.LAYERS.BUILDINGBACK,
 					display.getHotelWalls()//, //NOTE: ADDING AN IMAGE
 					);
-				cb.setOpacity(0.4);
+				cb.setOpacity(0.5);
 				cb.setSpriteCoords({ //where to sample when drawing image
 					rows:13,
 					cols:13,
@@ -1329,8 +1348,8 @@ window.elefart.building = (function () {
 				cs.setOpacity(0.6);
 				//add to displayList in order
 				display.addToDisplayList(cb, display.LAYERS.ELEBACK); //back of BuildingCupola
-				display.addToDisplayList(cs, display.LAYERS.ELEBACK); //shadow
-				display.addToDisplayList(c, display.LAYERS.ELEBACK);  //rounded Box
+				display.addToDisplayList(cs, display.LAYERS.ELEBACK); //shadow in BuildingCupola
+				display.addToDisplayList(c, display.LAYERS.BUILDINGBACK);  //Rounded box defining BuildingCupola
 
 				return c;
 			}
@@ -1473,7 +1492,7 @@ window.elefart.building = (function () {
 				ww, //stroke
 				display.COLORS.BROWN, 
 				display.COLORS.YELLOW,
-				display.LAYERS.WORLD
+				display.LAYERS.BUILDING
 			);
 
 		//set additional Building properties and add child objects
@@ -1735,17 +1754,25 @@ window.elefart.building = (function () {
 			c.name = BUILDING_TYPES.CLOUD;
 			c.instanceName = "Cloud";
 			c.getChildByType = getChildByType; //generic child getter function
-			display.addToDisplayList(c); //get layer and panel for display
+			display.addToDisplayList(c, display.LAYERS.CLOUDS); //get layer and panel for display
 
 			//update function, affects display variables
 			c.moveDist = (1.0 - c.distance);
+
+			/** 
+			 * @method Cloud.updateByTime()
+			 * @description update Cloud positions in time
+			 * @returns {Boolean} if updated in any way, return true, else false
+			 */
 			c.updateByTime = function () {
 				var sky = c.parent;
 				if(c.left > sky.right) {
 					c.move(-(sky.width + c.width), 0);
 				}
-				c.move(c.moveDist,0)
+				c.move(c.moveDist,0);
+				return true; //always update!
 			}
+
 			controller.addToUpdateList(c); //note should come AFTER .addToDisplayList
 			return c;
 		}
@@ -1843,7 +1870,7 @@ window.elefart.building = (function () {
 			0, 
 			display.COLORS.CLEAR,
 			grd,
-			display.LAYERS.CLOUDS
+			display.LAYERS.WORLD
 			);
 
 			//set additional Corona properties, and make it a child of Sun
@@ -1982,7 +2009,7 @@ window.elefart.building = (function () {
 					3, 
 					display.COLORS.WHITE,
 					display.COLORS.LIGHT_GREY,
-					display.LAYERS.WORLD
+					display.LAYERS.CLOUDS
 				);
 				sunFade.name = BUILDING_TYPES.CORONA;
 				sunFade.instanceName = "Sun Fade";

@@ -274,6 +274,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#drawLayer">drawLayer</a>
+						</li>
+						
+						<li>
 							<a href="global.html#drawLine">drawLine</a>
 						</li>
 						
@@ -822,9 +826,11 @@ window.elefart.display = (function () {
 	factory,        //builds basic display objects
 	panel,          //game DOM panel (all Canvas objects attached inside)
 	rect,           //game Rect
-	bctx,           //background context
-	fctx,           //foreground context
+	wctx,           //World context (sky)
+	bctx,           //background context (static Building)
+	fctx,           //foreground context (Elevators, People)
 	cctx,           //controls context
+	worldground,    //world background (sky)
 	background,     //background canvas
 	foreground,     //foreground canvas
 	controls,       //controls canvas
@@ -842,6 +848,7 @@ window.elefart.display = (function () {
 	 * @description Enum giving which canvas (foreground, background, controls) we draw to
 	 */
 	var PANELS = {
+		WORLDGROUND: "WORLDGROUND", //changing stuff in the world BEHIND the Building
 		BACKGROUND: "BACKGROUND", //stuff that never changes (e.g. Building layout)
 		FOREGROUND: "FOREGROUND", //stuff that changes quickly (e.g. game characters)
 		CONTROLS: "CONTROLS"      //stuff that changes on user action (e.g. control panel)
@@ -853,6 +860,11 @@ window.elefart.display = (function () {
 	 * ticks can be 1-1000 (millisecs)
 	 */
 	var PANELDRAW  = {};
+	PANELDRAW[PANELS.WORLDGROUND] = {
+		draw:drawWorldground,
+		ticks:16,
+		count:0
+	},
 	PANELDRAW[PANELS.BACKGROUND] = {
 		draw:drawBackground,
 		ticks:0,
@@ -860,7 +872,7 @@ window.elefart.display = (function () {
 	};
 	PANELDRAW[PANELS.FOREGROUND] = {
 		draw:drawForeground,
-		ticks:20,
+		ticks:16,
 		count:0
 
 	};
@@ -877,19 +889,20 @@ window.elefart.display = (function () {
 	 * @description Enum giving specific names to the list of drawing layers used by displayList.
 	 */
 	var LAYERS = {
-		//background panel
+		//world panel
 		WORLD: "WORLD",        //environment outside building (Sun, Sky)
-		//foreground
 		CLOUDS: "CLOUDS",      //Clouds in the Sky
+		//background panel
 		BUILDINGBACK:"BUILDINGBACK", //extreme back of building (includes ElevatorShafts)
 		BUILDING:"BUILDING",   //main Building
-		ELEBACK:"ELEBACK",     //back wall of elevators
 		SHAFTS:"SHAFTS",       //elevator shafts in building
+		WALLS:"WALLS",         //building walls
+		//foreground panel
+		ELEBACK:"ELEBACK",     //back wall of elevators
 		ELESPACE1:"ELESPACE1", //back of elevator proper
 		ELESPACE2:"ELESPCE2",  //a layer above the back for people
 		ELESPACE3:"ELESPACE3", //a layer above the back for people
 		ELESPACE4:"ELESPACE4", //a layer above the back for people
-		WALLS:"WALLS",         //building walls
 		DOORS:"DOORS",         //elevator doors
 		FLOORS:"FLOORS",       //objects in the room floors
 		PEOPLE:"PEOPLE",
@@ -1027,6 +1040,10 @@ window.elefart.display = (function () {
 	 */
 	function setGameRect () {
 		rect = panel.getBoundingClientRect();
+		if(worldground) {
+			worldground.width = rect.width;
+			worldground.height = rect.height;
+		}
 		if(background) {
 			background.width = rect.width;
 			background.height = rect.height;
@@ -1292,18 +1309,20 @@ window.elefart.display = (function () {
 	function getPanel(layer) {
 		switch(layer) {
 			case LAYERS.WORLD:  //environment outside building (Sun, Sky)
-				return PANELS.BACKGROUND;
-				break;
 			case LAYERS.CLOUDS:      //Clouds in the Sky
+				return PANELS.WORLDGROUND;
+				break;
 			case LAYERS.BUILDINGBACK:  //extreme back of building (includes ElevatorShafts)
 			case LAYERS.BUILDING:      //main Building
+			case LAYERS.WALLS:         //building walls
 			case LAYERS.SHAFTS:        //elevator shafts in building
+				return PANELS.BACKGROUND;
+				break;
 			case LAYERS.ELEBACK:       //back wall of elevators
 			case LAYERS.ELESPACE1:     //places for People to stand
 			case LAYERS.ELESPACE2: 
 			case LAYERS.ELESPACE3: 
 			case LAYERS.ELESPACE4: 
-			case LAYERS.WALLS:         //building walls
 			case LAYERS.DOORS:         //elevator doors
 			case LAYERS.FLOORS:        //objects in the room floors
 			case LAYERS.PEOPLE: 
@@ -1326,7 +1345,7 @@ window.elefart.display = (function () {
 	 * @description create a new DisplayList
 	 */
 	function initDisplayList () {
-		displayList = {};
+		displayList = [];
 		for(var i in LAYERS) {
 			displayList[i] = [];
 		}
@@ -1530,9 +1549,6 @@ window.elefart.display = (function () {
 		//overlay stroke on top of fill and any images
 		if(obj.lineWidth &amp;&amp; obj.strokeStyle) {
 			ctx.stroke();
-		}
-		if(obj.customDraw) {
-			obj.customDraw(ctx);
 		}
 		ctx.restore();
 	}
@@ -1996,50 +2012,78 @@ window.elefart.display = (function () {
 	 * DRAW A LAYER
 	 * =========================================
 	 */
+
+	/** 
+	 * @method drawLayer
+	 * @description draw a layer into one of the canvas panels
+	 * onscreen. layers are drawn bottom to top
+	 * @param {} ctx the image context
+	 * @param {Array&lt;Object>} layer a layer with objects to be drawn
+	 */
 	function drawLayer(ctx, layer) {
 		var len = layer.length;
 		for(var i = 0; i &lt; len; i++) {
 			var obj = layer[i];
-			switch(obj.type) {
-				case factory.TYPES.POINT:
-					drawPoint(ctx, obj);
-					break;
-				case factory.TYPES.LINE:
-					drawLine(ctx, obj);
-					break;
-				case factory.TYPES.RECT:
-
-					if(obj.missingSide > 0) {
-						drawRoundedBox(ctx, obj);
-					}
-					else if(obj.borderRadius === 0) {
-						drawRect(ctx, obj);
-					}
-					else {
-						drawRoundedRect(ctx, obj);
-					}
-					break;
+			//if(obj.dirty) {
+				switch(obj.type) {
+					case factory.TYPES.POINT:
+						drawPoint(ctx, obj);
+						break;
+					case factory.TYPES.LINE:
+						drawLine(ctx, obj);
+						break;
+					case factory.TYPES.RECT:
+						if(obj.missingSide > 0) {
+							drawRoundedBox(ctx, obj);
+						}
+						else if(obj.borderRadius === 0) {
+							drawRect(ctx, obj);
+						}
+						else {
+							drawRoundedRect(ctx, obj);
+						}
+						break;
 				case factory.TYPES.CIRCLE:
-					drawCircle(ctx, obj);
+						drawCircle(ctx, obj);
 					break;
 				case factory.TYPES.POLYGON:
-					drawPolygon(ctx, obj);
+						drawPolygon(ctx, obj);
 					break;
 				case factory.TYPES.CLOUD:
-					drawCloud(ctx, obj);
+						drawCloud(ctx, obj);
 					break;
 				case factory.TYPES.IMAGE:
-					drawImage(ctx, obj);
+						drawImage(ctx, obj);
 					break;
 				default:
 					console.log("drawLayer unknown type:" + obj.type);
 					break;
-			}
-			//if there are special required drawing routines, execute
-			if(obj.customDraw) {
-				obj.customDraw(ctx);
-			}
+				}
+				if(obj.customDraw) {
+					obj.customDraw(ctx);
+				}
+				obj.dirty = false;
+			//} //end of if obj.dirty === true
 		}
+	}
+
+	/* 
+	 * =========================================
+	 * DRAW WORLDGROUND CANVAS
+	 * =========================================
+	 */
+	function getWorldgroundCanvas () {
+		if(firstTime) return false;
+		return worldground;
+	}
+
+	function drawWorldground () {
+		wctx.save();
+		wctx.clearRect(0, 0, worldground.width, worldground.height)
+		//execute the display list
+		drawLayer(wctx, displayList[LAYERS.WORLD]);
+		drawLayer(wctx, displayList[LAYERS.CLOUDS]); //clouds and flying creatures
+		wctx.restore();
 	}
 
 	/*
@@ -2067,9 +2111,11 @@ window.elefart.display = (function () {
 		bctx.save();
 		bctx.clearRect(0, 0, background.width, background.height)
 		//execute the display list
-		drawLayer(bctx, displayList[LAYERS.WORLD]);
-		drawLayer(bctx, displayList[LAYERS.BUILDINGBACK]);
-		drawLayer(bctx, displayList[LAYERS.BUILDING]);
+		drawLayer(bctx, displayList[LAYERS.BUILDINGBACK]); //in back of Building
+		drawLayer(bctx, displayList[LAYERS.BUILDING]); //Static Building
+		drawLayer(bctx, displayList[LAYERS.ELEBACK]);  //in front of Building, but behind shafts
+		drawLayer(bctx, displayList[LAYERS.SHAFTS]); //ElevatorShaft wall
+
 		bctx.restore();
 	}
 
@@ -2100,18 +2146,15 @@ window.elefart.display = (function () {
 		fctx.clearRect(0, 0, foreground.width, foreground.height);
 
 		//elevator shafts are in the foreground
-		drawLayer(fctx, displayList[LAYERS.CLOUDS]); //clouds and flying creatures
-		drawLayer(fctx, displayList[LAYERS.ELEBACK]); //back wall of Building
-		drawLayer(fctx, displayList[LAYERS.SHAFTS]); //ElevatorShaft wall
-		drawLayer(fctx, displayList[LAYERS.ELESPACE1]); //back wall of Elevator
+		drawLayer(fctx, displayList[LAYERS.ELESPACE1]); //back, walls, cables of Elevator
 		/*
 		drawLayer(fctx, displayList[LAYERS.ELESPACE2]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE3]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE4]);
 		drawLayer(fctx, displayList[LAYERS.WALLS]);
 		*/
-		drawLayer(fctx, displayList[LAYERS.FLOORS]); //BuildingFloor
-		drawLayer(fctx, displayList[LAYERS.DOORS]);  //ElevatorDoors
+		//drawLayer(fctx, displayList[LAYERS.FLOORS]); //BuildingFloor
+		//drawLayer(fctx, displayList[LAYERS.DOORS]);  //ElevatorDoors
 
 		//restore
 		fctx.restore();
@@ -2191,6 +2234,10 @@ window.elefart.display = (function () {
 		//initialize our display list as a multi-dimensional array
 		initDisplayList();
 
+		worldground = document.createElement('canvas');
+		wctx = worldground.getContext("2d");
+		worldground.id = 'game-worldground';
+
 		//initialize canvas for background
 		background = document.createElement('canvas');
 		bctx = background.getContext("2d");
@@ -2232,7 +2279,8 @@ window.elefart.display = (function () {
 			setGameRect();
 
 			//add our canvas layers to the HTML panel
-			panel.appendChild(background); //static
+			panel.appendChild(worldground); //dynamic (e.g. Clouds)
+			panel.appendChild(background); //static Building
 			panel.appendChild(foreground); //action in building
 			panel.appendChild(controls);   //ui
 		}
@@ -2260,6 +2308,7 @@ window.elefart.display = (function () {
 		initDisplayList:initDisplayList,
 		addToDisplayList:addToDisplayList,
 		removeFromDisplayList:removeFromDisplayList,
+		getWorldgroundCanvas:getWorldgroundCanvas,
 		getBackgroundCanvas:getBackgroundCanvas,
 		getBackgroundTexture:getBackgroundTexture, //needed by elefart.display
 		getForegroundCanvas:getForegroundCanvas,
@@ -2304,7 +2353,7 @@ window.elefart.display = (function () {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Sun Feb 15th 2015 using the <a
+		on Wed Feb 18th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

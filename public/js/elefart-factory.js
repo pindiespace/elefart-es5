@@ -1942,6 +1942,8 @@ window.elefart.factory = (function () {
 		obj.setSpriteCoords = setSpriteCoords,
 		//drawing layer
 		obj.setLayer = setLayer;
+		//dirty bit
+		obj.dirty = true;
 		return obj;
 	}
 

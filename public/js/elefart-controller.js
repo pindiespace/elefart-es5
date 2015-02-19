@@ -223,27 +223,29 @@ window.elefart.controller = (function () {
 		for(var i in panels) {
 			panel = panels[i],
 			ticks = panel.ticks,
-			panel.count += elapsed
-			count = panel.count;
-			if(ticks && (count > elapsed)) {
-				//console.log("count:" + count + " elapsed:" + elapsed)
-				ul = updateList[i],
-				len = ul.length;
-				for(var j = 0; j < len; j++) {
-					if(ul[j].updateByTime) {
-						ul[j].updateByTime();
+			panel.count += elapsed;
+			if(ticks) {
+				count = panel.count;
+				if(count > elapsed) {
+					//console.log("count:" + count + " elapsed:" + elapsed)
+					ul = updateList[i],
+					len = ul.length;
+					for(var j = 0; j < len; j++) {
+						var u = ul[j];
+						if(u.updateByTime) {
+							u.dirty = u.updateByTime();
+						}
 					}
+					panel.draw(); //draw the panel
+					panel.count = 0;
 				}
-				panel.draw(); //draw the panel
-				panel.count = 0;
-			}
-			else {
-				//console.log("too short")
+				else {
+					//console.log("too short")
+				}
 			}
 		}
-
-		//reset interval
-		then = elapsed = now;
+			//reset interval
+			then = elapsed = now;
 
 		requestAnimationFrame(gameLoop); 
 
@@ -258,6 +260,7 @@ window.elefart.controller = (function () {
 		building = elefart.building,
 		display = elefart.display,
 		panels = display.PANELDRAW; //attach to draw object, with canvas and its ticks
+
 		dashboard = elefart.dashboard;
 		then = now = Date.now(); //fps
 		initUpdateList(); //initialize the update list
