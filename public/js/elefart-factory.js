@@ -1596,9 +1596,6 @@ window.elefart.factory = (function () {
 		for(var i = 0; i < len; i++) {
 			children[i].removeFromLists();
 		}
-		//TODO: flag the canvas panels we need to update (MAP LAYERS TO PANELS)
-		//TODO: ONE SHAFT HAS AN ERROR!!!!!!!!!!!!!!!
-		//TODO: DOESN'T REMOVE OBJECT!!!
 	}
 
 	/** 

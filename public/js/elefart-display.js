@@ -21,10 +21,12 @@ window.elefart.display = (function () {
 	bctx,           //background context (static Building)
 	fctx,           //foreground context (Elevators, People)
 	cctx,           //controls context
+	octx,           //OFFSCREEEN RENDER
 	worldground,    //world background (sky)
 	background,     //background canvas
 	foreground,     //foreground canvas
 	controls,       //controls canvas
+	offscreen,      //OFFSCREEN CANVAS
 	displayList = {}, //multi-dimensional array with drawing objects
 	hotelWalls,     //hotel walls
 	hotelSign,      //hotel sign
@@ -63,7 +65,7 @@ window.elefart.display = (function () {
 	};
 	PANELDRAW[PANELS.FOREGROUND] = {
 		draw:drawForeground,
-		ticks:16,
+		ticks:20,
 		count:0
 
 	};
@@ -246,6 +248,10 @@ window.elefart.display = (function () {
 		if(controls) {
 			controls.width = rect.width;
 			controls.height = rect.height;
+		}
+		if(offscreen) {
+			offscreen.width = rect.width;
+			offscreen.height = rect.height;
 		}
 		return rect;
 	}
@@ -1271,9 +1277,14 @@ window.elefart.display = (function () {
 	function drawWorldground () {
 		wctx.save();
 		wctx.clearRect(0, 0, worldground.width, worldground.height)
-		//execute the display list
+
+		//@link http://www.html5rocks.com/en/tutorials/canvas/performance/
 		drawLayer(wctx, displayList[LAYERS.WORLD]);
-		drawLayer(wctx, displayList[LAYERS.CLOUDS]); //clouds and flying creatures
+		drawLayer(wctx, displayList[LAYERS.CLOUDS]);
+
+		//execute the display list
+		drawLayer(wctx, displayList[LAYERS.WORLD]);  //Sky
+		drawLayer(wctx, displayList[LAYERS.CLOUDS]); //Clouds and flying creatures
 		wctx.restore();
 	}
 
@@ -1337,7 +1348,9 @@ window.elefart.display = (function () {
 		fctx.clearRect(0, 0, foreground.width, foreground.height);
 
 		//elevator shafts are in the foreground
-		drawLayer(fctx, displayList[LAYERS.ELESPACE1]); //back, walls, cables of Elevator
+		drawLayer(fctx, displayList[LAYERS.ELESPACE1]);
+		//drawLayer(fctx, displayList[LAYERS.ELESPACE1]); //back, walls, cables of Elevator
+
 		/*
 		drawLayer(fctx, displayList[LAYERS.ELESPACE2]);
 		drawLayer(fctx, displayList[LAYERS.ELESPACE3]);
@@ -1442,6 +1455,10 @@ window.elefart.display = (function () {
 		controls = document.createElement('canvas');
 		cctx = controls.getContext("2d");
 		controls.id = 'game-controls';
+
+		//OFFSCREEN, NOT ATTACHED TO DOM
+		offscreen = document.createElement('canvas');
+		octx = offscreen.getContext("2d");
 
 		//set init flag to false
 		firstTime = false;

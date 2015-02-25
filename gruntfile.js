@@ -1,15 +1,18 @@
 module.exports = function(grunt) {
 
-	//npm install -g grunt-cli
 	/** 
-	 * grunt-jsdoc
+	 * grunt
+	 * npm install -g grunt-cli
+	 * @link http://sixrevisions.com/javascript/grunt-tutorial-01/
 	 * @link https://www.npmjs.com/package/jsdoc
 	 * @link http://gruntjs.com/getting-started
-	 * @link http://sixrevisions.com/javascript/grunt-tutorial-01/
+	 * grunt-jsdoc
+	 * @link https://github.com/krampstudio/grunt-jsdoc
 	 * grunt-contrib-copy
 	 * @link https://www.npmjs.com/package/grunt-contrib-copy
 	 * @link http://gruntjs.com/plugins
-	 * @link https://github.com/krampstudio/grunt-jsdoc
+	 * grunt-ftp-push
+	 * @link https://github.com/Robert-W/grunt-ftp-push
 	 */
 
 	//configure tasks
@@ -30,8 +33,27 @@ module.exports = function(grunt) {
 			plyo: {
 				expand: true,
 				cwd: 'public/',
-				src: '**',
+				//src: '**',
+				src: ['**', '!**/*.less', '!**/*.db'], //ignore windows Thumbs.db
 				dest: '../games/elefart'
+			}
+		},
+		ftp_push : {
+			plyo: {
+				options: {
+					username: 'plyojump@indiespace.com',
+					password: 'E^k$&bs=nU8O',
+					host: 'server57.web-hosting.com',
+					dest: '/projects/games/elefart',
+					port: 21
+				},
+				files: [
+					{
+						expand: true,
+						cwd: '../games/elefart',
+						src: ['**', '!**/*.db']
+					}
+				]
 			}
 		}
 	});
@@ -39,9 +61,9 @@ module.exports = function(grunt) {
 	//load the plugin that provides the jsdoc task
 	grunt.loadNpmTasks('grunt-jsdoc');
 	grunt.loadNpmTasks('grunt-contrib-copy');
-
+	grunt.loadNpmTasks('grunt-ftp-push');
 
 	// Default task(s).
-	grunt.registerTask('default', ['jsdoc', 'copy']);
+	grunt.registerTask('default', ['jsdoc', 'copy', 'ftp_push']);
 
 };

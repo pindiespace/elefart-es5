@@ -1,0 +1,16 @@
+TODO LIST:
+
+1. Define objects in a hierarchy using prototype or prototype-like methods
+
+   -Shape->ScreenObject->instance
+
+2. Define getters in a more rational way
+
+3. Constrain all positions and sizes to integer values
+
+4. Expand drawing so some objects are rendered, and the resulting image is 
+   scrolled. This also requires a bettery method for generating layers.
+
+5. Define layers, and canvas in a better way
+   -layers are within a canvas
+   -ability to assemble some layers as scrolling image, some as dynamic redraws

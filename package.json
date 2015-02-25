@@ -28,6 +28,7 @@
   "devDependencies": {
     "grunt": "latest",
     "grunt-contrib-copy": "^0.7.0",
+    "grunt-ftp-push": "latest",
     "grunt-jsdoc": "beta",
     "grunt-karma": "^0.10.1",
     "jsdoc": "<=3.3.0",
