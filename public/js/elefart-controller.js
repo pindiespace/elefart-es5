@@ -46,9 +46,8 @@ window.elefart.controller = (function () {
 		}
 		//rebuild the Model
 		building.buildWorld();
-		//redraw the View
+		//redraw the static elements of the View
 		display.drawBackground();
-		display.drawForeground();
 	}
 
 	/** 

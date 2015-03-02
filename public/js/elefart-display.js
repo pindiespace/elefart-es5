@@ -31,6 +31,7 @@ window.elefart.display = (function () {
 	hotelWalls,     //hotel walls
 	hotelSign,      //hotel sign
 	characterBoard, //images of users for animation
+	gasBoard, //images of Gas (animated)
 	cssBreakpoint,  //keep track of current CSS breakpoint in getCSSBreakpoint
 	firstTime = true;
 
@@ -159,6 +160,9 @@ window.elefart.display = (function () {
 			hotelWalls.onload = function() {
 			console.log("display::preload(), loaded background patterns");
 		};
+		//SPRITE VALUES (added to Image)
+		hotelWalls.rows = 13;
+		hotelWalls.cols = 1;
 		hotelWalls.src = "img/bkgnd/wallpaper.png";
 
 		//hotel sign
@@ -173,7 +177,20 @@ window.elefart.display = (function () {
 		characterBoard.onload = function () {
 			console.log("display::preload(), loaded character sprites");
 		}
+		//SPRITE VALUES (added to Image)
+		characterBoard.rows = 8;
+		characterBoard.cols = 14;
 		characterBoard.src = "img/game/characterboard.png";
+
+		//gas sprites
+		gasBoard = new Image();
+		gasBoard.onload = function () {
+			console.log("display::preload(), loaded gas sprites");
+		}
+		//SPRITE VALUES (added to Image)
+		gasBoard.rows = 3;
+		gasBoard.cols = 3;
+		gasBoard.src = "img/game/gasboard.png";
 	}
 
 	/*
@@ -393,6 +410,42 @@ window.elefart.display = (function () {
 		}
 		console.log("ERROR: getCharacterBoard() image not loaded");
 		return false;
+	}
+
+	function getGasBoard () {
+		if(gasBoard) {
+			return gasBoard;
+		}
+		console.log("ERROR: getGasBoard() image not loaded");
+		return false;
+	}
+
+	/** 
+	 * @method canvasToPNG
+	 * @description convert HTML5 canvas bitmap to PNG image
+	 */
+	function canvasToPNG(canvas) {
+		var img = new Image();
+		img.src = canvas.toDataURL("image/png");
+		return img;
+	}
+
+	/** 
+	 * @method textToPNG
+	 * @description convert text styled in a specific way to a small 
+	 * bitmap, and return as JS Image() object
+	 * @param {String} text
+	 * @param {String} fillStyle color of fill
+	 * @param {Number} font typeface and size
+	 * @param {String}
+	 */
+	function textToPNG(text, fillStyle, font) {
+		var c = document.createElement("canvas");
+		var ctx = c.getContext("2d");
+		ctx.fillStyle = fillStyle; // "blue";
+		ctx.font = font; //"bold 16px Arial";
+		ctx.fillText(text, 0, 0);
+		return canvasToPNG(c);
 	}
 
 	/*
@@ -1140,7 +1193,6 @@ window.elefart.display = (function () {
 			ctx.globalAlpha = obj.opacity;
 		}
 		if(obj.spriteCoords) {
-
 			var r = obj.spriteCoords.getCellRect();
 			ctx.drawImage(
 				obj.img,
@@ -1351,14 +1403,9 @@ window.elefart.display = (function () {
 		drawLayer(fctx, displayList[LAYERS.ELESPACE1]);
 		//drawLayer(fctx, displayList[LAYERS.ELESPACE1]); //back, walls, cables of Elevator
 
-		/*
-		drawLayer(fctx, displayList[LAYERS.ELESPACE2]);
-		drawLayer(fctx, displayList[LAYERS.ELESPACE3]);
-		drawLayer(fctx, displayList[LAYERS.ELESPACE4]);
-		drawLayer(fctx, displayList[LAYERS.WALLS]);
-		*/
-		//drawLayer(fctx, displayList[LAYERS.FLOORS]); //BuildingFloor
 		//drawLayer(fctx, displayList[LAYERS.DOORS]);  //ElevatorDoors
+
+		drawLayer(fctx, displayList[LAYERS.PEOPLE]);
 
 		//restore
 		fctx.restore();
@@ -1510,6 +1557,8 @@ window.elefart.display = (function () {
 		getHotelWalls:getHotelWalls,
 		getHotelSign:getHotelSign,
 		getCharacterBoard:getCharacterBoard,
+		getGasBoard:getGasBoard,
+		textToPNG:textToPNG,
 		getCSSBreakpoint:getCSSBreakpoint,
 		getGameRect:getGameRect,
 		setGameRect:setGameRect,

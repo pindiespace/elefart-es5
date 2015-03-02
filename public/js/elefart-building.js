@@ -107,17 +107,46 @@ window.elefart.building = (function () {
 		GAS:"GAS"
 	};
 
-	var GAS_TYPES = {
-
-	};
-
-	var GOODIE_TYPES = {
-
-	};
+	/** 
+	 * @readonly
+	 * @typedef {PERSON_TYPES}
+	 * @enum {String}
+	 * @description local refrence to the PERSON_TYPES list allowing
+	 * correct player types to be chosen locally or via the network.
+	 */
+	var PERSON_TYPES;
 
 	/** 
-	 * @readony
-	 * @typedef (DIMENSIONS) 
+	 * @readonly
+	 * @typedef {USER_TYPES}
+	 * @enum {String}
+	 * @description local refrence to the USER_TYPES determining if a 
+	 * Person is controlled locall, remotely, or by 'bot' code.
+	 */
+	var USER_TYPES;
+
+	/** 
+	 * @readonly
+	 * @typedef {GOODIE_TYPES}
+	 * @enum {String}
+	 * @description local refrence to the USER_TYPES list for "goodies" 
+	 * added to help or hinder Persons in the game (gas masks, perfume).
+	 */
+	var GOODIE_TYPES;
+
+	/** 
+	 * @readonly
+	 * @typedef {GAS_TYPES}
+	 * @enum {String}
+	 * @description local refrence to the GAS_TYPES list for the power 
+	 * and reach of a gas eruption in the elevator (shutterblas, sputterblast, 
+	 * trill blow).
+	 */
+	var GAS_TYPES;
+
+	/** 
+	 * @readonly
+	 * @typedef {DIMENSIONS}
 	 * @description list of relative and absolute dimensions for 
 	 * building objects in the ENTIRE screen region devoted to the 
 	 * game. If relative, sizes are relative to the 
@@ -127,18 +156,21 @@ window.elefart.building = (function () {
 	 * the screen size changes.
 	 */
 	var DIMENSIONS = {};
+
 	DIMENSIONS[BUILDING_TYPES.SUN] = {
 		top:0.03,
 		left:0.85,
 		width:0.045,
 		height:0.045
 	},
+
 	DIMENSIONS[BUILDING_TYPES.SKY] = {
 		top:0.0, //RELATIVE to World
 		left:0.0,
 		width:1.0,
 		height:0.1,
 	},
+
 	DIMENSIONS[BUILDING_TYPES.CLOUD] = {
 		width:0.2, //RELATIVE to Sky
 		height:0.4,
@@ -150,6 +182,7 @@ window.elefart.building = (function () {
 		minClouds:2,
 		maxClouds:20
 	},
+
 	DIMENSIONS[BUILDING_TYPES.BUILDING] = {
 		top:0.1, //RELATIVE to World
 		left:0.0,
@@ -159,31 +192,57 @@ window.elefart.building = (function () {
 		roofWidth:0.75, //RELATIVE to wallSize
 		MIN_WALL:6
 	},
+
 	DIMENSIONS[BUILDING_TYPES.BUILDING_SIGN] = {
 		top:0.04, //RELATIVE to Sky
 		left:0.07, //varies
 		width:0.3
 	},
+
 	DIMENSIONS[BUILDING_TYPES.BUILDING_FLOOR] = {
 		height:0.1 //height of entire BuildingFloor
 	},
+
 	DIMENSIONS[BUILDING_TYPES.BUILDING_FLOORBASE] = {
 		height:0.01 //height of walking surface at bottom BuildingFloor
 	},
+
 	DIMENSIONS[BUILDING_TYPES.ELEVATOR_SHAFT] = {
 		width:0.1, //the entire ElevatorShaft
 		subWidth:0.5, //RELATIVE the ElevatorShaft (visible band)
 		subOpacity:0.2 //opacity of central colored region of shaft
 	},
+
 	DIMENSIONS[BUILDING_TYPES.ELEVATOR] = {
 		width:0.65, //width increase RELATIVE to ElevatorShaft width
 		speed:2, //pixel movement on each update
 		adjust:1.8 //braking on overshooting a floor
 	},
+
 	DIMENSIONS[BUILDING_TYPES.ELEVATOR_DOORS] = {
 		width:1.0, //RELATIVE TO ElevatorShaft
 		height:0.8 //RELATIVE to BuildingFloor
 	},
+
+	DIMENSIONS[BUILDING_TYPES.PERSON] = {
+		STANDING:0,
+		WALKING:1,
+		RUNNING:2,
+		SQUATTING:3,
+		TRAVELING:4,
+		FALLING:5
+	},
+
+	DIMENSIONS[BUILDING_TYPES.GOODIE] = {
+		maxGoodie:5
+	},
+
+	DIMENSIONS[BUILDING_TYPES.GAS] = {
+		width:0.5, //RELATIVE to Person
+		height:0.5, //RELATIVE to person
+		maxGas:6
+	},
+
 	DIMENSIONS[BUILDING_TYPES.CONTROL_PANEL] = {
 		top: 0.8,
 		left:0.0,
@@ -388,14 +447,50 @@ window.elefart.building = (function () {
 	 */
 
 	/** 
-	 * @constructor PersonGas
+	 * @constructor Gas
 	 * @classdesc the gas used as a weapon in the game
 	 * - parent: Person(s) or Elevators (can transfer)
 	 * - grandparent: ElevatorFloor or Building
 	 * - children: none
 	 * @returns {Gas|false} a Gas object, or false
 	 */
-	function PersonGas () {
+	function Gas (person, gasType) {
+
+		//get the Gas bitmaps for animation
+		var gasBoard = display.getGasBoard();
+
+		var l = person.right;
+		var t = person.top;
+		//width and height relative to Person
+		var w = DIMENSIONS.GAS.width * person.width;
+		var h = DIMENSIONS.GAS.height * person.height;
+
+		var g = factory.ScreenRect(
+			l,
+			t,
+			w,
+			h,
+			0,
+			display.COLORS.CLEAR,
+			display.COLORS.CLEAR, 
+			display.LAYERS.PEOPLE,
+			gasBoard
+			);
+		if(g) {
+			g.setSpriteCoords({
+				rows:gasBoard.rows, //0-14
+				cols:gasBoard.cols, //0- 7
+				currRow:gasType,
+				currCol:0
+			}); //this adds .getCellRect() and .nextCellRect
+
+			g.name = BUILDING_TYPES.GAS;
+			g.parent = person;
+			g.instanceName = "Gas" + gasType;
+			return g;
+		}
+		//fallthrough
+		elefart.showError("failed to create Gas type:" + gasType + " for Person:" + person.instanceName);
 		return false;
 	}
 
@@ -413,11 +508,129 @@ window.elefart.building = (function () {
 	 * - parent: Elevator or BuildingFloor
 	 * - grandparent: ElevatorShaft or Building
 	 * - children: Gas, Goodie(s)
-	 * @param {ElevatorFloor} the default BuildingFloor the Person starts on. Persons 
+	 * @param {String} characterName the name of the character
+	 * @param {CharacterType} characterType the kind of character to use from the character from 
+	 * PERSON_TYPES object. This value determines which row to access. Each row has a different 
+	 * type of person, with columns various animations of the Person.
+	 * @param {UserType} userType the type of user, either REAL, BOT, NETWORK. Found in the 
+	 * common.xxx object shared between NodeJS and browser.
+	 * @param {BuildingFloor} floor the default BuildingFloor the Person starts on. Persons 
 	 * "attach" to both BuildingFloors (includng the BuildingRoof) and Elevators.
 	 * @returns {Person|false} a Person object, or false
 	 */
-	function Person (floor) {
+	function Person (characterName, characterType, userType, floor, elevatorHeight, shaftStart) {
+
+		//var l = floor.left; //Person must start on a BuildingFloor
+		var l = shaftStart;
+
+		//get the Person bitmaps for animation
+		var characterBoard = display.getCharacterBoard();
+
+		/* 
+		 * to create the Person, we must pre-compute the dimensions of the SpriteBoard 
+		 * and then scale the Person so they fit inside Elevator
+		 */
+
+		//TODO: THIS COULD BE ANIMATED IN....
+
+		var scale = elevatorHeight * characterBoard.rows/characterBoard.height;
+		var h = factory.toInt(scale * characterBoard.height/characterBoard.rows);
+		var w = factory.toInt(scale * characterBoard.width/characterBoard.cols);
+		var t = floor.walkLine - h;
+
+		//create the Person
+		var p = factory.ScreenRect(
+			l,
+			t,
+			w,
+			h,
+			0,
+			display.COLORS.CLEAR,
+			display.COLORS.CLEAR, 
+			display.LAYERS.PEOPLE,
+			characterBoard
+			);
+
+		//set additional Person properties and add child objects
+		if(p) {
+			p.setSpriteCoords({
+				rows:characterBoard.rows, //0-14
+				cols:characterBoard.cols, //0- 7
+				currRow:characterType,
+				currCol:0
+			}); //this adds .getCellRect() and .nextCellRect
+
+
+			p.name = BUILDING_TYPES.PERSON;
+			p.instanceName = characterName;
+
+			//TODO: Person name added to Person image
+			//TODO: can only select elevator to come to player floor
+			//TODO: link to Control display
+			//TODO: animate Player
+			//TODO: animate Gas
+			//TODO: add Goodies
+
+			p.nameImg = display.textToPNG(p.instanceName, "blue", "16px Verdana");
+			p.characterType = characterType;
+			p.userType = userType;
+			p.parent = floor;
+
+			p.getChildByType = getChildByType;
+
+			p.customDraw = function () {
+
+			};
+
+			p.updateByTime = function () {
+
+			};
+
+			p.getGoodies = function () {
+				return s.getChildByType(BUILDING_TYPES.GOODIES, false);
+			};
+
+			p.getGas = function () {
+				return s.getChildByType(BUILDING_TYPES.GAS, false);
+			};
+
+			p.moveToElevator = function (shaftNum) {
+				//walk to Elevator
+			};
+
+			p.enterElevator = function (elevator, floor, endFloor) {
+				//only enter if elevator is open, otherwise wait
+				p.parent = elevator
+			};
+
+			p.exitElevator = function () {
+				//parent becomes end floor
+			};
+
+			p.fart = function () {
+				//emit fart in elevator or on floor
+			};
+
+			p.addGoodie = function () {
+				//pick up a goodie
+			};
+
+			p.useGoodie = function () {
+				//use goodie to combat fart
+			};
+
+			//add Gas
+			for(var i in GAS_TYPES) {
+				p.addChild(Gas(p, i))
+			}
+
+			display.addToDisplayList(p, display.LAYERS.PEOPLE);
+
+			return p;
+			}
+
+			//fallthrough
+		elefart.showError("failed to create Person type:" + characterType + " on floor:" + floor.floorNum);
 		return false;
 	}
 
@@ -464,10 +677,10 @@ window.elefart.building = (function () {
 				t,
 				w, 
 				h, 
-				8,                //stroke width
+				8,  //stroke width
 				display.COLORS.BLACK,  //stroke color
 				display.COLORS.WHITE,  //fill color
-				display.LAYERS.ELESPACE1 //bottom layer
+				display.LAYERS.ELESPACE1  //bottom layer
 			);
 			if(e) {
 				e.name = BUILDING_TYPES.ELEVATOR;
@@ -856,9 +1069,15 @@ window.elefart.building = (function () {
 			var shaftWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.width * building.width);
 			var shaftSubWidth = factory.toInt(DIMENSIONS.ELEVATOR_SHAFT.subWidth * shaftWidth);
 
-			//ElevatorShafts don't necessarily go to all floors.
+			/* 
+			 * ElevatorShafts don't necessarily go to all floors, and no ElevatorShaft
+			 * ever goes to all BuildingFloors
+			 */
 			var numFloors = building.getNumFloors();
-			var shaftFloors = factory.getRandomInt(2, numFloors); //number of floors
+			var minFloors = 2;
+			var maxFloors = numFloors-1; 
+			if(maxFloors < minFloors) maxFloors = minFloors;
+			var shaftFloors = factory.getRandomInt(minFloors, maxFloors); //number of BuildingFloors (at least 2)
 			var shaftTop = factory.getRandomInt(0, numFloors - shaftFloors);
 			var t = building.top + (shaftTop * building.getFloorHeight());
 			var h = shaftFloors * building.getFloorHeight();
@@ -881,7 +1100,7 @@ window.elefart.building = (function () {
 				var hh = building.getFloorHeight()-building.getWallSize();
 				var ww = w * DIMENSIONS.ELEVATOR.width;
 				t = building.top; //force to top of Building
-				if(hh > ww) hh = ww; //add height of Roof cupola
+				if(hh > ww) hh = ww; //add height of RoofCupola
 				h += hh;
 				t -= hh;
 			}
@@ -1105,6 +1324,8 @@ window.elefart.building = (function () {
 		var t = building.top + (floorNum * h);
 		var l = building.left;
 		var w = building.width;
+		//get reference to wallpaper bitmap
+		var wallPaper = display.getHotelWalls();
 		//create the BuildingFloor
 		var f = factory.ScreenRect(
 			l,
@@ -1115,7 +1336,7 @@ window.elefart.building = (function () {
 			display.COLORS.BROWN,
 			display.COLORS.YELLOW, 
 			display.LAYERS.BUILDING,
-			display.getHotelWalls() //NOTE: ADDING AN IMAGE
+			wallPaper //NOTE: ADDING AN IMAGE
 			//function () {console.log("loading hotel walls in floor");}
 			);
 
@@ -1126,8 +1347,8 @@ window.elefart.building = (function () {
 			f.walkLine = f.bottom; //where Players should put the .bottom of their enclosing Rect
 			f.setOpacity(1.0, 0.5); //object opaque, image faded
 			f.setSpriteCoords({ //where to sample when drawing image
-				rows:13,
-				cols:1,
+				rows:wallPaper.rows, //13,
+				cols:wallPaper.cols, //1,
 				currRow:floorNum,
 				currCol:0
 			});
@@ -1310,6 +1531,9 @@ window.elefart.building = (function () {
 					return false;
 				}
 
+				//get wallpaper bitmap
+				var wallPaper = display.getHotelWalls();
+
 				//add an internal Rect with a yellow background
 				//that punches through the Roof to the top BuildingFloor
 				//l+= roofWidth;
@@ -1325,12 +1549,12 @@ window.elefart.building = (function () {
 					display.COLORS.CLEAR,
 					display.COLORS.YELLOW,
 					display.LAYERS.BUILDINGBACK,
-					display.getHotelWalls()//, //NOTE: ADDING AN IMAGE
+					wallPaper//, //NOTE: ADDING AN IMAGE
 					);
 				cb.setOpacity(0.5);
 				cb.setSpriteCoords({ //where to sample when drawing image
-					rows:13,
-					cols:13,
+					rows:wallPaper.rows,
+					cols:wallPaper.rows, //NOTE: only want some of wallPaper column
 					currRow:0,
 					currCol:0
 				});
@@ -1661,7 +1885,7 @@ window.elefart.building = (function () {
 			else {
 				numRoofShaft = factory.getRandomInt(Math.ceil(numShafts/2), numShafts-1);
 			}
-			//create all ElevatorShafts
+			//create all ElevatorShafts, each with an Elevator
 			for(i = 1; i <= numShafts; i++) {
 				b.addChild(ElevatorShaft(b, i, numRoofShaft));
 			}
@@ -1675,8 +1899,40 @@ window.elefart.building = (function () {
 			var roofShaft = b.getShaft(numRoofShaft);
 			b.addChild(BuildingRoof(b, roofShaft));
 
+			/* 
+			 * add Person corresponding to local user to the building 
+			 * (bot, local, network), scaling for 
+			 * size of BuildingFloors and Elevators
+			 */
+			var elevatorHeight = b.getShaft(1).getElevator().height;
+			var shaftStart = b.getShaft(factory.getRandomInt(1, numShafts-1)).left;
+			b.addChild(
+				Person (
+					"Bob Bottoms", 
+					PERSON_TYPES.MALE_STANDING.row, 
+					USER_TYPES.LOCAL, 
+					b.getFloor(1), //Floor dimensions
+					elevatorHeight, //Elevator dimensions,
+					shaftStart //which ElevatorShaft to start at
+				)
+			);
+
+			/* 
+			 * add a 'bot' competitor
+			 */
+			shaftStart = b.getShaft(factory.getRandomInt(1, numShafts-1)).left;
+			b.addChild(
+				Person (
+					"Botboy", 
+					PERSON_TYPES.MALE_STANDING.row, 
+					USER_TYPES.BOT, 
+					b.getFloor(factory.getRandomInt(1, numFloors-1)), //Floor dimensions
+					elevatorHeight, //Elevator dimensions
+					shaftStart //which ElevatorShaft to start at
+				)
+			);
+
 			//return the completed Building
-			window.b = b; ///////////////////////
 			return b;
 		}
 
@@ -2198,6 +2454,13 @@ window.elefart.building = (function () {
 		dashboard = elefart.dashboard,
 		display = elefart.display,
 		controller = elefart.controller;
+
+		//local copies of network shared isomorphic code
+		PERSON_TYPES = common.PERSON_TYPES,
+		USER_TYPES = common.USER_TYPES,
+		GOODIE_TYPES = common.GOODIE_TYPES,
+		GAS_TYPES = common, GAS_TYPES;
+
 		firstTime = false;
 	}
 

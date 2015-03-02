@@ -14,3 +14,13 @@ TODO LIST:
 5. Define layers, and canvas in a better way
    -layers are within a canvas
    -ability to assemble some layers as scrolling image, some as dynamic redraws
+
+6. Generic child list not as good as segrated list - make specific typed listes, 
+   rather than putting everything into a single child list.
+
+7. Define an erase() function so objects can be erased without re-drawing the whole 
+   screen
+
+8. AddTo and RemoveFrom a queue should be generic, since it is used extensively
+
+9. Need planning about what is network, global, local variables

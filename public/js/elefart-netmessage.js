@@ -21,6 +21,43 @@
 
 	exports.NEWS = "NEWS",
 
+	/* 
+	 * types of Persons playing the game (Sprite rows)
+	 * row is row in spriteboard
+	 * frames are number of frames used in the spriteboard, 
+	 * going from left to right
+	 */
+	exports.PERSON_TYPES = {
+		MALE_SQUATTING: {row:0, frames:3},
+		MALE_STANDING: {row:1, frames:1},
+		MALE_RUNNING: {row:2, frames:3},
+		MALE_FALLING: {row:3, frames:3},
+		FEMALE_SQUATTING: {row:4, frames:3},
+		FEMALE_STANDING: {row:5, frames:1},
+		FEMALE_RUNNING: {row:6, frames:1},
+		FEMALE_FALLING: {row:7, frames:1}
+	},
+
+	//the type of users in the game
+	exports.USER_TYPES = {
+		REAL:"LOCAL",
+		REMOTE:"REMOTE",
+		BOT:"BOT"
+	},
+
+	//types of goodies in the game
+	exports.GOODIE_TYPES = {
+		GAS_MASK: "GAS_MASK",
+		PERFUME: "PERFUME"
+	},
+
+	//types of gas emitted in Elevators
+	exports.GAS_TYPES = {
+		SHUTTERBLAST: "SHUTTERBLAST",
+		SPUTTERBLAST: "SPUTTERBLAST",
+		TRILLBLOW: "TRILLBLOW"
+	},
+
 	exports.USER_MESSAGE = {
 		USER_JOINED: "USER_JOINED",
 		USER_MOVED: "USER_MOVED",
