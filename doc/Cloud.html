@@ -250,10 +250,6 @@
 						</li>
 						
 						<li>
-							<a href="global.html#drawBox">drawBox</a>
-						</li>
-						
-						<li>
 							<a href="global.html#drawCircle">drawCircle</a>
 						</li>
 						
@@ -298,11 +294,31 @@
 						</li>
 						
 						<li>
+							<a href="global.html#drawRects">drawRects</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawRoundedBox">drawRoundedBox</a>
+						</li>
+						
+						<li>
 							<a href="global.html#drawRoundedRect">drawRoundedRect</a>
 						</li>
 						
 						<li>
 							<a href="global.html#drawSpriteFrame">drawSpriteFrame</a>
+						</li>
+						
+						<li>
+							<a href="global.html#eraseDrawLayer">eraseDrawLayer</a>
+						</li>
+						
+						<li>
+							<a href="global.html#eraseForeground">eraseForeground</a>
+						</li>
+						
+						<li>
+							<a href="global.html#eraseObject">eraseObject</a>
 						</li>
 						
 						<li>
@@ -822,305 +838,6 @@
     Cloud
     </h2>
     
-        <div class="class-description"><p>the clouds in the Sky, Cloud object</p>
-<ul>
-<li>parent: Sky</li>
-<li>grandparent: World</li>
-<li>children: none</li>
-</ul></div>
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-
-    
-        
-<dt>
-    <h4 class="name" id="Cloud"><span class="type-signature"></span>new Cloud<span class="signature">(sky)</span><span class="type-signature"> &rarr; {<a href="Cloud.html">Cloud</a>|false}</span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>sky</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="Sky.html">Sky</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>the Sky</p></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-	<dt class="tag-source">Source:</dt>
-	<dd class="tag-source">
-		<ul class="dummy">
-			<li>
-				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-1944">line 1944</a>
-			</li>
-		</ul>
-	</dd>
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    <p>a Cloud object, or false</p>
-</div>
-
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type"><a href="Cloud.html">Cloud</a></span>
-|
-
-<span class="param-type">false</span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
-    
-</dd>
-
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        <dl>
-            
-<dt>
-    <h4 class="name" id="updateByTime()"><span class="type-signature">&lt;static> </span>updateByTime()<span class="signature">()</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>update Cloud positions in time</p>
-    </div>
-    
-
-    
-    
-    
-    
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-	<dt class="tag-source">Source:</dt>
-	<dd class="tag-source">
-		<ul class="dummy">
-			<li>
-				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-2057">line 2057</a>
-			</li>
-		</ul>
-	</dd>
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    <p>if updated in any way, return true, else false</p>
-</div>
-
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">Boolean</span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
-    
-</dd>
-
-        </dl>
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-
-	<h1 class="page-title">Class: Cloud</h1>
-<section>
-
-<header>
-    <h2>
-    Cloud
-    </h2>
-    
         <div class="class-description"><p>ScreenObject.type Cloud. Cloudss are Polygon-like, but are made 
 with curves instead of straight lines. Polygons are straight with rounded corners 
 if polygon.borderRadius is set. Specific algorithms are needed to organize the 
@@ -1344,7 +1061,306 @@ points in a Cloud into the desired pattern. elefart.building used a proceedural
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-2057">line 2057</a>
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-2083">line 2083</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>if updated in any way, return true, else false</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">Boolean</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        </dl>
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+	<h1 class="page-title">Class: Cloud</h1>
+<section>
+
+<header>
+    <h2>
+    Cloud
+    </h2>
+    
+        <div class="class-description"><p>the clouds in the Sky, Cloud object</p>
+<ul>
+<li>parent: Sky</li>
+<li>grandparent: World</li>
+<li>children: none</li>
+</ul></div>
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+
+    
+        
+<dt>
+    <h4 class="name" id="Cloud"><span class="type-signature"></span>new Cloud<span class="signature">(sky)</span><span class="type-signature"> &rarr; {<a href="Cloud.html">Cloud</a>|false}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>sky</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Sky.html">Sky</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the Sky</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-1970">line 1970</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>a Cloud object, or false</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="Cloud.html">Cloud</a></span>
+|
+
+<span class="param-type">false</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        <dl>
+            
+<dt>
+    <h4 class="name" id="updateByTime()"><span class="type-signature">&lt;static> </span>updateByTime()<span class="signature">()</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>update Cloud positions in time</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-2083">line 2083</a>
 			</li>
 		</ul>
 	</dd>
@@ -1420,7 +1436,7 @@ points in a Cloud into the desired pattern. elefart.building used a proceedural
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Sun Mar 1st 2015 using the <a
+		on Wed Mar 4th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

@@ -71,8 +71,8 @@ window.elefart.controller = (function () {
 		//check if we've selected the Building or Controls
 		//the left coordinate must be adjusted if the GameRect is smaller than window's viewport
 		var gr = display.getGameRect();
-		//touchPoint.x -= gr.left;
-		var tp = building.getBuilding().selected({x:touchPoint.x-gr.left, y:touchPoint.y});
+		//get shaft, floor for mouse or touch
+		var tp = building.getBuilding().selected({x:touchPoint.x-gr.left, y:touchPoint.y-gr.top});
 		//if building, use mouseclick to move elevator
 		if(tp.shaft && tp.floor) {
 			var e = tp.shaft.getElevator();
@@ -169,6 +169,7 @@ window.elefart.controller = (function () {
 					return true; //already there
 				}
 			}
+
 			panel.push(obj); 
 			return true;
 		}
@@ -226,13 +227,16 @@ window.elefart.controller = (function () {
 			if(ticks) {
 				count = panel.count;
 				if(count > elapsed) {
-					//console.log("count:" + count + " elapsed:" + elapsed)
+					//if we are going to update, erase
+					if(panel.erase) {
+						panel.erase();
+					}
 					ul = updateList[i],
 					len = ul.length;
 					for(var j = 0; j < len; j++) {
 						var u = ul[j];
 						if(u.updateByTime) {
-							u.dirty = u.updateByTime();
+							u.dirty = u.updateByTime(); //if updated, we need to be re-drawn
 						}
 					}
 					panel.draw(); //draw the panel
@@ -280,6 +284,9 @@ window.elefart.controller = (function () {
 		//set handlers associate with an active game
 		setGameHandlers(display.getControlCanvas()); //Topmost Canvas Object
 		//initialize FPS variables
+
+		//objects that initially have their 'dirty' bit set should be drawn
+
 
 		//start the loop
 		gameLoop();

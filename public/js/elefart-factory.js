@@ -1939,7 +1939,7 @@ window.elefart.factory = (function () {
 		obj.setSpriteCoords = setSpriteCoords,
 		//drawing layer
 		obj.setLayer = setLayer;
-		//dirty bit
+		//dirty bit, never been drawn before
 		obj.dirty = true;
 		return obj;
 	}
@@ -1970,6 +1970,8 @@ window.elefart.factory = (function () {
 			if(!strokeStyle) strokeStyle = display.COLORS.CLEAR;
 			if(!layer) layer = display.LAYERS.FLOORS;
 			pt.setStroke(strokeWidth, strokeStyle);
+			pt.draw = display.drawPoint;
+			pt.erase = display.eraseObject;
 			pt.setLayer(layer);
 		}
 		return pt;
@@ -1993,6 +1995,8 @@ window.elefart.factory = (function () {
 			if(!strokeStyle) strokeStyle = display.COLORS.CLEAR;
 			if(!layer) layer = display.LAYERS.FLOORS; //top layer
 			ln.setStroke(strokeWidth, strokeStyle);
+			ln.draw = display.drawLine;
+			ln.erase = display.eraseObject;
 			ln.setLayer(layer);
 		}
 		return ln;
@@ -2030,6 +2034,8 @@ window.elefart.factory = (function () {
 			r.setStroke(strokeWidth, strokeStyle);
 			r.setFill(fillStyle);
 			if(src) r.setImage(src, callback, true);
+			r.draw = display.drawRects;
+			r.erase = display.eraseObject;
 			r.setLayer(layer);
 		}
 		return r;
@@ -2067,8 +2073,9 @@ window.elefart.factory = (function () {
 			r.missingSide = missingSide; //number of side NOT to draw
 			r.setStroke(strokeWidth, strokeStyle);
 			r.setFill(fillStyle);
-			
 			if(src) r.setImage(src, callback, true);
+			r.draw = display.drawRoundedBox;
+			r.erase = display.eraseObject;
 			r.setLayer(layer);
 		}
 		return r;
@@ -2105,6 +2112,8 @@ window.elefart.factory = (function () {
 			c.setStroke(strokeWidth, strokeStyle);
 			c.setFill(fillStyle);
 			if(src) c.setImage(src, callback, true);
+			c.draw = display.drawCircle;
+			c.erase = display.eraseObject;
 			c.setLayer(layer);
 		}
 		return c;
@@ -2141,6 +2150,8 @@ window.elefart.factory = (function () {
 			p.setStroke(strokeWidth, strokeStyle);
 			p.setFill(fillStyle);
 			if(src) p.setImage(src, callback, true);
+			p.draw = display.drawPolygon;
+			p.erase = display.eraseObject;
 			p.setLayer(layer);
 			//special function to make polygon invisible
 		}
@@ -2160,6 +2171,8 @@ window.elefart.factory = (function () {
 			b.setStroke(strokeWidth, strokeStyle);
 			b.setFill(fillStyle);
 			if(src) b.setImage(src, callback, true);
+			b.draw = display.drawCloud;
+			b.erase = display.eraseObject;
 			b.setLayer(layer);
 		}
 		return b;
@@ -2185,8 +2198,11 @@ window.elefart.factory = (function () {
 			layer = display.LAYERS.FLOORS; //top layer
 			r.type = TYPES.IMAGE; //modified from type RECT
 			//don't set stroke or fill
-			r.setLayer(layer);
 			r.setImage(src, callback, false);
+			r.draw = display.drawImage;
+			r.erase = display.eraseObject;
+			r.setLayer(layer);
+
 		}
 		else {
 			elefart.showError("ScreenImage invalid parameters, src:");

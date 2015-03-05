@@ -250,10 +250,6 @@
 						</li>
 						
 						<li>
-							<a href="global.html#drawBox">drawBox</a>
-						</li>
-						
-						<li>
 							<a href="global.html#drawCircle">drawCircle</a>
 						</li>
 						
@@ -298,11 +294,31 @@
 						</li>
 						
 						<li>
+							<a href="global.html#drawRects">drawRects</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawRoundedBox">drawRoundedBox</a>
+						</li>
+						
+						<li>
 							<a href="global.html#drawRoundedRect">drawRoundedRect</a>
 						</li>
 						
 						<li>
 							<a href="global.html#drawSpriteFrame">drawSpriteFrame</a>
+						</li>
+						
+						<li>
+							<a href="global.html#eraseDrawLayer">eraseDrawLayer</a>
+						</li>
+						
+						<li>
+							<a href="global.html#eraseForeground">eraseForeground</a>
+						</li>
+						
+						<li>
+							<a href="global.html#eraseObject">eraseObject</a>
 						</li>
 						
 						<li>
@@ -845,6 +861,7 @@ window.elefart.display = (function () {
 	octx,           //OFFSCREEEN RENDER
 	worldground,    //world background (sky)
 	background,     //background canvas
+	forestatic,     //in foreground but currently not moving (e.g. Elevators)
 	foreground,     //foreground canvas
 	controls,       //controls canvas
 	offscreen,      //OFFSCREEN CANVAS
@@ -875,26 +892,32 @@ window.elefart.display = (function () {
 	 * ticks can be 1-1000 (millisecs)
 	 */
 	var PANELDRAW  = {};
-	PANELDRAW[PANELS.WORLDGROUND] = {
+	PANELDRAW[PANELS.WORLDGROUND] = { //Sky, Clouds, Sun
 		draw:drawWorldground,
 		ticks:16,
-		count:0
+		count:0,
+		erase:null
 	},
-	PANELDRAW[PANELS.BACKGROUND] = {
+
+	PANELDRAW[PANELS.BACKGROUND] = { //BuildingWalls and BuilingFloors
 		draw:drawBackground,
 		ticks:0,
-		count:0
-	};
-	PANELDRAW[PANELS.FOREGROUND] = {
+		count:0,
+		erase:null
+	},
+
+	PANELDRAW[PANELS.FOREGROUND] = { //Elevators and People
 		draw:drawForeground,
 		ticks:20,
-		count:0
-
+		count:0,
+		erase:eraseForeground
 	};
+
 	PANELDRAW[PANELS.CONTROLS] = {
 		draw:drawControls,
 		ticks:0,
-		count:0
+		count:0,
+		erase:eraseContols
 	};
 
 	/**
@@ -1247,25 +1270,48 @@ window.elefart.display = (function () {
 	 */
 	function canvasToPNG(canvas) {
 		var img = new Image();
-		img.src = canvas.toDataURL("image/png");
+		img.width = canvas.width;
+		img.height = canvas.height;
+		img.src = canvas.toDataURL("image/png", 1.0); //full quality
 		return img;
 	}
 
 	/** 
 	 * @method textToPNG
 	 * @description convert text styled in a specific way to a small 
-	 * bitmap, and return as JS Image() object
+	 * bitmap, and return as JS Image() object.
+	 * NOTE: use non-typographic type alignment (draw from top to bottom, 
+	 * like our other graphic objects).
+	 * @link http://tutorials.jenkov.com/html5-canvas/text.html
 	 * @param {String} text
 	 * @param {String} fillStyle color of fill
 	 * @param {Number} font typeface and size
-	 * @param {String}
+	 * @param {Number} boxSize the size of the shaded box around the text
 	 */
-	function textToPNG(text, fillStyle, font) {
+	function textToPNG(text, fillStyle, font, boxHeight) {
 		var c = document.createElement("canvas");
-		var ctx = c.getContext("2d");
-		ctx.fillStyle = fillStyle; // "blue";
-		ctx.font = font; //"bold 16px Arial";
-		ctx.fillText(text, 0, 0);
+		c.width = 60;
+		c.height = boxHeight;
+		var pctx = c.getContext("2d");
+		var w = 1.5 * pctx.measureText(text).width; //measure width of text
+		//TODO: CENTER TEXT
+		//TODO: BORDER AROUND OBJECT COLOR
+		//TODO: DROP SHADOW
+		c.width = w;
+		pctx.textBaseline = "middle"; //centered in Rect, NOT typographic baseline!
+		pctx.fillStyle = fillStyle;
+		pctx.font = font; //'boldness font Xpx'
+		var r = factory.ScreenRect(
+			0,
+			0,
+			w,
+			boxHeight,
+			1,
+			COLORS.BLACK,
+			COLORS.WHITE);
+			r.borderRadius = 6;
+		drawRoundedRect(pctx, r);
+		pctx.fillText(text, 0, factory.toInt(boxHeight/2));
 		return canvasToPNG(c);
 	}
 
@@ -1524,6 +1570,45 @@ window.elefart.display = (function () {
 	 */
 
 	/** 
+	 * @method eraseObject
+	 * @description set the current DrawingContext to erase the object 
+	 * instead of drawing it. Generic, works for all ScreenObjects.
+	 * @param {CanvasContext} ctx the current drawing context
+	 * @param {ScreenObject} the screenObject to erase
+	 */
+	function eraseObject (ctx, obj) {
+		var dWidth = Math.ceil(obj.lineWidth * 2);
+		ctx.clearRect(
+			obj.left-obj.lineWidth, 
+			obj.top-obj.lineWidth, 
+			obj.width+dWidth, 
+			obj.height+dWidth
+			);
+		if(obj.customErase) {
+			obj.customErase(ctx);
+		}
+		//Compositing leaves a residue!!!!!!
+		/*
+		var stroke = obj.strokeStyle;
+		var fill = obj.fillStyle;
+		ctx.globalAlpha = 1.0;
+		var globalCompositeOperation = ctx.globalCompositeOperation;
+		//transparent pen
+		ctx.globalCompositeOperation = "destination-out";
+		obj.strokeStyle = "rgb(0,0,0,1)";
+		obj.fillStyle = "rgb(0,0,0,1)";
+		if(obj.draw) obj.draw(ctx, obj);
+		if(obj.customDraw) obj.customDraw(ctx, obj);
+		//reset context
+		ctx.globalCompositeOperation = globalCompositeOperation;
+		//reset object
+		obj.strokeStyle = stroke;
+		obj.fillStyle = fill;
+		*/
+	}
+
+
+	/** 
 	 * @method drawPoint
 	 * @description draw a Point as a tiny Circle
 	 * @param {CanvasContext} ctx the current drawing context
@@ -1555,6 +1640,24 @@ window.elefart.display = (function () {
 		ctx.lineTo(obj.pt2.x, obj.pt2.y);
 		if(obj.lineWidth &amp;&amp; obj.strokeStyle) ctx.stroke();
 		ctx.restore();
+	}
+
+	/** 
+	 * @method drawRects
+	 * @description draw square Rects, rounded Rects, Box Rects (one side open)
+	 * @param {CanvasContext} ctx the current drawing context
+	 * @param {ScreenObject} obj the ScreenObject (type ScreenLine) to draw
+	 */
+	function drawRects(ctx, obj) {
+		if(obj.missingSide > 0) {
+			drawRoundedBox(ctx, obj);
+		}
+		else if(obj.borderRadius === 0) {
+			drawRect(ctx, obj);
+		}
+		else {
+			drawRoundedRect(ctx, obj);
+		}
 	}
 
 	/** 
@@ -1625,7 +1728,7 @@ window.elefart.display = (function () {
 	}
 
 	/** 
-	 * @method drawBox
+	 * @method drawRoundedBox
 	 * @description draw a rounded-corner Rect with one side missing.
 	 * @param {CanvasContext} ctx current drawing context
 	 * @param {ScreenObject} the ScreenObject (type ScreenRect) to draw
@@ -2084,9 +2187,28 @@ window.elefart.display = (function () {
 	 */
 
 	/** 
+	 * @method eraseDrawLayer
+	 * @description draw a layer without erasing the whole canvas, just erase
+	 * individual objects with their 'dirty' bit set, and redraw. Provides a crude 
+	 * draw clipping function (can't use with layers that have overlapping objects) 
+	 * to improve performance for dynamic (non-image) objects.
+	 * @param {} ctx the image context
+	 * @param {Array&lt;Object>} layer a layer with objects to be drawn
+	 */
+	function eraseLayer(ctx, layer) {
+		var len = layer.length;
+		for(var i = 0; i &lt; len; i++) {
+			var obj = layer[i];
+			var dWidth = obj.lineWidth * 2;
+				obj.erase(ctx, obj);
+				obj.dirty = true;
+		}
+	}
+
+	/** 
 	 * @method drawLayer
-	 * @description draw a layer into one of the canvas panels
-	 * onscreen. layers are drawn bottom to top
+	 * @description draw a layer into one of the canvas panels, after completely 
+	 * clearing the overall canvas panel Rect onscreen. layers are drawn bottom to top.
 	 * @param {} ctx the image context
 	 * @param {Array&lt;Object>} layer a layer with objects to be drawn
 	 */
@@ -2094,46 +2216,10 @@ window.elefart.display = (function () {
 		var len = layer.length;
 		for(var i = 0; i &lt; len; i++) {
 			var obj = layer[i];
-			//if(obj.dirty) {
-				switch(obj.type) {
-					case factory.TYPES.POINT:
-						drawPoint(ctx, obj);
-						break;
-					case factory.TYPES.LINE:
-						drawLine(ctx, obj);
-						break;
-					case factory.TYPES.RECT:
-						if(obj.missingSide > 0) {
-							drawRoundedBox(ctx, obj);
-						}
-						else if(obj.borderRadius === 0) {
-							drawRect(ctx, obj);
-						}
-						else {
-							drawRoundedRect(ctx, obj);
-						}
-						break;
-				case factory.TYPES.CIRCLE:
-						drawCircle(ctx, obj);
-					break;
-				case factory.TYPES.POLYGON:
-						drawPolygon(ctx, obj);
-					break;
-				case factory.TYPES.CLOUD:
-						drawCloud(ctx, obj);
-					break;
-				case factory.TYPES.IMAGE:
-						drawImage(ctx, obj);
-					break;
-				default:
-					console.log("drawLayer unknown type:" + obj.type);
-					break;
-				}
-				if(obj.customDraw) {
-					obj.customDraw(ctx);
-				}
-				obj.dirty = false;
-			//} //end of if obj.dirty === true
+			obj.draw(ctx, obj);
+			if(obj.customDraw) obj.customDraw(ctx);
+			obj.dirty = false;
+			//TODO: } //end of if obj.dirty === true
 		}
 	}
 
@@ -2210,6 +2296,20 @@ window.elefart.display = (function () {
 	}
 
 	/** 
+	 * @method eraseForeground
+	 * @description erase any foreground objects with dirty bits set
+	 */
+	function eraseForeground () {
+
+		//clear the foreground
+	//fctx.clearRect(0, 0, foreground.width, foreground.height);
+		fctx.save();
+			eraseLayer(fctx, displayList[LAYERS.ELESPACE1]);
+			eraseLayer(fctx, displayList[LAYERS.PEOPLE]);
+		fctx.restore();
+	}
+
+	/** 
 	 * @method drawForeground
 	 * @description draw the foreground for the display
 	 */
@@ -2217,16 +2317,13 @@ window.elefart.display = (function () {
 
 		fctx.save();
 
-		//clear the foreground
-		fctx.clearRect(0, 0, foreground.width, foreground.height);
-
-		//elevator shafts are in the foreground
+		//Elevators and ElevatorShafts are in the foreground
 		drawLayer(fctx, displayList[LAYERS.ELESPACE1]);
-		//drawLayer(fctx, displayList[LAYERS.ELESPACE1]); //back, walls, cables of Elevator
 
 		//drawLayer(fctx, displayList[LAYERS.DOORS]);  //ElevatorDoors
 
 		drawLayer(fctx, displayList[LAYERS.PEOPLE]);
+		//drawLayer(fctx, displayList[LAYERS.PEOPLE]);
 
 		//restore
 		fctx.restore();
@@ -2241,13 +2338,21 @@ window.elefart.display = (function () {
 		return controls;
 	}
 
+	function eraseContols () {
+		cctx.save();
+		cctx.clearRect(0,0, controls.width, controls.height);
+		eraseLayer(cctx, displayList[LAYERS.CONTROLS]);
+		eraseLayer(fctx, displayList[LAYERS.MODAL]);
+		eraseLayer(fctx, displayList[LAYERS.ANIMATION]);
+		cctx.restore();
+	}
+
 	/** 
 	 * @method drawControls
 	 * @description draw the controls for the display
 	 */
 	function drawControls () {
 		cctx.save();
-		cctx.clearRect(0,0, controls.width, controls.height);
 		drawLayer(cctx, displayList[LAYERS.CONTROLS]);
 		drawLayer(fctx, displayList[LAYERS.MODAL]);     //modal windows above game panel
 		drawLayer(fctx, displayList[LAYERS.ANIMATION]); //animation above game panel
@@ -2394,16 +2499,20 @@ window.elefart.display = (function () {
 		getControlCanvas:getControlCanvas,
 		cubicIn:cubicIn,
 		cubicOut:cubicOut,
+		eraseObject:eraseObject, //needed for moving object between layers
 		drawPoint:drawPoint,
 		drawLine:drawLine,
+		drawRects:drawRects,
 		drawRect:drawRect,
 		drawRoundedRect:drawRoundedRect,
 		drawRoundedBox:drawRoundedBox,
 		drawCircle:drawCircle,
 		drawPolygon:drawPolygon,
+		drawCloud:drawCloud,
 		drawImage:drawImage,
 		drawSpriteFrame:drawSpriteFrame,
 		drawBackground:drawBackground,
+		eraseForeground:eraseForeground,
 		drawForeground:drawForeground,
 		drawControls:drawControls,
 		init:init,
@@ -2431,7 +2540,7 @@ window.elefart.display = (function () {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Sun Mar 1st 2015 using the <a
+		on Wed Mar 4th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

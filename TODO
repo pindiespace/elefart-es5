@@ -24,3 +24,22 @@ TODO LIST:
 8. AddTo and RemoveFrom a queue should be generic, since it is used extensively
 
 9. Need planning about what is network, global, local variables
+
+10. Core Object
+Shape->ScreenObject
+
+11. Drawing functions should be attached to object, with common name, instead of a 
+   decision tree. Erase function should be paired (will need it in customdraw as well)
+
+12. Better draw() planning to avoid drawRects() function
+
+13. update(), draw(), erase() should all be local (and have access to local context)
+
+14. An "eraseRect" should be defined for all objects, including custom drawing. It would 
+    be the rect enclosing regular and custom drawing. Compositing seems to leave a bit of 
+    residue behind.
+
+    If the Stroke is not part of the rect, the eraseRect needs to be expanded to include it
+
+15. Basic create functions need to assign parent before the object is added to display or 
+    update lists

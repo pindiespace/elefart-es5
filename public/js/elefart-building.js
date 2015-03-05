@@ -571,15 +571,28 @@ window.elefart.building = (function () {
 			//TODO: animate Gas
 			//TODO: add Goodies
 
-			p.nameImg = display.textToPNG(p.instanceName, "blue", "16px Verdana");
+			p.nameImg = display.textToPNG(p.instanceName, "black", "12px Georgia", 20);
+			window.nameImg = p.nameImg;
+
 			p.characterType = characterType;
 			p.userType = userType;
 			p.parent = floor;
 
 			p.getChildByType = getChildByType;
 
-			p.customDraw = function () {
+			p.customDraw = function (ctx) {
+				var yCenter = p.top + (p.height/2);
+				//ctx.fillRect(p.right, yCenter, p.nameImg.width, p.nameImg.height);
+				ctx.drawImage(
+					p.nameImg,  
+					p.right, yCenter, 
+					p.nameImg.width, p.nameImg.height);
+			};
 
+			p.customErase = function (ctx) {
+				//console.log("erasing name")
+				var yCenter = p.top + (p.height/2);
+				ctx.clearRect(p.right, yCenter, p.nameImg.width, p.nameImg.height);
 			};
 
 			p.updateByTime = function () {
@@ -709,7 +722,6 @@ window.elefart.building = (function () {
 					//var oldWidth = ctx.lineWidth;
 					if(e.top > e.parent.top + 10) {
 						ctx.lineWidth = 1.0;
-						//ctx.strokeStyle = 'rgba(0,0,0,0.2)';
 						//Elevator cables
 						ctx.moveTo(center - 2, epTop);
 						ctx.lineTo(center - 2, eTop);
@@ -727,6 +739,18 @@ window.elefart.building = (function () {
 							ctx.fillRect(center -4, e.top - 8, 8, 6);
 						}
 					}
+				}
+
+				/** 
+				 * @method Elevator.customErase()
+				 * @description define erase for Elevator
+				 * custom drawing
+				 */
+				e.customErase = function (ctx) {
+					var eTop = e.top - ctx.lineWidth;
+					var epTop = e.parent.top;
+					var center = e.parent.left + (e.parent.width/2);
+					ctx.clearRect(center-8, epTop, 16, e.top - epTop);
 				}
 
 				/** 
@@ -793,10 +817,10 @@ window.elefart.building = (function () {
 								else {
 									e.move(0, speed); //default speed
 								}
-								return true;
 							}
 						} //floorQueue > 0
-					}
+						return true;
+					} //Elevator engine is ON
 					return false;
 				}
 
@@ -805,6 +829,10 @@ window.elefart.building = (function () {
 					return e.parent;
 				}
 
+				/** 
+				 * @method Elevator.getFloors
+				 * @description get floors the Elevator can visit
+				 */
 				e.getFloors = function () {
 					return e.parent.getFloors();
 				}
@@ -827,6 +855,7 @@ window.elefart.building = (function () {
 					if(!animate) {
 						e.engine.teleport = true;
 					}
+					e.dirty = true;
 					return e.addFloorToQueue(num);
 				}
 
@@ -889,6 +918,7 @@ window.elefart.building = (function () {
 							len = floors.length;
 							for(var i = 0; i < len; i++) {
 								if(floors[i].floorNum === floorNum) {
+									//only respond to floor within reach of Elevator Shaft
 									floor = floors[i];
 								}
 							}
@@ -963,7 +993,6 @@ window.elefart.building = (function () {
 				controller.addToUpdateList(e);
 
 				//////window.elev = e; ///////////////////////////////////////
-
 				return e;
 			}
 				//fallthrough
@@ -1167,16 +1196,13 @@ window.elefart.building = (function () {
 				 */
 				s.floors = [];
 				var fls = building.getFloors();
-					var len =fls.length;
+					var len = fls.length;
 					for(var i = 0; i < len; i++) {
 						var fl = fls[i],
-						start = fl.bottom;
-						//console.log("start:" + start + " bottom:" + s.bottom + " top:" + s.top)
-						if(start <= s.bottom && start >= s.top) {
-							//only BuildingFloors that ElevatorShaft goes to
-							//add the ElevatorDoor for each BuildingFloor
+						start = fl.bottom; //floor bottom
+						if(start <= s.bottom && fl.top >= s.top) {
+							//add only BuildingFloors that ElevatorShaft goes to
 							var ed = ElevatorDoors(s, fl); //added as child to ElevatorShaft
-							//add the floors
 							s.floors.push(fl); //only Floors that Shaft goes to
 						}
 					}
