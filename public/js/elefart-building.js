@@ -104,7 +104,8 @@ window.elefart.building = (function () {
 		WORLD:"WORLD",
 		PERSON:"PERSON",
 		GOODIE:"GOODIE",
-		GAS:"GAS"
+		GAS:"GAS",
+		HEALTH: "HEALTH"
 	};
 
 	/** 
@@ -234,7 +235,8 @@ window.elefart.building = (function () {
 	},
 
 	DIMENSIONS[BUILDING_TYPES.GOODIE] = {
-		maxGoodie:5
+		maxGoodie:5,
+		height: 0.5 //RELATIVE to BuildingFloor
 	},
 
 	DIMENSIONS[BUILDING_TYPES.GAS] = {
@@ -438,6 +440,42 @@ window.elefart.building = (function () {
 			}
 		}
 		return r;
+	}
+
+	/* 
+	 * ============================
+	 * HEALTH MONITOR
+	 * ============================
+	 */
+
+	 /** 
+	  * @constructor Health
+	  * @classdesc object controlling and reporting health of a Person
+	  */
+	function Health (person) {
+
+		var l = 0;
+		var t = 0;
+
+		var h = factory.ScreenPoint(
+			l, 
+			t,
+			0,
+			display.COLORS.CLEAR,
+			display.LAYERS.BACKGROUND
+			);
+		if(h) {
+
+			h.name = BUILDING_TYPES.HEALTH;
+			h.parent = person;
+			h.instanceName = person.instanceName + "'s health";
+			return g;
+
+			return h;
+		}
+
+		elefart.showError("failed to create Health for Person:" + person.instanceName);
+		return false;
 	}
 
 	/* 
@@ -1315,14 +1353,50 @@ window.elefart.building = (function () {
 	 */
 
 	/** 
-	 * @constructor FloorGoodie
+	 * @constructor Goodie
 	 * @classdesc an item which helps a Person withstand a Gas attack
 	 * - parent: BuildingFloor or Person
 	 * - grandparent: Building or Elevator
 	 * - children: none
+	 * @param {Building} the entire building, since we need to add 
+	 * AFTER the rest of the Building is constructed.
 	 * @returns {Goodie|false} a Goodie object, or false
 	 */
-	function FloorGoodie () {
+	function Goodie (building) {
+
+		//randomly compute a GoodieType
+
+		//randomly compute a BuildingFloor
+
+		//ramdomly compute position on floor (between ElevatorShafts)
+
+		//compute Goodie position and floor (not in front of ElevatorShaft)
+		var h = factory.toInt(DIMENSIONS.GOODIE.height * building.height/numFloors);
+		var t = building.top + (floorNum * h);
+		var l = building.left;
+		var w = h;
+
+		//get the Gas bitmaps for animation
+		var goodieBoard = display.getGoodieBoard();
+
+		var g = factory.ScreenRect(
+			l,
+			t,
+			w,
+			h,
+			0,
+			display.COLORS.CLEAR,
+			display.COLORS.CLEAR, 
+			display.LAYERS.PEOPLE,
+			gasBoard
+			);
+		if(g) {
+
+			return g;
+		}
+		//fallthrough
+		elefart.showError("failed to create Goodie:" + shaftNum);
+		return false;
 
 	}
 

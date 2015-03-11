@@ -32,7 +32,8 @@ window.elefart.display = (function () {
 	hotelWalls,     //hotel walls
 	hotelSign,      //hotel sign
 	characterBoard, //images of users for animation
-	gasBoard, //images of Gas (animated)
+	gasBoard,       //images of Gas (animated)
+	goodieBoard,    //images of Goodies (animated)
 	cssBreakpoint,  //keep track of current CSS breakpoint in getCSSBreakpoint
 	firstTime = true;
 
@@ -198,6 +199,17 @@ window.elefart.display = (function () {
 		gasBoard.rows = 3;
 		gasBoard.cols = 3;
 		gasBoard.src = "img/game/gasboard.png";
+
+		//gas sprites
+		goodieBoard = new Image();
+		goodieBoard.onload = function () {
+			console.log("display::preload(), loaded goodie sprites");
+		}
+		//SPRITE VALUES (added to Image)
+		goodieBoard.rows = 1;
+		goodieBoard.cols = 10;
+		gasBoard.src = "img/game/goodieboard.png";
+
 	}
 
 	/*
