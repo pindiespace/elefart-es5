@@ -23,7 +23,7 @@ window.elefart.controller = (function () {
 	panels,
 	dashboard, 
 	updateList = {},
-	now, then, elapsed, //framerate (fps) calculations
+	now, then, elapsed, fps = 0, //framerate (fps) calculations
 	firstTime = true;
 
 	/** 
@@ -76,10 +76,8 @@ window.elefart.controller = (function () {
 		//if building, use mouseclick to move elevator
 		if(tp.shaft && tp.floor) {
 			var e = tp.shaft.getElevator();
-			/////////////e.moveToFloor(tp.floor.floorNum); //TODO: GET FLOORNUM IN SYNC WITH e.moveToFloor()
 			e.addFloorToQueue(tp.floor.floorNum);
 		}
-
 	}
 
 	/** 
@@ -211,6 +209,21 @@ window.elefart.controller = (function () {
 	 */
 
 	/** 
+	 * @method getFPS
+	 * @description get the smoothed (10 values) framerate of the application
+	 * NOTE: for speed, uses 'hack' rounding instead of Math.round
+	 * @returns {Number} frames per second, measured in last gameLoop
+	 */
+	function getFPS () {
+		if(elapsed) {
+			var n = 1000/elapsed;
+			fps = (fps * 0.9) + (n * 0.1); //smoothed
+			return(~~ (fps + (fps > 0 ? .5 : -.5)));
+		}
+		return 1000;
+	}
+
+	/** 
 	 * @method gameLoop
 	 * @description regular updates (e.g. screen redraws)
 	 */
@@ -239,12 +252,13 @@ window.elefart.controller = (function () {
 							u.dirty = u.updateByTime(); //if updated, we need to be re-drawn
 						}
 					}
-					panel.draw(); //draw the panel
+					//panel.draw(); //draw the panel
 					panel.count = 0;
 				}
 				else {
 					//console.log("too short")
 				}
+				panel.draw();
 			}
 		}
 			//reset interval
@@ -297,6 +311,7 @@ window.elefart.controller = (function () {
 	return {
 		addToUpdateList:addToUpdateList,
 		removeFromUpdateList:removeFromUpdateList,
+		getFPS:getFPS,
 		init:init,
 		run:run
 	};

@@ -41,10 +41,17 @@ window.elefart.building = (function () {
 
 	/** 
 	 * @readonly
-	 * @description constant for no floor, e.g. when a search for a BuildingFloor
+	 * @description constant for no floor, e.g. when searching for a BuildingFloor
 	 * yields no result
 	 */
 	var NO_FLOOR = -2;
+
+	/** 
+	 * @readonly
+	 * @description constant for no shaft, e.g. when searching for a ElevatorShaft
+	 * yields no result
+	 */
+	var NO_SHAFT = -3;
 
 	/** 
 	 * @readonly
@@ -105,7 +112,9 @@ window.elefart.building = (function () {
 		PERSON:"PERSON",
 		GOODIE:"GOODIE",
 		GAS:"GAS",
-		HEALTH: "HEALTH"
+		HEALTH: "HEALTH",
+		FPS: "FPS",
+		CONTROLS:"CONTROLS"
 	};
 
 	/** 
@@ -231,7 +240,10 @@ window.elefart.building = (function () {
 		RUNNING:2,
 		SQUATTING:3,
 		TRAVELING:4,
-		FALLING:5
+		FALLING:5,
+		speed:2,
+		adjust:1.8,
+		frameInterval:4 //4 updates before changing sprite frame
 	},
 
 	DIMENSIONS[BUILDING_TYPES.GOODIE] = {
@@ -245,11 +257,21 @@ window.elefart.building = (function () {
 		maxGas:6
 	},
 
-	DIMENSIONS[BUILDING_TYPES.CONTROL_PANEL] = {
+	DIMENSIONS[BUILDING_TYPES.FPS] = {
+		width: 0.2, //RELATIVE to Coontrols
+		height:0.25
+	},
+
+	DIMENSIONS[BUILDING_TYPES.CONTROLS] = {
 		top: 0.8,
 		left:0.0,
 		bottom:1.0,
-		right:1.0
+		right:1.0,
+		margin:0.025,   //RELATIVE to Controls.width
+		signTop:0.2,    //RELATIVE to Controls.height
+		signLeft:0.2,   //RELATIVE to Controls.width
+		signWidth:0.3,  //RELATIVE to Controls.width
+		signHeight:0.3  //RELATIVE to Controls.height
 	};
 
 	var ELEVATOR_STATES = {
@@ -442,9 +464,163 @@ window.elefart.building = (function () {
 		return r;
 	}
 
+
 	/* 
 	 * ============================
-	 * HEALTH MONITOR
+	 * FLOOR GOODIES
+	 * ============================
+	 */
+
+	/** 
+	 * @constructor Goodie
+	 * @classdesc an item which helps a Person withstand a Gas attack. Note that 
+	 * Goodies can only be create AFTER the rest of the Building is constructed.
+	 * - parent: BuildingFloor or Person
+	 * - grandparent: Building or Elevator
+	 * - children: none
+	 * @param {Building} the entire building, since we need to add 
+	 * AFTER the rest of the Building is constructed.
+	 * @returns {Goodie|false} a Goodie object, or false
+	 */
+	function Goodie (building) {
+
+
+		//get the Goodie spriteboard
+		var goodieBoard = display.getGoodieBoard();
+
+		//randomly compute a GoodieType
+		var goodieType = factory.getRandomInt(0, (goodieBoard.cols-1));
+		var i = 0;
+
+		//randomly compute an ElevatorShaft to place the Goodie nearby
+		var floors = building.getFloors();
+		var goodieShaft = factory.getRandomArrVal(building.getShafts());
+
+		/* 
+		 * Goodies are positioned on BuildingFloors where the corresponding ElevatorShaft
+		 * des not reach the floor. Check if a point in the BuildingFloor is contained within the 
+		 * ElevatorShaft at that position.
+		 */
+		var floorList = [];
+		for(i = 0; i < floors.length; i++) {
+			var floor = floors[i]
+			if(!goodieShaft.floorInShaft(floor)) {
+				floorList.push(floor);
+			}
+		}
+
+		if(floorList.length === 0) {
+			console.log("no available floors found for shaft:" +  goodieShaft.instanceName);
+			return false;
+		}
+
+		var goodieFloor = floorList[0];
+		var yCenter = factory.toInt(goodieFloor.bottom - (goodieFloor.height/2));
+
+		//scale size of Goodie
+		var h = factory.toInt(DIMENSIONS.GOODIE.height * building.height/building.getNumFloors());
+		var w = h;
+
+		//compute Goodie position (to one side of the ElevatorShaft)
+		var t = factory.toInt(yCenter - (h/2));
+
+		/* 
+		 * if the goodieShaft is the first or last, center above or below
+		 * the shaft. Otherwise, randomly shift the position of the Goodie
+		 * with respect to the goodieShaft center
+		 */
+		var numShafts = building.getNumShafts();
+		var goodieCenter = goodieShaft.getCenter();
+		var l = factory.toInt(goodieCenter.x - w/2);
+		if(goodieShaft.shaftNum !== numShafts && goodieShaft.shaftNum !== 1) {
+			var test = factory.getRandomInt(0, 2);
+			switch(test) {
+				case 0:
+					l -= factory.toInt(w/2);
+					break;
+				case 1:
+					break;
+				case 2:
+					l += factory.toInt(w/2);
+					break;
+			}
+		}
+		
+		//compute goodie x center
+		var xCenter = factory.toInt(l + (w/2));
+
+		//overlap tests
+		var pt = factory.Point(xCenter, yCenter);
+
+		//don't overlap People
+		var ge = building.getPeople();
+		var len = ge.length;
+		for(i = 0; i < len; i++) {
+			if(ge[i].pointInside(pt)) {
+				console.log("would have overlapped a Person");
+				return false;
+			}
+		}
+
+		//don't overlap other Goodies
+		ge = building.getGoodies();
+		len = ge.length;
+		for(i = 0; i < len; i++) {
+			if(ge[i].pointInside(pt)) {
+				console.log("would have overlapped an existing Goodie");
+				return false;
+			}
+		}
+		var g = factory.ScreenRect(
+			l,
+			t,
+			w,
+			h,
+			0,
+			display.COLORS.CLEAR,
+			display.COLORS.CLEAR, 
+			display.LAYERS.GOODIES,
+			goodieBoard
+			);
+		if(g) {
+				g.name = BUILDING_TYPES.GOODIE;
+				g.instanceName = "Goodie type:" + goodieType;
+				//g.parent = building; //do before adding to displayList
+				g.parent = floor;
+				g.getChildByType = getChildByType;
+
+				g.setSpriteCoords({
+					rows:goodieBoard.rows, //0-9
+					cols:goodieBoard.cols, //0-1
+					currRow:0,
+					currCol:goodieType
+				}); //this adds .getCellRect() and .nextCellRect
+
+				//set additional information about the goodieType
+				for(i in GOODIE_TYPES) {
+					if(GOODIE_TYPES[i].col === goodieType) {
+						g.goodieType = i;
+						g.goodieScore = GOODIE_TYPES[i].score;
+					}
+				}
+
+				g.customDraw = function (ctx) {
+					//ctx.fillRect(g.left, g.top, g.width, g.height);
+				}
+
+			display.addToDisplayList(g, display.LAYERS.GOODIES);
+
+			return g;
+		}
+		//fallthrough
+		elefart.showError("failed to create Goodie:" + shaftNum);
+		return false;
+
+	}
+
+	/* 
+	 * ============================
+	 * PEOPLE COMPONENTS
 	 * ============================
 	 */
 
@@ -469,20 +645,13 @@ window.elefart.building = (function () {
 			h.name = BUILDING_TYPES.HEALTH;
 			h.parent = person;
 			h.instanceName = person.instanceName + "'s health";
-			return g;
-
+			h.value = 100; //perfect health
 			return h;
 		}
 
 		elefart.showError("failed to create Health for Person:" + person.instanceName);
 		return false;
 	}
-
-	/* 
-	 * ============================
-	 * GAS FROM PEOPLE
-	 * ============================
-	 */
 
 	/** 
 	 * @constructor Gas
@@ -531,8 +700,6 @@ window.elefart.building = (function () {
 		elefart.showError("failed to create Gas type:" + gasType + " for Person:" + person.instanceName);
 		return false;
 	}
-
-
 
 	/* 
 	 * ============================
@@ -591,6 +758,9 @@ window.elefart.building = (function () {
 
 		//set additional Person properties and add child objects
 		if(p) {
+			p.name = BUILDING_TYPES.PERSON;
+			p.instanceName = characterName;
+
 			p.setSpriteCoords({
 				rows:characterBoard.rows, //0-14
 				cols:characterBoard.cols, //0- 7
@@ -598,35 +768,78 @@ window.elefart.building = (function () {
 				currCol:0
 			}); //this adds .getCellRect() and .nextCellRect
 
+			//convert user instanceName to bitmap, add to drawing list
+			p.nameImg = display.textToPNG(p.instanceName, "black", "Georgia", 12, 20);
 
-			p.name = BUILDING_TYPES.PERSON;
-			p.instanceName = characterName;
-
-			//TODO: Person name added to Person image
-			//TODO: can only select elevator to come to player floor
-			//TODO: link to Control display
-			//TODO: animate Player
-			//TODO: animate Gas
-			//TODO: add Goodies
-
-			p.nameImg = display.textToPNG(p.instanceName, "black", "12px Georgia", 20);
-			window.nameImg = p.nameImg;
-
+			///specify character (visual) type
 			p.characterType = characterType;
+
+			//specify user type (bot, local, network)
 			p.userType = userType;
+
+			//start as floor, but can also be Elevator
 			p.parent = floor;
+
+			//add health object
+			p.health = new Health(p);
 
 			p.getChildByType = getChildByType;
 
+			//walking queues
+			p.destShaft = NO_SHAFT;
+			p.destPt = false;
+			p.engine = {
+				is:OFF,
+				speed:DIMENSIONS.PERSON.speed, //may be positive or negative
+				adjust:DIMENSIONS.PERSON.adjust, //slow engine speed back on overshoot, lower bound 1.0, higher values reduce slow bounce
+				teleport:false, //move immediately to next destination in elevatorQueue
+				intervalCount:0 //number of updates before changing sprite frame
+			};
+
+			/* 
+			 * some getters
+			 */
+			p.getShafts = function () {
+				return p.parent.getParent().getShafts(); //Building parent of BuildingFloor
+			}
+
+			/* 
+			 * time-dependent animation, triggered by addToUpdateList
+			 */
+			p.updateByTime = function () {
+				var engine = p.engine;
+				if(engine.is === ON) {
+					if(engine.teleport === true) {
+						//TODO: compute distance,
+						var currPt = p.getCenter();
+						if(Math.abs(currPt.x - destPt.x)) {
+							p.move(engine.speed, 0);
+							engine.intervalCount++;
+							if(engine.intervalCount >= DIMENSIONS.PERSON.frameInterval) {
+								//TODO: change sprite frame for this objct
+								engine.intervalCount = 0; //reset
+							}
+						}
+						//TODO: advance sprite animation
+					}
+				}
+			}
+
+			/*
+			 * draw a custom image of the user's instanceName
+			 * TODO: ONLY SHOW WHEN WE HOVER OVER IT??????
+			 */
 			p.customDraw = function (ctx) {
 				var yCenter = p.top + (p.height/2);
-				//ctx.fillRect(p.right, yCenter, p.nameImg.width, p.nameImg.height);
 				ctx.drawImage(
 					p.nameImg,  
 					p.right, yCenter, 
 					p.nameImg.width, p.nameImg.height);
 			};
 
+			/* 
+			 * erase the user's instanceName
+			 */
 			p.customErase = function (ctx) {
 				//console.log("erasing name")
 				var yCenter = p.top + (p.height/2);
@@ -645,19 +858,6 @@ window.elefart.building = (function () {
 				return s.getChildByType(BUILDING_TYPES.GAS, false);
 			};
 
-			p.moveToElevator = function (shaftNum) {
-				//walk to Elevator
-			};
-
-			p.enterElevator = function (elevator, floor, endFloor) {
-				//only enter if elevator is open, otherwise wait
-				p.parent = elevator
-			};
-
-			p.exitElevator = function () {
-				//parent becomes end floor
-			};
-
 			p.fart = function () {
 				//emit fart in elevator or on floor
 			};
@@ -670,12 +870,47 @@ window.elefart.building = (function () {
 				//use goodie to combat fart
 			};
 
-			//add Gas
+			//walk queueing
+			p.addWalk = function (destPt) {
+				if(p.destShaft !== NO_SHAFT) {
+					console.log("walking to shaft aready");
+					return false;
+				}
+				//find the ElevatorShaft which contains destPt
+				var shafts = p.getShafts();
+				var len = shafts.length;
+				for(var i = 0; i < len; i++) {
+					var shaft = shafts[i];
+					if(shaft.pointInside(destPt)) {
+						p.destShaft = shaft.shaftNum;
+						p.destPt = destPt;
+						p.engine.is = ON;
+					}
+				}
+			}
+
+			p.removeWalk = function () {
+				p.destShaft = NO_SHAFT;
+				p.destPt = false;
+				p.engine.is = OFF;
+			}
+
+			p.enterElevator = function (elevator, floor, endFloor) {
+				//only enter if elevator is open, otherwise wait
+				p.parent = elevator
+			};
+
+			p.exitElevator = function () {
+				//parent becomes end floor
+			};
+
+			//add Gas, one of each type
 			for(var i in GAS_TYPES) {
 				p.addChild(Gas(p, i))
 			}
 
 			display.addToDisplayList(p, display.LAYERS.PEOPLE);
+			controller.addToUpdateList(p);
 
 			return p;
 			}
@@ -872,12 +1107,12 @@ window.elefart.building = (function () {
 				 * @description get floors the Elevator can visit
 				 */
 				e.getFloors = function () {
-					return e.parent.getFloors();
+					return e.getShaft().getFloors();
 				}
 
 				//get the number of floors our ElevatorShaft goes to
 				e.getNumFloors = function () {
-					return e.parent.getFloors().length;
+					return e.getShaft().getFloors().length;
 				}
 
 				/** 
@@ -963,10 +1198,10 @@ window.elefart.building = (function () {
 						}
 					}
 					if(!floor.floorNum) {
-						console.log("couldn't find floor:" + floor);
+						console.log("Elevator:couldn't find floor:" + floor + " in shaft:" + e.getShaft().instanceName);
 						return false;
 					}
-					console.log("getting floor with floorNum:" + floorNum)
+					console.log("Elevator:getting floor with floorNum:" + floorNum)
 					//make sure floor isn't alredy in queue
 					len = e.floorQueue.length;
 					for(var i = 0; i < len; i++) {
@@ -975,6 +1210,7 @@ window.elefart.building = (function () {
 							return false;
 						}
 					}
+					//include the BuildingRoof as a floor, if ElevatorShaft goes there
 					if(floorNum === ROOF && e.parent.hasShaftTop) {
 						console.log("add ROOF:" + floor + " to elevator:" + e.id + " queue")
 						e.engine.is = ON;
@@ -1229,16 +1465,17 @@ window.elefart.building = (function () {
 				};
 
 				/* 
-				 * ask Building for the (walkline) start of each BuildingFloor the ElevatorShaft 
-				 * goes to, where People and Elevators rest
+				 * ask Building for the floors, so we can see which ones the 
+				 * ElevatorShaft goes to
 				 */
 				s.floors = [];
 				var fls = building.getFloors();
 					var len = fls.length;
 					for(var i = 0; i < len; i++) {
-						var fl = fls[i],
-						start = fl.bottom; //floor bottom
-						if(start <= s.bottom && fl.top >= s.top) {
+						var fl = fls[i];
+						//avoid alignment errors between floor and shaft top and bottom
+						var center = factory.toInt(fl.bottom - (fl.height/2));
+						if(center < s.bottom && center > s.top) {
 							//add only BuildingFloors that ElevatorShaft goes to
 							var ed = ElevatorDoors(s, fl); //added as child to ElevatorShaft
 							s.floors.push(fl); //only Floors that Shaft goes to
@@ -1344,60 +1581,6 @@ window.elefart.building = (function () {
 		//fallthrough
 		elefart.showError("failed to create Elevator Shaft:" + shaftNum);
 		return false;
-	}
-
-	/* 
-	 * ============================
-	 * FLOOR GOODIES
-	 * ============================
-	 */
-
-	/** 
-	 * @constructor Goodie
-	 * @classdesc an item which helps a Person withstand a Gas attack
-	 * - parent: BuildingFloor or Person
-	 * - grandparent: Building or Elevator
-	 * - children: none
-	 * @param {Building} the entire building, since we need to add 
-	 * AFTER the rest of the Building is constructed.
-	 * @returns {Goodie|false} a Goodie object, or false
-	 */
-	function Goodie (building) {
-
-		//randomly compute a GoodieType
-
-		//randomly compute a BuildingFloor
-
-		//ramdomly compute position on floor (between ElevatorShafts)
-
-		//compute Goodie position and floor (not in front of ElevatorShaft)
-		var h = factory.toInt(DIMENSIONS.GOODIE.height * building.height/numFloors);
-		var t = building.top + (floorNum * h);
-		var l = building.left;
-		var w = h;
-
-		//get the Gas bitmaps for animation
-		var goodieBoard = display.getGoodieBoard();
-
-		var g = factory.ScreenRect(
-			l,
-			t,
-			w,
-			h,
-			0,
-			display.COLORS.CLEAR,
-			display.COLORS.CLEAR, 
-			display.LAYERS.PEOPLE,
-			gasBoard
-			);
-		if(g) {
-
-			return g;
-		}
-		//fallthrough
-		elefart.showError("failed to create Goodie:" + shaftNum);
-		return false;
-
 	}
 
 	/* 
@@ -1531,6 +1714,12 @@ window.elefart.building = (function () {
 		elefart.showError("Failed to create BuildingFloor:" + floorNum);
 		return false;
 	}
+
+	/* 
+	 * ============================
+	 * BUILDING ROOF
+	 * ============================
+	 */
 
 	/** 
 	 * @constructor BuildingSign
@@ -1846,7 +2035,7 @@ window.elefart.building = (function () {
 			b.parent = world; //NOTE: have to do here since addChild hasn't happened
 			b.getChildByType = getChildByType; //generic child getter function
 
-			//add to Building outline to displayList BEFORE BuildingFloors
+			//add to Building's outline to displayList BEFORE creating BuildingFloors
 			display.addToDisplayList(b, display.LAYERS.BUILDING);
 
 			//getter for BuildingSign
@@ -1999,6 +2188,18 @@ window.elefart.building = (function () {
 			var roofShaft = b.getShaft(numRoofShaft);
 			b.addChild(BuildingRoof(b, roofShaft));
 
+			b.getElevators = function () {
+				return b.getChildByType(BUILDING_TYPES.ELEVATOR, false);
+			}
+
+			b.getPeople = function () {
+				return b.getChildByType(BUILDING_TYPES.PERSON, false);
+			}
+
+			b.getGoodies = function () {
+				return b.getChildByType(BUILDING_TYPES.GOODIE, false);
+			}
+
 			/* 
 			 * add Person corresponding to local user to the building 
 			 * (bot, local, network), scaling for 
@@ -2032,6 +2233,18 @@ window.elefart.building = (function () {
 				)
 			);
 
+			/* 
+			 * add Goodies, about as many as there are ElevatorShafts
+			 * if Goodies would overlap themselves or people, the constructor 
+			 * function might return false, so test for this. 
+			 */
+			for(var i = 0; i < numShafts; i++) {
+				var g = Goodie(b);
+				if(g) {
+					b.addChild(g);
+				}
+			}
+
 			//return the completed Building
 			return b;
 		}
@@ -2040,6 +2253,12 @@ window.elefart.building = (function () {
 		elefart.showError("failed to create Building");
 		return false;
 	}
+
+	/* 
+	 * ============================
+	 * SKY AND CLOUDS
+	 * ============================
+	 */
 
 	/** 
 	 * @constructor Cloud
@@ -2282,6 +2501,12 @@ window.elefart.building = (function () {
 		return false;
 	}
 
+	/* 
+	 * ============================
+	 * SKY CREATURES
+	 * ============================
+	 */
+
 	/** 
 	 * @constructor BadBird
 	 * @classdesc a bird in the Sky that attack People on the BuildingRoof with 
@@ -2420,6 +2645,123 @@ window.elefart.building = (function () {
 		return false;
 	}
 
+	/* 
+	 * ============================
+	 * CONTROL PANEL AND INDIVIDUAL CONTROLS
+	 * ============================
+	 */
+
+	/** 
+	 * @constructor ControlFPS
+	 * @classdesc an FPS display
+	 */
+	function ControlFPS (controls) {
+
+		var font = "Georgia";
+
+		var w = factory.toInt(DIMENSIONS.FPS.width * controls.width);
+		var h = factory.toInt(DIMENSIONS.FPS.height * controls.height); 
+		var textSize = h;
+		var t = controls.bottom - controls.margin - h;
+		var l = controls.right - controls.margin - w;
+
+		var f = factory.ScreenText(
+				l, 
+				t, 
+				w, 
+				h, 
+				font,
+				h,
+				"0000", //text
+				display.COLORS.BLACK, //text color
+				"top", //text alignment relative to baseline
+				1, //stroke width
+				display.COLORS.BLACK, //Rect stroke color
+				display.COLORS.WHITE, //Rect fill color
+				display.LAYERS.CONTROLS //dynamic
+			);
+		if(f) {
+			f.name = BUILDING_TYPES.FPS;
+			f.instanceName = "FPS";
+
+			/* 
+			 * update frames per second ByTime
+			 */
+			f.updateByTime = function () {
+				f.text = controller.getFPS();
+			}
+
+			f.getChildByType = getChildByType; //generic child getter function
+
+			display.addToDisplayList(f, display.LAYERS.CONTROLS);
+			controller.addToUpdateList(f);
+
+			return f;
+		}
+		//fallthrough
+		elefart.showError("failed to create ControlFPS");
+		return false;
+	}
+
+	/** 
+	 * @constructor Controls
+	 * @classdesc the user controls below the building
+	 * - parent: world
+	 * - grandparent: none
+	 * - children: individual control types
+	 * @returns {Contorls|false} the user controls for the game
+	 */
+	function Controls (world, buildingBottom) {
+		var t = buildingBottom;
+		var l = world.left;
+		var w = world.width;
+		var h = world.bottom - buildingBottom;
+		var c = factory.ScreenRect(
+				l, 
+				t, 
+				w, 
+				h,
+				world.getBuilding().lineWidth, //stroke
+				display.COLORS.BROWN, 
+				display.COLORS.YELLOW,
+				display.LAYERS.BUILDING //static
+			);
+
+		//TODO: BUILDINGBOTTOM ISN'T RIGHT, TRY BOTTOM OF BOTTOM FLOOR
+
+		//set additional Building properties and add child objects
+		if(c) {
+			c.type = BUILDING_TYPES.CONTROLS;
+			c.instanceName = "Control Panel";
+			c.margin = factory.toInt(DIMENSIONS.CONTROLS.margin * w); //relative to Width
+
+			c.getChildByType = getChildByType; //generic child getter function
+
+			//Add margin border
+
+			//Add label "elefart"
+
+			//add individual Controls
+
+			//fps
+			c.addChild(ControlFPS(c));
+
+			//add control Panel to display list
+			display.addToDisplayList(c, display.LAYERS.WORLD); //visible
+
+			return c;
+		}
+		//fallthrough
+		elefart.showError("failed to create Controls");
+		return false;
+	}
+
+	/* 
+	 * ============================
+	 * ELEFART WORLD
+	 * ============================
+	 */
+
 	/** 
 	 * @constructor World
 	 * @classdesc the top-level environment
@@ -2464,6 +2806,11 @@ window.elefart.building = (function () {
 				wo.getSky = function () {
 					return wo.getChildByType(BUILDING_TYPES.SKY, false)[0];
 				};
+
+				wo.getControls = function () {
+					return wo.getChildByType(BUILDING_TYPES.CONTROLS, false)[0];
+				};
+
 				//we don't add World to display list
 
 				/** 
@@ -2518,6 +2865,9 @@ window.elefart.building = (function () {
 			world.addChild(Sky(world));
 			//world.addChild(Sun(world));
 			world.addChild(Building(world));
+			var top = world.getBuilding().bottom;
+			world.addChild(Controls(world, top));
+
 		} //end of if w
 	}
 

@@ -64,6 +64,14 @@
 						</li>
 						
 						<li>
+							<a href="ControlFPS.html">ControlFPS</a>
+						</li>
+						
+						<li>
+							<a href="Controls.html">Controls</a>
+						</li>
+						
+						<li>
 							<a href="Corona.html">Corona</a>
 						</li>
 						
@@ -80,11 +88,15 @@
 						</li>
 						
 						<li>
-							<a href="FloorGoodie.html">FloorGoodie</a>
+							<a href="Gas.html">Gas</a>
 						</li>
 						
 						<li>
-							<a href="Gas.html">Gas</a>
+							<a href="Goodie.html">Goodie</a>
+						</li>
+						
+						<li>
+							<a href="Health.html">Health</a>
 						</li>
 						
 						<li>
@@ -129,6 +141,10 @@
 						
 						<li>
 							<a href="ScreenRect.html">ScreenRect</a>
+						</li>
+						
+						<li>
+							<a href="ScreenText.html">ScreenText</a>
 						</li>
 						
 						<li>
@@ -222,6 +238,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#clampVal">clampVal</a>
+						</li>
+						
+						<li>
 							<a href="global.html#clone">clone</a>
 						</li>
 						
@@ -307,6 +327,10 @@
 						
 						<li>
 							<a href="global.html#drawSpriteFrame">drawSpriteFrame</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawText">drawText</a>
 						</li>
 						
 						<li>
@@ -406,6 +430,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#getFPS">getFPS</a>
+						</li>
+						
+						<li>
 							<a href="global.html#getGameRect">getGameRect</a>
 						</li>
 						
@@ -427,6 +455,10 @@
 						
 						<li>
 							<a href="global.html#getPanel%250Dget%2520the%2520panel%2520a%2520particular%2520DisplayList%2520is%2520assigned%2520to">getPanelget the panel a particular DisplayList is assigned to</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getRandomArrVal">getRandomArrVal</a>
 						</li>
 						
 						<li>
@@ -782,6 +814,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#setText">setText</a>
+						</li>
+						
+						<li>
 							<a href="global.html#shaftFloorSelected">shaftFloorSelected</a>
 						</li>
 						
@@ -828,301 +864,6 @@
 			
 				<div id="main">
 					
-
-
-	<h1 class="page-title">Class: Cloud</h1>
-<section>
-
-<header>
-    <h2>
-    Cloud
-    </h2>
-    
-        <div class="class-description"><p>ScreenObject.type Cloud. Cloudss are Polygon-like, but are made 
-with curves instead of straight lines. Polygons are straight with rounded corners 
-if polygon.borderRadius is set. Specific algorithms are needed to organize the 
-points in a Cloud into the desired pattern. elefart.building used a proceedural 
-&quot;flower&quot; shape to create clouds</p></div>
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-
-    
-        
-<dt>
-    <h4 class="name" id="Cloud"><span class="type-signature"></span>new Cloud<span class="signature">(pts)</span><span class="type-signature"> &rarr; {<a href="Cloud.html">Cloud</a>}</span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-
-    
-    
-    
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-	<tr>
-		
-		<th>Name</th>
-		
-
-		<th>Type</th>
-
-		
-
-		
-
-		<th class="last">Description</th>
-	</tr>
-	</thead>
-
-	<tbody>
-	
-
-        <tr>
-            
-                <td class="name"><code>pts</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;<a href="Point.html">Point</a>></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>an array of Points defining the Cloud</p></td>
-        </tr>
-
-	
-	</tbody>
-</table>
-
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-	<dt class="tag-source">Source:</dt>
-	<dd class="tag-source">
-		<ul class="dummy">
-			<li>
-				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
-				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-554">line 554</a>
-			</li>
-		</ul>
-	</dd>
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    <p>a Cloud object</p>
-</div>
-
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type"><a href="Cloud.html">Cloud</a></span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
-    
-</dd>
-
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        <dl>
-            
-<dt>
-    <h4 class="name" id="updateByTime()"><span class="type-signature">&lt;static> </span>updateByTime()<span class="signature">()</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
-    
-    
-</dt>
-<dd>
-    
-    
-    <div class="description">
-        <p>update Cloud positions in time</p>
-    </div>
-    
-
-    
-    
-    
-    
-    
-    
-    
-<dl class="details">
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-	<dt class="tag-source">Source:</dt>
-	<dd class="tag-source">
-		<ul class="dummy">
-			<li>
-				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-2083">line 2083</a>
-			</li>
-		</ul>
-	</dd>
-	
-
-	
-
-	
-
-	
-</dl>
-
-    
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    <p>if updated in any way, return true, else false</p>
-</div>
-
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">Boolean</span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
-    
-</dd>
-
-        </dl>
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
 
 
 	<h1 class="page-title">Class: Cloud</h1>
@@ -1240,7 +981,7 @@ points in a Cloud into the desired pattern. elefart.building used a proceedural
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-1970">line 1970</a>
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-2263">line 2263</a>
 			</li>
 		</ul>
 	</dd>
@@ -1360,7 +1101,302 @@ points in a Cloud into the desired pattern. elefart.building used a proceedural
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-2083">line 2083</a>
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-2376">line 2376</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>if updated in any way, return true, else false</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type">Boolean</span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+        </dl>
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+
+	<h1 class="page-title">Class: Cloud</h1>
+<section>
+
+<header>
+    <h2>
+    Cloud
+    </h2>
+    
+        <div class="class-description"><p>ScreenObject.type Cloud. Cloudss are Polygon-like, but are made 
+with curves instead of straight lines. Polygons are straight with rounded corners 
+if polygon.borderRadius is set. Specific algorithms are needed to organize the 
+points in a Cloud into the desired pattern. elefart.building used a proceedural 
+&quot;flower&quot; shape to create clouds</p></div>
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+
+    
+        
+<dt>
+    <h4 class="name" id="Cloud"><span class="type-signature"></span>new Cloud<span class="signature">(pts)</span><span class="type-signature"> &rarr; {<a href="Cloud.html">Cloud</a>}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>pts</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;<a href="Point.html">Point</a>></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>an array of Points defining the Cloud</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-578">line 578</a>
+			</li>
+		</ul>
+	</dd>
+	
+
+	
+
+	
+
+	
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>a Cloud object</p>
+</div>
+
+
+
+<dl>
+	<dt>
+		Type
+	</dt>
+	<dd>
+		
+<span class="param-type"><a href="Cloud.html">Cloud</a></span>
+
+
+	</dd>
+</dl>
+
+
+        
+    
+    
+</dd>
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        <dl>
+            
+<dt>
+    <h4 class="name" id="updateByTime()"><span class="type-signature">&lt;static> </span>updateByTime()<span class="signature">()</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>update Cloud positions in time</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+	<dt class="tag-source">Source:</dt>
+	<dd class="tag-source">
+		<ul class="dummy">
+			<li>
+				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-2376">line 2376</a>
 			</li>
 		</ul>
 	</dd>
@@ -1436,7 +1472,7 @@ points in a Cloud into the desired pattern. elefart.building used a proceedural
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Wed Mar 4th 2015 using the <a
+		on Sun Mar 15th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

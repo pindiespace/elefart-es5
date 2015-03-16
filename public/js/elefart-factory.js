@@ -91,6 +91,19 @@ window.elefart.factory = (function () {
 	}
 
 	/**
+	 * @method clampVal
+	 * @description clamp a value between a minimum and maximum value, including 
+	 * the mininum and maximum values.
+	 * @param {Number} min minimum value
+	 * @param {Number} max maximum Value
+	 * @returns {Number} the clamped value
+	 */
+	function clampVal(val, min, max) {
+		if(val < min) val = min;
+		if(val > max) val = max;
+		return val;
+	}
+	/**
 	 * @method getRandomInt
 	 * @description returns a random int between min (inclusive) and max 
 	 * (inclusive).
@@ -102,10 +115,21 @@ window.elefart.factory = (function () {
 		return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 
-	function clampVal(val, min, max) {
-		if(val < min) val = min;
-		if(val > max) val = max;
-		return val;
+	/** 
+	 * @method getRandomArrVal
+	 * @description returns a random element from an array.
+	 * @param {Array} arr the array to sample from
+	 * @returns {Object|false} the object stored at the array position
+	 */
+	function getRandomArrVal(arr) {
+		var len = arr.length-1;
+		if(len >= 0) {
+			return(arr[getRandomInt(0, len)]);
+		}
+		else {
+			elefart.showError("getRandomArrVal: zero-length array passed");
+			return false;
+		}
 	}
 
 	/** 
@@ -280,7 +304,7 @@ window.elefart.factory = (function () {
 		else if(isString(str)) { //rgb or hex color string
 			if(getRGB(str)) return true;
 		}
-		elefart.showError("invalid RGB string or gradient object:" + str);
+		elefart.showError("factory.isRGB(), invalid RGB string or gradient object:" + str);
 		return false;
 	}
 
@@ -1707,7 +1731,7 @@ window.elefart.factory = (function () {
 		}
 		if(color) {
 				if(!isRGB(color)) {
-			elefart.showError("invalid color string:" + color);
+			elefart.showError("factory.setStroke(), invalid color string:" + color);
 			return false;
 			}
 			this.strokeStyle = color;
@@ -1863,6 +1887,30 @@ window.elefart.factory = (function () {
 		return true;
 	}
 
+	/** 
+	 * @method setText
+	 * @description set the text font, size and characters.
+	 * @param {String} font a string containing HTML5 canvas-compatible 
+	 * text descriptor, e.g., "12pt Georgia". ScreenRect is expanded based 
+	 * on length of text (no word wrap or scrolling)
+	 * @param {String} text the text to display
+	 * @returns {Boolean} if ok, return true, else false
+	 */
+	function setText (text, fontSize, font, textFillStyle, textBaseline) {
+		if(!text) {
+			elefart.showError("setText(): no text present");
+			return false;
+		}
+		this.font = fontSize + "px " + font;
+		this.fontSize = fontSize;
+		if(!textFillStyle) textFillStyle = "black";
+		if(!textBaseline) textBaseline = "middle";
+		this.textFillStyle = textFillStyle;
+		this.textBaseline = textBaseline;
+		this.text = text;
+		return true;
+	}
+
 	/* 
 	 * ============================
 	 * LAYERS
@@ -1937,6 +1985,7 @@ window.elefart.factory = (function () {
 		obj.setFill = setFill,
 		obj.setImage = setImage,
 		obj.setSpriteCoords = setSpriteCoords,
+		obj.setText = setText,
 		//drawing layer
 		obj.setLayer = setLayer;
 		//dirty bit, never been drawn before
@@ -2020,7 +2069,7 @@ window.elefart.factory = (function () {
 	 * draw over the ScreenRect fill
 	 * @param {Function} callback (optional) function for callback
 	 * @param {Number} borderRadius (optional) rounding of Rect, in pixels
-	 * @returns {ScreenRect|false} if OK, return ScreenLine object, else false
+	 * @returns {ScreenRect|false} if OK, return ScreenRect object, else false
 	 */
 	function ScreenRect (x, y, width, height, strokeWidth, strokeStyle, fillStyle, layer, src, callback, borderRadius) {
 		var r = Rect(x, y, width, height);
@@ -2058,7 +2107,7 @@ window.elefart.factory = (function () {
 	 * @param {HTMLImageElement} src (optional) if present, add a reference to a JS image object to 
 	 * draw over the ScreenRect fill
 	 * @param {Function} callback (optional) function for callback
-	 * @returns {ScreenRect|false} if OK, return ScreenLine object, else false
+	 * @returns {ScreenRect|false} if OK, return ScreenBox object, else false
 	 */
 	function ScreenBox (x, y, width, height, strokeWidth, strokeStyle, fillStyle, layer, src, callback, missingSide) {
 		var r = Rect(x, y, width, height);
@@ -2098,7 +2147,7 @@ window.elefart.factory = (function () {
 	 * @param {HTMLImageElement} src (optional) if present, add a reference to a JS image object to 
 	 * draw over the ScreenRect fill
 	 * @param {Function} callback (optional) function for callback
-	 * @returns {ScreenCircle|false} if ok, return ScreenLine object, else false
+	 * @returns {ScreenCircle|false} if ok, return ScreenCircle object, else false
 	 */
 	function ScreenCircle (x, y, radius, strokeWidth, strokeStyle, fillStyle, layer, src, callback) {
 		var c = Circle(x, y, radius);
@@ -2135,7 +2184,7 @@ window.elefart.factory = (function () {
 	 * draw over the ScreenRect fill
 	 * @param {Function} callback (optional) function for callback
 	 * @param {Boolean} closed (optional) if true, close the polygon, else false
-	 * @returns {ScreenPoly|false} if ok, return ScreenLine object, else false
+	 * @returns {ScreenPoly|false} if ok, return ScreenPoly object, else false
 	 */
 	function ScreenPoly(pts, strokeWidth, strokeStyle, fillStyle, layer, src, callback, closed) {
 		var p = Polygon(pts);
@@ -2187,7 +2236,7 @@ window.elefart.factory = (function () {
 	 * @param {Number} y the y coordinate of the object
 	 * @param {String} src the path to the image file used
 	 * @param {Number} layer the layer for elefart.display to draw the object into.
-	 * @returns {ScreenImage|false} if ok, return ScreenLine object, else false
+	 * @returns {ScreenImage|false} if ok, return ScreenImage object, else false
 	 */
 	function ScreenImage(x, y, src, callback, layer) {
 		var r = Rect(x, y, 0, 0); //zero until image loaded
@@ -2210,6 +2259,51 @@ window.elefart.factory = (function () {
 		return r;
 	}
 
+	/** 
+	 * @constructor ScreenText
+	 * @classdesc draw text dynamically in a box on the canvas. Text is scaled to 
+	 * the size of the box (if necessary). No word wrap or scrolling. Only use when 
+	 * the text is repeatedly updated and redrawn.
+	 * @param {Number} x topleft x coordinate
+	 * @param {Number} y topleft y coordinate
+	 * @param {Number} width width of the text box
+	 * @param {Number} height height of the text box
+	 * @param {String} font font string descriptor for HTML5 canvas
+	 * @param {String} text the text to display
+	 * @param {COLORS} textFillStyle the color fill on the text
+	 * @param {Number} strokeWidth the width of the stroke around the ScreenRect
+	 * @param {Number} strokeWidth the width of the stroke around the ScreenRect
+	 * @param {COLORS|CanvasGradient} strokeStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
+	 * @param {COLORS|CanvasGradient} fillStyle the color (rgb or hex) for the stroke, written as 
+	 * a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object
+	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 * @param {Number} layer the layer for elefart.display to draw the object into.
+	 * @returns {ScreenText|false} if ok, return ScreenText object, else false
+	 */
+	function ScreenText(x, y, width, height, font, fontSize, text, textFillStyle, textBaseline, strokeWidth, strokeStyle, fillStyle, layer) {
+		var t = Rect(x, y, width, height);
+		if(t) {
+			addFns(t); //convert to ScreenObject
+			if(!strokeWidth) strokeWidth = 0;
+			if(!strokeStyle) strokeStyle = display.COLORS.CLEAR;
+			if(!fillStyle) fillStyle = display.COLORS.CLEAR;
+			if(!layer) layer = display.LAYERS.CONTROLS; //top layer
+			if(!font) font = "Georgia";
+			if(!fontSize) fontSize = 12;
+			t.setStroke(strokeWidth, strokeStyle);
+			t.setFill(fillStyle);
+			t.setText(text, fontSize, font, textFillStyle, textBaseline);
+			t.draw = display.drawText;
+			t.erase = display.eraseObject;
+			t.setLayer(layer);
+		}
+		else {
+			elefart.showError("ScreenText invalid parameters, text:" + text);
+		}
+		return t;
+
+	}
 
 /* 
  * ============================
@@ -2251,6 +2345,7 @@ window.elefart.factory = (function () {
 		isCanvasGradient:isCanvasGradient,
 		toInt:toInt, //convert to integer floor
 		getRandomInt:getRandomInt, //random integers
+		getRandomArrVal:getRandomArrVal, //random element from an array
 		clampVal:clampVal, //clamp value in range
 		getRandomPoints:getRandomPoints,
 		getRGBAfromRGB:getRGBAFromRGB, //make rgb() strings with opacity
@@ -2275,6 +2370,7 @@ window.elefart.factory = (function () {
 		ScreenCircle:ScreenCircle,
 		ScreenPoly:ScreenPoly,
 		ScreenCloud:ScreenCloud,
+		ScreenText:ScreenText,
 		init:init,
 		run:run
 	};

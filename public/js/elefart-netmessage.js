@@ -38,17 +38,24 @@
 		FEMALE_FALLING: {row:7, frames:1}
 	},
 
-	//the type of users in the game
-	exports.USER_TYPES = {
-		REAL:"LOCAL",
-		REMOTE:"REMOTE",
-		BOT:"BOT"
+	exports.GOODIE_TYPES = {
+		ROSE_RED: {row:0, col:0, score:0.1},
+		ROSE_BLUE: {row:0, col:1, score:0.2},
+		ROSE_GREEN: {row:0, col:2, score:0.05},
+		ROSE_BROWN: {row:0, col:3, score:0.02},
+		TULIP: {row:0, col:4, score:0.2},
+		DAISY: {row:0, col:5, score:0.1},
+		GAS_MASK: {row:0, col:6, score:0.8},
+		BEAN_CAN: {row:0, col:7, score:1.0},
+		PERFUME: {row:0, col:8, score:1.0},
+		FAN: {row:0, col:9, score:0.8}
 	},
 
-	//types of goodies in the game
-	exports.GOODIE_TYPES = {
-		GAS_MASK: "GAS_MASK",
-		PERFUME: "PERFUME"
+	//the type of users in the game
+	exports.USER_TYPES = {
+		LOCAL:"LOCAL",
+		REMOTE:"REMOTE",
+		BOT:"BOT"
 	},
 
 	//types of gas emitted in Elevators

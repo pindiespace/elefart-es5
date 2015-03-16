@@ -43,3 +43,40 @@ Shape->ScreenObject
 
 15. Basic create functions need to assign parent before the object is added to display or 
     update lists
+
+16. Do getCenter() between two points to see if a floor lies in an ElevatorShaft. If you use 
+    edges, slight cosmetic shifts of BuildingFloors relative to ElevatorShafts might result 
+    in a BuildingFloor not being included in the ElevatorShaft list
+
+17. factory.getCenter() between any two Points or lines
+
+18. Sprite objects need definition as a type (e.g. ScreenImage extension?)
+
+19. Should use a GRID for rows and cols - that way, we can test grid for occupancy for 
+    goodie or people
+
+20. Define dependent objects. Make the things they depend on first. Building complete, then add 
+    elements to building. Use building.getterXX() to access everything.
+
+21. object.name should be object.type, with instanceName the same.
+
+22. Utility for scanning an image board defined in a JS object, getting row or col of the 
+    image shown, then assigning it. In fact, we need an image object spriteboard that dynamically 
+    loads additional information about each sprite in the spriteboard.
+
+23. Additional character groups
+	The Royals: Lord Ripistich, Lady BlasterSeams
+	German: Herr GegensTuts, Herr BlattKampfen
+
+24. Need some "global" functions, e.g. "getBuilding", "getShafts", "getFloors" to avoid having to 
+    derive a Building object constantly.
+
+25. Need default sprite animation system. Move sprite, and change sprite image based on time. Implies
+    an object with increments per time, and animation frames per time interval.
+
+26. Use LineWidth for strokeWidth to match HTML5 canvas
+
+27. Each object needs to control its own update speed, or a subset should have a special variable
+    so they update independently of the rest of the panel
+
+28. 

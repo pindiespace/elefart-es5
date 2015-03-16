@@ -72,14 +72,14 @@ window.elefart.display = (function () {
 
 	PANELDRAW[PANELS.FOREGROUND] = { //Elevators and People
 		draw:drawForeground,
-		ticks:20,
+		ticks:4,
 		count:0,
 		erase:eraseForeground
 	};
 
 	PANELDRAW[PANELS.CONTROLS] = {
 		draw:drawControls,
-		ticks:0,
+		ticks:100,
 		count:0,
 		erase:eraseContols
 	};
@@ -107,7 +107,8 @@ window.elefart.display = (function () {
 		ELESPACE4:"ELESPACE4", //a layer above the back for people
 		DOORS:"DOORS",         //elevator doors
 		FLOORS:"FLOORS",       //objects in the room floors
-		PEOPLE:"PEOPLE",
+		GOODIES:"GOODIES",     //goodies on the floor walls
+		PEOPLE:"PEOPLE",       //people
 		BUILDINGFRONT:"BUILDINGFRONT", //anything in front of People
 		//controls
 		CONTROLS:"CONTROLS",   //user controls
@@ -208,7 +209,7 @@ window.elefart.display = (function () {
 		//SPRITE VALUES (added to Image)
 		goodieBoard.rows = 1;
 		goodieBoard.cols = 10;
-		gasBoard.src = "img/game/goodieboard.png";
+		goodieBoard.src = "img/game/goodieboard.png";
 
 	}
 
@@ -439,6 +440,14 @@ window.elefart.display = (function () {
 		return false;
 	}
 
+	function getGoodieBoard () {
+		if(goodieBoard) {
+			return goodieBoard;
+		}
+		console.log("ERROR: getGoodieBoard() image not loaded");
+		return false;
+	}
+
 	/** 
 	 * @method canvasToPNG
 	 * @description convert HTML5 canvas bitmap to PNG image
@@ -460,22 +469,29 @@ window.elefart.display = (function () {
 	 * @link http://tutorials.jenkov.com/html5-canvas/text.html
 	 * @param {String} text
 	 * @param {String} fillStyle color of fill
-	 * @param {Number} font typeface and size
+	 * @param {Number} font typeface
+	 * @param {Number} font size
 	 * @param {Number} boxSize the size of the shaded box around the text
+	 * @returns {Image} PNG image with the input text rendered
 	 */
-	function textToPNG(text, fillStyle, font, boxHeight) {
-		var c = document.createElement("canvas");
-		c.width = 60;
-		c.height = boxHeight;
+	function textToPNG(text, fillStyle, font, fontSize, boxHeight) {
+		var diff = 0,
+		c = document.createElement("canvas");
+		if(boxHeight) {
+			c.height = boxHeight;
+			diff = boxHeight - fontSize;
+		}
+		else {
+			c.height = fontSize;
+		}
 		var pctx = c.getContext("2d");
-		var w = 1.5 * pctx.measureText(text).width; //measure width of text
-		//TODO: CENTER TEXT
-		//TODO: BORDER AROUND OBJECT COLOR
+		var w = factory.toInt(pctx.measureText(text).width + diff + diff); //measure width of text
 		//TODO: DROP SHADOW
 		c.width = w;
 		pctx.textBaseline = "middle"; //centered in Rect, NOT typographic baseline!
 		pctx.fillStyle = fillStyle;
 		pctx.font = font; //'boldness font Xpx'
+		pctx.font = fontSize + "px " + font;
 		var r = factory.ScreenRect(
 			0,
 			0,
@@ -484,9 +500,17 @@ window.elefart.display = (function () {
 			1,
 			COLORS.BLACK,
 			COLORS.WHITE);
-			r.borderRadius = 6;
-		drawRoundedRect(pctx, r);
-		pctx.fillText(text, 0, factory.toInt(boxHeight/2));
+
+		//set rounding, if box present
+		r.borderRadius = 6;
+
+		//center text, if box present
+
+		if(boxHeight) {
+			diff = factory.toInt(diff/2);
+			drawRoundedRect(pctx, r);
+		}
+		pctx.fillText(text, diff, factory.toInt(boxHeight/2));
 		return canvasToPNG(c);
 	}
 
@@ -608,6 +632,7 @@ window.elefart.display = (function () {
 			case LAYERS.BUILDING:      //main Building
 			case LAYERS.WALLS:         //building walls
 			case LAYERS.SHAFTS:        //elevator shafts in building
+			case LAYERS.GOODIES:
 				return PANELS.BACKGROUND;
 				break;
 			case LAYERS.ELEBACK:       //back wall of elevators
@@ -1354,6 +1379,31 @@ window.elefart.display = (function () {
 		ctx.restore();
 	}
 
+	/** 
+	 * @method drawText
+	 * @description draw text into the Canvas
+	 * @param {CanvasContext} ctx current drawing context
+	 * @param {ScreenObject} the ScreenObject (type ScreenSprite) to draw
+	 */
+	function drawText (ctx, obj) {
+		ctx.save();
+		ctx.font = obj.font; //'boldness font Xpx'
+		ctx.textBaseline = obj.textBaseline; //centered in Rect, NOT typographic baseline!
+		var w = ctx.measureText(obj.text).width; //measure width of text
+		obj.width = w + 4; //dynamically adjust this
+		if(obj.fillStyle !== COLORS.CLEAR) {
+			ctx.strokeStyle = obj.strokeStyle;
+			ctx.fillStyle = obj.fillStyle;
+			ctx.strokeRect(obj.left - 2, obj.top, obj.width, obj.height);
+			ctx.fillRect(obj.left - 2, obj.top, obj.width, obj.height);
+		}
+		var leading = factory.toInt(obj.height/5); //TODO:
+		ctx.fillStyle = obj.textFillStyle;
+		ctx.textAlign = "left";
+		ctx.textBaseline = "hanging";
+		ctx.fillText(obj.text, obj.left, obj.top);
+		ctx.restore();
+	}
 
 	/* 
 	 * =========================================
@@ -1446,11 +1496,15 @@ window.elefart.display = (function () {
 	function drawBackground () {
 		bctx.save();
 		bctx.clearRect(0, 0, background.width, background.height)
-		//execute the display list
+
+		//Static elements in the Building
 		drawLayer(bctx, displayList[LAYERS.BUILDINGBACK]); //in back of Building
 		drawLayer(bctx, displayList[LAYERS.BUILDING]); //Static Building
 		drawLayer(bctx, displayList[LAYERS.ELEBACK]);  //in front of Building, but behind shafts
 		drawLayer(bctx, displayList[LAYERS.SHAFTS]); //ElevatorShaft wall
+
+		//Goodies are static 
+		drawLayer(bctx, displayList[LAYERS.GOODIES]);
 
 		bctx.restore();
 	}
@@ -1486,7 +1540,8 @@ window.elefart.display = (function () {
 
 	/** 
 	 * @method drawForeground
-	 * @description draw the foreground for the display
+	 * @description draw the foreground for the display, including
+	 * Elevators, ElevatorShafts, People
 	 */
 	function drawForeground () {
 
@@ -1498,7 +1553,6 @@ window.elefart.display = (function () {
 		//drawLayer(fctx, displayList[LAYERS.DOORS]);  //ElevatorDoors
 
 		drawLayer(fctx, displayList[LAYERS.PEOPLE]);
-		//drawLayer(fctx, displayList[LAYERS.PEOPLE]);
 
 		//restore
 		fctx.restore();
@@ -1528,7 +1582,7 @@ window.elefart.display = (function () {
 	 */
 	function drawControls () {
 		cctx.save();
-		drawLayer(cctx, displayList[LAYERS.CONTROLS]);
+		drawLayer(cctx, displayList[LAYERS.CONTROLS]); //controls
 		drawLayer(fctx, displayList[LAYERS.MODAL]);     //modal windows above game panel
 		drawLayer(fctx, displayList[LAYERS.ANIMATION]); //animation above game panel
 		cctx.restore();
@@ -1659,6 +1713,7 @@ window.elefart.display = (function () {
 		getHotelSign:getHotelSign,
 		getCharacterBoard:getCharacterBoard,
 		getGasBoard:getGasBoard,
+		getGoodieBoard:getGoodieBoard,
 		textToPNG:textToPNG,
 		getCSSBreakpoint:getCSSBreakpoint,
 		getGameRect:getGameRect,
@@ -1686,6 +1741,7 @@ window.elefart.display = (function () {
 		drawCloud:drawCloud,
 		drawImage:drawImage,
 		drawSpriteFrame:drawSpriteFrame,
+		drawText:drawText,
 		drawBackground:drawBackground,
 		eraseForeground:eraseForeground,
 		drawForeground:drawForeground,

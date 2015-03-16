@@ -10,7 +10,7 @@
 	<![endif]-->
 	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
 
-	<link type="text/css" rel="stylesheet" href="styles/site.spacelab.css">
+	<link type="text/css" rel="stylesheet" href="styles/site.cosmo.css">
 
 </head>
 
@@ -26,6 +26,10 @@
 						class="caret"></b></a>
 
 					<ul class="dropdown-menu ">
+						
+						<li>
+							<a href="BadBird.html">BadBird</a>
+						</li>
 						
 						<li>
 							<a href="Building.html">Building</a>
@@ -60,6 +64,14 @@
 						</li>
 						
 						<li>
+							<a href="ControlFPS.html">ControlFPS</a>
+						</li>
+						
+						<li>
+							<a href="Controls.html">Controls</a>
+						</li>
+						
+						<li>
 							<a href="Corona.html">Corona</a>
 						</li>
 						
@@ -81,6 +93,10 @@
 						
 						<li>
 							<a href="Goodie.html">Goodie</a>
+						</li>
+						
+						<li>
+							<a href="Health.html">Health</a>
 						</li>
 						
 						<li>
@@ -128,6 +144,10 @@
 						</li>
 						
 						<li>
+							<a href="ScreenText.html">ScreenText</a>
+						</li>
+						
+						<li>
 							<a href="Sky.html">Sky</a>
 						</li>
 						
@@ -170,10 +190,6 @@
 						</li>
 						
 						<li>
-							<a href="global.html#addFloorToQueue">addFloorToQueue</a>
-						</li>
-						
-						<li>
 							<a href="global.html#addFns">addFns</a>
 						</li>
 						
@@ -202,6 +218,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#canvasToPNG">canvasToPNG</a>
+						</li>
+						
+						<li>
 							<a href="global.html#centerRectInRect">centerRectInRect</a>
 						</li>
 						
@@ -218,6 +238,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#clampVal">clampVal</a>
+						</li>
+						
+						<li>
 							<a href="global.html#clone">clone</a>
 						</li>
 						
@@ -230,15 +254,19 @@
 						</li>
 						
 						<li>
+							<a href="global.html#cubicIn">cubicIn</a>
+						</li>
+						
+						<li>
+							<a href="global.html#cubicOut">cubicOut</a>
+						</li>
+						
+						<li>
 							<a href="global.html#DisplayList">DisplayList</a>
 						</li>
 						
 						<li>
 							<a href="global.html#drawBackground">drawBackground</a>
-						</li>
-						
-						<li>
-							<a href="global.html#drawBox">drawBox</a>
 						</li>
 						
 						<li>
@@ -266,6 +294,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#drawLayer">drawLayer</a>
+						</li>
+						
+						<li>
 							<a href="global.html#drawLine">drawLine</a>
 						</li>
 						
@@ -282,11 +314,35 @@
 						</li>
 						
 						<li>
+							<a href="global.html#drawRects">drawRects</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawRoundedBox">drawRoundedBox</a>
+						</li>
+						
+						<li>
 							<a href="global.html#drawRoundedRect">drawRoundedRect</a>
 						</li>
 						
 						<li>
 							<a href="global.html#drawSpriteFrame">drawSpriteFrame</a>
+						</li>
+						
+						<li>
+							<a href="global.html#drawText">drawText</a>
+						</li>
+						
+						<li>
+							<a href="global.html#eraseDrawLayer">eraseDrawLayer</a>
+						</li>
+						
+						<li>
+							<a href="global.html#eraseForeground">eraseForeground</a>
+						</li>
+						
+						<li>
+							<a href="global.html#eraseObject">eraseObject</a>
 						</li>
 						
 						<li>
@@ -374,6 +430,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#getFPS">getFPS</a>
+						</li>
+						
+						<li>
 							<a href="global.html#getGameRect">getGameRect</a>
 						</li>
 						
@@ -398,6 +458,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#getRandomArrVal">getRandomArrVal</a>
+						</li>
+						
+						<li>
 							<a href="global.html#getRandomInt">getRandomInt</a>
 						</li>
 						
@@ -415,6 +479,10 @@
 						
 						<li>
 							<a href="global.html#getRight">getRight</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getShaftByCoord">getShaftByCoord</a>
 						</li>
 						
 						<li>
@@ -746,6 +814,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#setText">setText</a>
+						</li>
+						
+						<li>
 							<a href="global.html#shaftFloorSelected">shaftFloorSelected</a>
 						</li>
 						
@@ -763,6 +835,10 @@
 						
 						<li>
 							<a href="global.html#skewShape">skewShape</a>
+						</li>
+						
+						<li>
+							<a href="global.html#textToPNG">textToPNG</a>
 						</li>
 						
 						<li>
@@ -798,7 +874,8 @@
     Goodie
     </h2>
     
-        <div class="class-description"><p>an item which helps a Person withstand a Gas attack</p>
+        <div class="class-description"><p>an item which helps a Person withstand a Gas attack. Note that 
+Goodies can only be create AFTER the rest of the Building is constructed.</p>
 <ul>
 <li>parent: BuildingFloor or Person</li>
 <li>grandparent: Building or Elevator</li>
@@ -814,7 +891,7 @@
     
         
 <dt>
-    <h4 class="name" id="Goodie"><span class="type-signature"></span>new Goodie<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="Goodie.html">Goodie</a>|false}</span></h4>
+    <h4 class="name" id="Goodie"><span class="type-signature"></span>new Goodie<span class="signature">(the)</span><span class="type-signature"> &rarr; {<a href="Goodie.html">Goodie</a>|false}</span></h4>
     
     
 </dt>
@@ -826,6 +903,56 @@
     
     
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+
+		<th>Type</th>
+
+		
+
+		
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+	
+
+        <tr>
+            
+                <td class="name"><code>the</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Building.html">Building</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>entire building, since we need to add 
+AFTER the rest of the Building is constructed.</p></td>
+        </tr>
+
+	
+	</tbody>
+</table>
+
     
     
     
@@ -856,7 +983,7 @@
 		<ul class="dummy">
 			<li>
 				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-1929">line 1929</a>
+				 <a href="public_js_elefart-building.js.html#sunlight-1-line-474">line 474</a>
 			</li>
 		</ul>
 	</dd>
@@ -949,7 +1076,7 @@
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Wed Feb 11th 2015 using the <a
+		on Sun Mar 15th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

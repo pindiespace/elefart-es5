@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>DocStrap Class: Sky</title>
+	<title>DocStrap Class: ScreenText</title>
 
 	<!--[if lt IE 9]>
 	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -866,20 +866,17 @@
 					
 
 
-	<h1 class="page-title">Class: Sky</h1>
+	<h1 class="page-title">Class: ScreenText</h1>
 <section>
 
 <header>
     <h2>
-    Sky
+    ScreenText
     </h2>
     
-        <div class="class-description"><p>the sky over the Building, a rect with a color gradient.</p>
-<ul>
-<li>parent: World</li>
-<li>grandparent: none</li>
-<li>children: Clouds in Sky</li>
-</ul></div>
+        <div class="class-description"><p>draw text dynamically in a box on the canvas. Text is scaled to 
+the size of the box (if necessary). No word wrap or scrolling. Only use when 
+the text is repeatedly updated and redrawn.</p></div>
     
 </header>
 
@@ -890,7 +887,7 @@
     
         
 <dt>
-    <h4 class="name" id="Sky"><span class="type-signature"></span>new Sky<span class="signature">(world)</span><span class="type-signature"> &rarr; {<a href="Sky.html">Sky</a>|false}</span></h4>
+    <h4 class="name" id="ScreenText"><span class="type-signature"></span>new ScreenText<span class="signature">(x, y, width, height, font, text, textFillStyle, strokeWidth, strokeWidth, strokeStyle, fillStyle, layer, layer)</span><span class="type-signature"> &rarr; {<a href="ScreenText.html">ScreenText</a>|false}</span></h4>
     
     
 </dt>
@@ -928,13 +925,13 @@
 
         <tr>
             
-                <td class="name"><code>world</code></td>
+                <td class="name"><code>x</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="World.html">World</a></span>
+<span class="param-type">Number</span>
 
 
             
@@ -944,7 +941,291 @@
 
             
 
-            <td class="description last"><p>the World object, linked as parent to this class</p></td>
+            <td class="description last"><p>topleft x coordinate</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>y</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>topleft y coordinate</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>width</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>width of the text box</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>height</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>height of the text box</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>font</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>font string descriptor for HTML5 canvas</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>text</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the text to display</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>textFillStyle</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#COLORS">COLORS</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the color fill on the text</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>strokeWidth</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the width of the stroke around the ScreenRect</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>strokeWidth</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the width of the stroke around the ScreenRect</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>strokeStyle</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#COLORS">COLORS</a></span>
+|
+
+<span class="param-type">CanvasGradient</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the color (rgb or hex) for the stroke, written as 
+a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>fillStyle</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#COLORS">COLORS</a></span>
+|
+
+<span class="param-type">CanvasGradient</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the color (rgb or hex) for the stroke, written as 
+a string, e.g. 'rgb(4,3,3)' or #ddccdd, or an HTML5 Canvas gradient object</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>layer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the layer for elefart.display to draw the object into.</p></td>
+        </tr>
+
+	
+
+        <tr>
+            
+                <td class="name"><code>layer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>the layer for elefart.display to draw the object into.</p></td>
         </tr>
 
 	
@@ -980,8 +1261,8 @@
 	<dd class="tag-source">
 		<ul class="dummy">
 			<li>
-				<a href="public_js_elefart-building.js.html">public/js/elefart-building.js</a>,
-				 <a href="public_js_elefart-building.js.html#sunlight-1-line-2523">line 2523</a>
+				<a href="public_js_elefart-factory.js.html">public/js/elefart-factory.js</a>,
+				 <a href="public_js_elefart-factory.js.html#sunlight-1-line-2262">line 2262</a>
 			</li>
 		</ul>
 	</dd>
@@ -1008,7 +1289,7 @@
     
             
 <div class="param-desc">
-    <p>the Sky object, or false</p>
+    <p>if ok, return ScreenText object, else false</p>
 </div>
 
 
@@ -1019,7 +1300,7 @@
 	</dt>
 	<dd>
 		
-<span class="param-type"><a href="Sky.html">Sky</a></span>
+<span class="param-type"><a href="ScreenText.html">ScreenText</a></span>
 |
 
 <span class="param-type">false</span>
