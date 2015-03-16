@@ -1125,12 +1125,13 @@ window.elefart.controller = (function () {
 							u.dirty = u.updateByTime(); //if updated, we need to be re-drawn
 						}
 					}
-					panel.draw(); //draw the panel
+					//panel.draw(); //draw the panel
 					panel.count = 0;
 				}
 				else {
 					//console.log("too short")
 				}
+				panel.draw();
 			}
 		}
 			//reset interval
