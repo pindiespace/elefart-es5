@@ -28,7 +28,7 @@ window.elefart.factory = (function () {
 	 * @readonly
 	 * @enum {String}
 	 * @typedef TYPES
-	 * @description basic geometry shapes used to create screen objects
+	 * @description basic geometry shapes used to create ScreenObjects
 	 */
 	var TYPES = {
 		POINT:"POINT",
@@ -1848,40 +1848,42 @@ window.elefart.factory = (function () {
 			currCol:coordsObj.currCol,
 			cellWidth:toInt(this.img.width/(coordsObj.cols)),
 			cellHeight:toInt(this.img.height/(coordsObj.rows)),
-			getCellRect:function (row, col) {
-				if(!row) {
-					row = this.currRow;
-					} 
-				else {
-					if(row < 0 || row > currRow) {
-						elefart.showError("Invalid Sprite row:" + row + " rows:" );
-						return false;
-					}
-					currRow = row;
-				}
-				if(!col) {
-					col = this.currCol; 
-				}
-				else {
-					if(col < 0 || col > currCol) {
-						elefart.showError("Invalid Sprite column");
-						return false
-					}
-					currCol = col;
-				}
+			
+			getFrame:function () {
+				return this.currRow;
+			},
+			getRow:function () {
+				return this.currCol;
+			},
+			getCellRect:function () {
 				return {
-					top:row * this.cellHeight,
-					left:col * this.cellWidth,
-					bottom:(row) * this.cellHeight,
-					right:(col) * this.cellWidth,
+					top:this.currRow * this.cellHeight,
+					left:this.currCol * this.cellWidth,
+					bottom:this.currRow * this.cellHeight,
+					right:this.currCol * this.cellWidth,
 					width:this.cellWidth,
 					height:this.cellHeight
 				}
 			},
-			nextCellRect:function () {
-				currRow += 1;if(currRow > rows) currRow = 0;
-				currCol += 1;if(currCol > cols) currCol = 0;
-				getCellRect(currRow, currCol);
+			setRow:function (row) {
+				if(row < 0 || row > this.rows) {
+					console.log("invalid Sprite Position:" + ", cols:" + this.cols);
+				}
+				this.currRow = row;
+			},
+			setFrame:function (col) {
+				if(col < 0 || col > this.cols) {
+					console.log("invalid Sprite Position:" + ", cols:" + this.cols);
+				}
+				this.currCol = col;
+			},
+			setNextFrame: function (reverse) {
+				if(reverse) {
+					this.currCol -= 1; if(this.currCol < 0) this.currCol = 0;
+				}
+				else {
+					this.currCol += 1; if(this.currCol > this.cols) this.currCol = 0;
+				}
 			}
 		};
 		return true;
@@ -2258,6 +2260,7 @@ window.elefart.factory = (function () {
 		}
 		return r;
 	}
+
 
 	/** 
 	 * @constructor ScreenText

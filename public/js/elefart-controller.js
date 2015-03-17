@@ -231,7 +231,7 @@ window.elefart.controller = (function () {
 		var panel, ticks, count, ul, len;
 		now = Date.now();
 		elapsed = now - then;
-		//console.log("FPS:" + elapsed);
+		////////////////////////var mini = now;
 
 		for(var i in panels) {
 			panel = panels[i],
@@ -261,8 +261,15 @@ window.elefart.controller = (function () {
 				panel.draw();
 			}
 		}
+			//////////////////mini = Date.now() - mini;
+			/////////////////mini = 100* mini/elapsed
+			/////////////////mini = (~~ (mini + (mini > 0 ? .5 : -.5)));
+			///////////////////console.log("Mini:" + mini + "%");
+
 			//reset interval
 			then = elapsed = now;
+
+
 
 		requestAnimationFrame(gameLoop); 
 

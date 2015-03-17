@@ -1317,6 +1317,11 @@ window.elefart.display = (function () {
 			ctx.globalAlpha = obj.opacity;
 		}
 		if(obj.spriteCoords) {
+			/* 
+			 * if we don't supply a frame and row, we get the current 
+			 * frame here. Otherwise, getCellRect sets it to the row and 
+			 * column we define
+			 */
 			var r = obj.spriteCoords.getCellRect();
 			ctx.drawImage(
 				obj.img,
@@ -1344,38 +1349,6 @@ window.elefart.display = (function () {
 			);
 		}
 		
-		ctx.restore();
-	}
-
-	/** 
-	 * @method drawSpriteFrame
-	 * @description grab an image from a larger sprite image, part of animation sequence
-	 * more specific functions grab specific images from specific sprites.
-	 * @param {CanvasContext} ctx current drawing context
-	 * @param {ScreenObject} the ScreenObject (type ScreenSprite) to draw
-	 */
-	function drawSpriteFrame (ctx, obj) {
-		ctx.save();
-		var captRect = {
-			top:obj.type * obj.top,
-			left:obj.frame * obj.left,
-			bottom:obj.height,
-			right:obj.width,
-			width:obj.width,
-			height:obj.height
-		}
-		ctx.globalAlpha = opacity;
-		ctx.drawImage(
-			obj.img, 
-			captRect.left, 
-			captRect.top,  
-			captRect.width, 
-			captRect.height, 
-			obj.left, //sprite coordinates onscreen
-			obj.top, //destRect.top, 
-			obj.width, 
-			obj.height
-			);
 		ctx.restore();
 	}
 
@@ -1740,7 +1713,6 @@ window.elefart.display = (function () {
 		drawPolygon:drawPolygon,
 		drawCloud:drawCloud,
 		drawImage:drawImage,
-		drawSpriteFrame:drawSpriteFrame,
 		drawText:drawText,
 		drawBackground:drawBackground,
 		eraseForeground:eraseForeground,

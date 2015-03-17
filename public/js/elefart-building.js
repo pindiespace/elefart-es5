@@ -766,7 +766,7 @@ window.elefart.building = (function () {
 				cols:characterBoard.cols, //0- 7
 				currRow:characterType,
 				currCol:0
-			}); //this adds .getCellRect() and .nextCellRect
+			}); //this adds .getCellRect() and other functions
 
 			//convert user instanceName to bitmap, add to drawing list
 			p.nameImg = display.textToPNG(p.instanceName, "black", "Georgia", 12, 20);
@@ -793,7 +793,6 @@ window.elefart.building = (function () {
 				speed:DIMENSIONS.PERSON.speed, //may be positive or negative
 				adjust:DIMENSIONS.PERSON.adjust, //slow engine speed back on overshoot, lower bound 1.0, higher values reduce slow bounce
 				teleport:false, //move immediately to next destination in elevatorQueue
-				intervalCount:0 //number of updates before changing sprite frame
 			};
 
 			/* 
@@ -814,11 +813,7 @@ window.elefart.building = (function () {
 						var currPt = p.getCenter();
 						if(Math.abs(currPt.x - destPt.x)) {
 							p.move(engine.speed, 0);
-							engine.intervalCount++;
-							if(engine.intervalCount >= DIMENSIONS.PERSON.frameInterval) {
-								//TODO: change sprite frame for this objct
-								engine.intervalCount = 0; //reset
-							}
+							p.spriteCoords.setNextFrame();
 						}
 						//TODO: advance sprite animation
 					}
@@ -844,10 +839,6 @@ window.elefart.building = (function () {
 				//console.log("erasing name")
 				var yCenter = p.top + (p.height/2);
 				ctx.clearRect(p.right, yCenter, p.nameImg.width, p.nameImg.height);
-			};
-
-			p.updateByTime = function () {
-
 			};
 
 			p.getGoodies = function () {
@@ -1092,6 +1083,7 @@ window.elefart.building = (function () {
 								}
 							}
 						} //floorQueue > 0
+
 						return true;
 					} //Elevator engine is ON
 					return false;
