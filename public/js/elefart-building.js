@@ -802,6 +802,12 @@ window.elefart.building = (function () {
 				return p.parent.getParent().getShafts(); //Building parent of BuildingFloor
 			}
 
+			p.getFloor = function () {
+				//TODO: have to DYNAMICALLY RETURN FLOOR Person is now on, 
+				//TODO: also if they are on NONE (in Elevator)
+				return false;
+			}
+
 			/* 
 			 * time-dependent animation, triggered by addToUpdateList
 			 */
@@ -2106,7 +2112,12 @@ window.elefart.building = (function () {
 				}
 
 				//recover Building objects under this click
-				var result = {}, shaft, floor;
+
+				var result = {}, shaft, floor, person, goodie;
+				result.person = b.getPersonByCoord(pt);
+
+				result.goodie = b.getGoodieByCoord(pt);
+
 				shaft = b.getShaftByCoord(pt.x);
 				if(shaft !== false) {
 					result.shaft = shaft;
@@ -2120,6 +2131,7 @@ window.elefart.building = (function () {
 					console.log("checking for ROOF")
 					result.floor = b.getRoof();
 				}
+
 				return result;
 			}
 
@@ -2188,8 +2200,34 @@ window.elefart.building = (function () {
 				return b.getChildByType(BUILDING_TYPES.PERSON, false);
 			}
 
+			b.getPersonByCoord = function (pt) {
+				var people = b.getPeople(),
+				len = people.length;
+				for(var i = 0; i < len; i++) {
+					if(people[i].pointInside(pt)) {
+						return people[i];
+					}
+				}
+				return false;
+			}
+
+			b.getUs = function (pt) {
+				return b.getChildByType(BUILDING_TYPES.PERSON, false, "userType", USER_TYPES.LOCAL)[0];
+			}
+
 			b.getGoodies = function () {
 				return b.getChildByType(BUILDING_TYPES.GOODIE, false);
+			}
+
+			b.getGoodieByCoord = function (pt) {
+				var goodies = b.getGoodies(),
+				len = goodies.length;
+				for(var i = 0; i < len; i++) {
+					if(goodies[i].pointInside(pt)) {
+						return goodies[i];
+					}
+				}
+				return false;
 			}
 
 			/* 

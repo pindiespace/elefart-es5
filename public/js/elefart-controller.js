@@ -24,6 +24,7 @@ window.elefart.controller = (function () {
 	dashboard, 
 	updateList = {},
 	now, then, elapsed, fps = 0, //framerate (fps) calculations
+	us, //reference to local player
 	firstTime = true;
 
 	/** 
@@ -73,11 +74,29 @@ window.elefart.controller = (function () {
 		var gr = display.getGameRect();
 		//get shaft, floor for mouse or touch
 		var tp = building.getBuilding().selected({x:touchPoint.x-gr.left, y:touchPoint.y-gr.top});
+
+		//see if we clicked on a Person, not currently moving
+		if(tp.person) {
+			//TODO: connect to modal window with Person features
+		}
+		//see if we clicked on a Goodie, not currently movint
+		if(tp.goodie) {
+			//TODO: connect to a modal window displaying the goodie value
+		}
+
+		//if the click is on the same BuildingFloor as our Person, add move to queue
+		if(tp.floor) {
+			if(us.parent == tp.floor) {
+				console.log("move character to:" + tp.shaft.shaftNum);
+			}
+		}
+
 		//if building, use mouseclick to move elevator
 		if(tp.shaft && tp.floor) {
 			var e = tp.shaft.getElevator();
 			e.addFloorToQueue(tp.floor.floorNum);
 		}
+
 	}
 
 	/** 
@@ -287,6 +306,7 @@ window.elefart.controller = (function () {
 
 		dashboard = elefart.dashboard;
 		then = now = Date.now(); //fps
+
 		initUpdateList(); //initialize the update list
 		firstTime = false;
 	}
@@ -300,6 +320,10 @@ window.elefart.controller = (function () {
 		if(firstTime) {
 			init();
 		}
+
+		//make reference to local Player
+		us = building.getBuilding().getUs();
+		window.us = us;
 
 		//TODO: probaby need a switch here for other screens
 		//set handlers associate with an active game
