@@ -79,4 +79,5 @@ Shape->ScreenObject
 27. Each object needs to control its own update speed, or a subset should have a special variable
     so they update independently of the rest of the panel
 
-28. 
+28. OBJECTS SHOULD BE "HOOKED UP" independent of their being initialized. In other words, object 
+    tree should be assembled, then the whole tree asked to "init"

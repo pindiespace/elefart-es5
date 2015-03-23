@@ -25,17 +25,20 @@
 	 * types of Persons playing the game (Sprite rows)
 	 * row is row in spriteboard
 	 * frames are number of frames used in the spriteboard, 
-	 * going from left to right
+	 * going from left to right. Objects "left", "center", 
+	 * "right", "up", "down", refer to sub-sets of frames in 
+	 * the row for a particular direction of animation, e.g. 
+	 * running left instead of running right.
 	 */
 	exports.PERSON_TYPES = {
-		MALE_SQUATTING: {row:0, frames:3},
-		MALE_STANDING: {row:1, frames:1},
-		MALE_RUNNING: {row:2, frames:3},
-		MALE_FALLING: {row:3, frames:3},
-		FEMALE_SQUATTING: {row:4, frames:3},
-		FEMALE_STANDING: {row:5, frames:1},
-		FEMALE_RUNNING: {row:6, frames:1},
-		FEMALE_FALLING: {row:7, frames:1}
+		MALE_SQUATTING: {row:0, cols:15, left:[0,2], center:[], right:[], speed:2},
+		MALE_STANDING: {row:1, cols:15, left:[0,1], center:[0,1], right:[], speed:2},
+		MALE_RUNNING: {row:2, cols:15, left:[0,5], center:[], right:[6,11], speed:6},
+		MALE_FALLING: {row:3, cols:15, left:[0,2], center:[], right:[], speed:4},
+		FEMALE_SQUATTING: {row:4, cols:15, left:[0,2], center:[], right:[],speed:2},
+		FEMALE_STANDING: {row:5, cols:15, left:[0,1], center:[], right:[], speed:2},
+		FEMALE_RUNNING: {row:6, cols:15, left:[0,5], center:[], right:[], speed:4},
+		FEMALE_FALLING: {row:7, cols:15, left:[0,2], center:[], right:[], speed:3}
 	},
 
 	exports.GOODIE_TYPES = {

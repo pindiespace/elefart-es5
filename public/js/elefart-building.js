@@ -34,24 +34,29 @@ window.elefart.building = (function () {
 
 	/** 
 	 * @readonly
-	 * @description number used for first floor. Actual storage internally 
-	 * may be zero-based
+	 * @description constant used for top BuildingFloor.
 	 */
 	var ROOF = -1;
 
 	/** 
 	 * @readonly
-	 * @description constant for no floor, e.g. when searching for a BuildingFloor
+	 * @description constant for no BuildingFloor, e.g. when searching for a BuildingFloor
 	 * yields no result
 	 */
 	var NO_FLOOR = -2;
 
 	/** 
 	 * @readonly
-	 * @description constant for no shaft, e.g. when searching for a ElevatorShaft
+	 * @description constant for no ElevatorShaft, e.g. when searching for a ElevatorShaft
 	 * yields no result
 	 */
 	var NO_SHAFT = -3;
+
+	/** 
+	 * @readonly
+	 * @description constant for no Elevator, e.g. Person walking on a BuildingFloor
+	 */
+	var NO_ELEVATOR = -4;
 
 	/** 
 	 * @readonly
@@ -235,7 +240,7 @@ window.elefart.building = (function () {
 	},
 
 	DIMENSIONS[BUILDING_TYPES.PERSON] = {
-		STANDING:0,
+		STANDING:0, //for the spriteboard
 		WALKING:1,
 		RUNNING:2,
 		SQUATTING:3,
@@ -355,70 +360,70 @@ window.elefart.building = (function () {
 
 		//compute height of building floors
 		if(gh < 100) {
-			console.log("LESS THAN 100")
+			console.log("LESS THAN 100");
 			DIMENSIONS.BUILDING.top = 0.33;
 			DIMENSIONS.BUILDING.height = 0.33;
 			DIMENSIONS.BUILDING_FLOOR.height = 1.0;
 			DIMENSIONS.BUILDING_SIGN.height = 1.0;
 		}
 		else if(gh < 240) {
-			console.log("LESS THAN 240")
+			console.log("LESS THAN 240");
 			DIMENSIONS.BUILDING.top = 0.25;
 			DIMENSIONS.BUILDING.height = 0.5
 			DIMENSIONS.BUILDING_FLOOR.height = 0.5;
 			DIMENSIONS.BUILDING_SIGN.height = 0.85;
 		}
 		else if(gh < 320) {
-			console.log("LESS THAN 320")
+			console.log("LESS THAN 320");
 			DIMENSIONS.BUILDING.top = 0.20;
 			DIMENSIONS.BUILDING.height = 0.6;
 			DIMENSIONS.BUILDING_FLOOR.height = 0.4;
 			DIMENSIONS.BUILDING_SIGN.height = 0.75;
 		}
 		else if(gh < 480) {
-			console.log("LESS THAN 480")
+			console.log("LESS THAN 480");
 			DIMENSIONS.BUILDING.top = 0.16;
 			DIMENSIONS.BUILDING.height = 0.64;
 			DIMENSIONS.BUILDING_FLOOR.height = 0.25;
 			DIMENSIONS.BUILDING_SIGN.height = 0.65;
 		}
 		else if(gh < 550) {
-			console.log("LESS THAN 550")
+			console.log("LESS THAN 550");
 			DIMENSIONS.BUILDING.top = 0.14;
 			DIMENSIONS.BUILDING.height = 0.72;
 			DIMENSIONS.BUILDING_FLOOR.height = 0.20;
 			DIMENSIONS.BUILDING_SIGN.height = 0.6;
 		}
 		else if(gh < 760) {
-			console.log("LESS THAN 760")
+			console.log("LESS THAN 760");
 			DIMENSIONS.BUILDING.top = 0.14;
 			DIMENSIONS.BUILDING.height = 0.72;
 			DIMENSIONS.BUILDING_FLOOR.height = 0.18;
 			DIMENSIONS.BUILDING_SIGN.height = 0.55;
 		}
 		else if(gh < 960) {
-			console.log("LESS THAN 960")
+			console.log("LESS THAN 960");
 			DIMENSIONS.BUILDING.top = 0.10;
 			DIMENSIONS.BUILDING.height = 0.80;
 			DIMENSIONS.BUILDING_FLOOR.height = 0.15;
 			DIMENSIONS.BUILDING_SIGN.height = 0.5;
 		}
 		else if(gh < 1100) {
-			console.log("LESS THAN 1100")
+			console.log("LESS THAN 1100");
 			DIMENSIONS.BUILDING.top = 0.10;
 			DIMENSIONS.BUILDING.height = 0.80;
 			DIMENSIONS.BUILDING_FLOOR.height = 0.12;
 			DIMENSIONS.BUILDING_SIGN.height = 0.45;
 		}
 		else if(gh < 1400) {
-			console.log("LESS THAN 1400")
+			console.log("LESS THAN 1400");
 			DIMENSIONS.BUILDING.top = 0.10;
 			DIMENSIONS.BUILDING.height = 0.80;
 			DIMENSIONS.BUILDING_FLOOR.height = 0.11;
 			DIMENSIONS.BUILDING_SIGN.height = 0.45;
 		}
 		else {
-			console.log("Huge dimensions")
+			console.log("Huge dimensions");
 			DIMENSIONS.BUILDING.top = 0.07;
 			DIMENSIONS.BUILDING.height = 0.82;
 			DIMENSIONS.BUILDING_FLOOR.height = 0.10;
@@ -483,14 +488,14 @@ window.elefart.building = (function () {
 	 * @returns {Goodie|false} a Goodie object, or false
 	 */
 	function Goodie (building) {
-
+		var i = 0;
 
 		//get the Goodie spriteboard
 		var goodieBoard = display.getGoodieBoard();
 
 		//randomly compute a GoodieType
 		var goodieType = factory.getRandomInt(0, (goodieBoard.cols-1));
-		var i = 0;
+
 
 		//randomly compute an ElevatorShaft to place the Goodie nearby
 		var floors = building.getFloors();
@@ -586,7 +591,7 @@ window.elefart.building = (function () {
 				g.name = BUILDING_TYPES.GOODIE;
 				g.instanceName = "Goodie type:" + goodieType;
 				//g.parent = building; //do before adding to displayList
-				g.parent = floor;
+				g.parent = goodieFloor;
 				g.getChildByType = getChildByType;
 
 				g.setSpriteCoords({
@@ -777,8 +782,10 @@ window.elefart.building = (function () {
 			//specify user type (bot, local, network)
 			p.userType = userType;
 
-			//start as floor, but can also be Elevator
-			p.parent = floor;
+			//set the BuildingFloor (switch on state changes)
+			p.building = floor.parent;
+			p.floor = floor;
+			p.elevator = NO_ELEVATOR;
 
 			//add health object
 			p.health = new Health(p);
@@ -786,26 +793,110 @@ window.elefart.building = (function () {
 			p.getChildByType = getChildByType;
 
 			//walking queues
-			p.destShaft = NO_SHAFT;
+			p.shaft = NO_SHAFT;
 			p.destPt = false;
+
+			//set up the 'engine' (also indicates the Person can't respond to new events)
 			p.engine = {
 				is:OFF,
 				speed:DIMENSIONS.PERSON.speed, //may be positive or negative
 				adjust:DIMENSIONS.PERSON.adjust, //slow engine speed back on overshoot, lower bound 1.0, higher values reduce slow bounce
-				teleport:false, //move immediately to next destination in elevatorQueue
+				teleport:false, //move immediately to next destination in elevatorQueue,
+				destObj:NO_SHAFT,
+				getDist:function () {
+					if(this.destObj !== NO_SHAFT) {
+						//console.log("this.destObj:" + typeof this.destObj.getCenter);
+						var center = p.getCenter();
+						return factory.toInt(center.x - this.destObj.getCenter().x);
+					}
+				}
 			};
 
 			/* 
-			 * some getters
+			 * STATE ENGINE for person. The "getters" are passive, 
+			 * and their values are changed by actions in the game. 
+			 * 
+			 * GETTERS
 			 */
-			p.getShafts = function () {
-				return p.parent.getParent().getShafts(); //Building parent of BuildingFloor
+			p.getFloor = function () {
+				return p.floor;
 			}
 
-			p.getFloor = function () {
-				//TODO: have to DYNAMICALLY RETURN FLOOR Person is now on, 
-				//TODO: also if they are on NONE (in Elevator)
-				return false;
+			p.getElevator = function () {
+				return p.elevator;
+			}
+
+			/* 
+			 * CONTROLLER EVENT SETTERS
+			 */
+			p.addMoveToShaft = function (gameLoc) {
+				var engine = p.engine;
+				engine.destObj = p.building.getShaftByCoord(factory.toInt(gameLoc.x));
+				var d = engine.getDist();
+
+				if(!engine.destObj) {
+					console.log("addMoveToShaft(): click was outside any shaft");
+					return;
+				}
+				console.log("addMoveToShaft(), dist:" + engine.getDist());
+				console.log("addMoveToShaft(), getting shaft at:" + gameLoc.x + "," + gameLoc.y);
+				console.log("addMoveShaft(), building shaft:" + engine.destObj);
+
+				if(engine.teleport) {
+					console.log("teleporting")
+					p.moveTo(factory.toInt(gameLoc.x - p.width/2));
+					p.removeMoveToShaft();
+				}
+				else if(engine.is === OFF) {
+					console.log("engine off")
+					if(d === undefined) {
+						console.log("addMoveToShaft, distance undefined, returning");
+						//return;
+					}
+					else if(d !== 0) {
+						//start the move
+						engine.is = ON;
+						engine.speed = PERSON_TYPES.MALE_RUNNING.speed;
+						var pType = PERSON_TYPES.MALE_RUNNING;
+						console.log("PTYPE IS:" + pType.row)
+						if(d > 0) {
+							p.spriteCoords.setTimeline(pType.row, pType.left);
+						}
+						else if (d < 0) {
+							p.spriteCoords.setTimeline(pType.row, pType.right);
+						}
+
+						console.log("SSSSSSSSSSSSSSSSSstart:" + p.spriteCoords.startCol + 
+							" current:" + p.spriteCoords.currCol,
+							" end:" + p.spriteCoords.endCol + 
+							" row:" + p.spriteCoords.currRow
+							);
+						console.log("Engine:" + engine.is + ", Person moving to shaft:" + engine.destObj.shaftNum);
+					}
+					else {
+						console.log("engine on, turning off")
+						p.removeMoveToShaft();
+					}
+				}
+				else {
+					//do nothing, we are already moving
+					console.log("engine on, already moving:" + engine.is);
+				}
+			}
+
+			p.removeMoveToShaft = function () {
+				var engine = p.engine;
+				var pType = PERSON_TYPES.MALE_STANDING;
+				if(engine.is === ON) {
+					console.log("Person engine on, dest reached, removing move");
+					engine.speed = PERSON_TYPES.MALE_STANDING.speed;
+					p.spriteCoords.setTimeline(pType.row, pType.left);
+					engine.is = OFF;
+					engine.destObj = NO_SHAFT;
+				}
+				else {
+					console.log("tried to remove when Person engine was off")
+				}
 			}
 
 			/* 
@@ -813,18 +904,44 @@ window.elefart.building = (function () {
 			 */
 			p.updateByTime = function () {
 				var engine = p.engine;
+				var speed = engine.speed,
+				sCenter;
 				if(engine.is === ON) {
-					if(engine.teleport === true) {
-						//TODO: compute distance,
-						var currPt = p.getCenter();
-						if(Math.abs(currPt.x - destPt.x)) {
-							p.move(engine.speed, 0);
-							p.spriteCoords.setNextFrame();
+					console.log("updateByTIme, engine on")
+					sCenter = sCenter = engine.destObj.getCenter();
+					if(engine.destObj) {
+						if(engine.teleport === true) { //instant move
+							console.log("instant move")
+							p.moveTo(factory.toInt(sCenter.x + p.width/2), p.top);
 						}
-						//TODO: advance sprite animation
+						else { //animated move
+							var d = engine.getDist();
+							console.log("d:" + engine.getDist())
+							var adist = Math.abs(d);
+							if(adist > speed) {
+								if(d > speed) {
+									console.log("> move")
+									p.move(-speed, 0);
+								}
+								else if(d < speed) {
+									console.log("< move")
+									p.move(speed, 0);
+								}
+								//advance Person sprite animation
+								p.spriteCoords.setNextFrame(); //PROBLEM SEEMS TO BE HERE
+							}
+							else {
+								p.moveTo(factory.toInt(sCenter.x - p.width/2), p.top);
+								p.removeMoveToShaft();
+							}
+						}
+						//TODO: advance Person sprite farting, if it happens
 					}
 				}
-			}
+				else {
+					//engine OFF, take no action here
+				}
+			};
 
 			/*
 			 * draw a custom image of the user's instanceName
@@ -844,7 +961,7 @@ window.elefart.building = (function () {
 			p.customErase = function (ctx) {
 				//console.log("erasing name")
 				var yCenter = p.top + (p.height/2);
-				ctx.clearRect(p.right, yCenter, p.nameImg.width, p.nameImg.height);
+				ctx.clearRect(p.right, yCenter, p.nameImg.width, p.nameImg.height+ 1);
 			};
 
 			p.getGoodies = function () {
@@ -855,60 +972,13 @@ window.elefart.building = (function () {
 				return s.getChildByType(BUILDING_TYPES.GAS, false);
 			};
 
-			p.fart = function () {
-				//emit fart in elevator or on floor
-			};
-
-			p.addGoodie = function () {
-				//pick up a goodie
-			};
-
-			p.useGoodie = function () {
-				//use goodie to combat fart
-			};
-
-			//walk queueing
-			p.addWalk = function (destPt) {
-				if(p.destShaft !== NO_SHAFT) {
-					console.log("walking to shaft aready");
-					return false;
-				}
-				//find the ElevatorShaft which contains destPt
-				var shafts = p.getShafts();
-				var len = shafts.length;
-				for(var i = 0; i < len; i++) {
-					var shaft = shafts[i];
-					if(shaft.pointInside(destPt)) {
-						p.destShaft = shaft.shaftNum;
-						p.destPt = destPt;
-						p.engine.is = ON;
-					}
-				}
-			}
-
-			p.removeWalk = function () {
-				p.destShaft = NO_SHAFT;
-				p.destPt = false;
-				p.engine.is = OFF;
-			}
-
-			p.enterElevator = function (elevator, floor, endFloor) {
-				//only enter if elevator is open, otherwise wait
-				p.parent = elevator
-			};
-
-			p.exitElevator = function () {
-				//parent becomes end floor
-			};
-
-			//add Gas, one of each type
+			//add Gas, one of each type to charge up this Person
 			for(var i in GAS_TYPES) {
-				p.addChild(Gas(p, i))
+				p.addChild(Gas(p, i));
 			}
 
 			display.addToDisplayList(p, display.LAYERS.PEOPLE);
 			controller.addToUpdateList(p);
-
 			return p;
 			}
 
@@ -1100,6 +1170,10 @@ window.elefart.building = (function () {
 					return e.parent;
 				}
 
+				e.getFloor = function () {
+					return e.getShaft().parent.getFloorByCoord(e.top + factory.toInt(e.height/2));
+				}
+
 				/** 
 				 * @method Elevator.getFloors
 				 * @description get floors the Elevator can visit
@@ -1137,6 +1211,7 @@ window.elefart.building = (function () {
 				e.openElevatorDoors = function () {
 
 				}
+
 				//Elevator floor queue
 
 				/** 
@@ -1175,7 +1250,7 @@ window.elefart.building = (function () {
 				 * at updates
 				 */
 				e.addFloorToQueue = function (floor) {
-					var floorNum, len;
+					var floorNum, i, len;
 					if(!factory.isNumber(floor)) {
 						floorNum = floor.floorNum;
 					}
@@ -1187,7 +1262,7 @@ window.elefart.building = (function () {
 						else {
 							var floors = e.getFloors();
 							len = floors.length;
-							for(var i = 0; i < len; i++) {
+							for(i = 0; i < len; i++) {
 								if(floors[i].floorNum === floorNum) {
 									//only respond to floor within reach of Elevator Shaft
 									floor = floors[i];
@@ -1202,7 +1277,7 @@ window.elefart.building = (function () {
 					console.log("Elevator:getting floor with floorNum:" + floorNum)
 					//make sure floor isn't alredy in queue
 					len = e.floorQueue.length;
-					for(var i = 0; i < len; i++) {
+					for(i = 0; i < len; i++) {
 						if(floorNum === e.floorQueue[i].floorNum) {
 							console.log("floor:" + floorNum + " already in queue");
 							return false;
@@ -1210,16 +1285,24 @@ window.elefart.building = (function () {
 					}
 					//include the BuildingRoof as a floor, if ElevatorShaft goes there
 					if(floorNum === ROOF && e.parent.hasShaftTop) {
-						console.log("add ROOF:" + floor + " to elevator:" + e.id + " queue")
+						console.log("add ROOF:" + floor + " to Elevator:" + e.id + " queue")
 						e.engine.is = ON;
 						e.floorQueue.push(world.getBuilding().getRoof());
 						return floor;
 					}
 					var fl = e.parent.floorInShaft(floor); //some shafts don't go to all floors
+					if (floor === e.getFloor()) {
+						console.log("Elevator already at requested BuildingFloor:" + floor.floorNum);
+						return;
+					}
 					if(fl) {
-						console.log("add ElevatorFloor:" + floor + " to Elevator:" + e.id + " queue")
+						console.log("add BuildingFloor:" + floor + " to Elevator:" + e.id + " queue")
 						e.engine.is = ON;
 						e.floorQueue.push(floor);
+						//TODO: if a Person is standing in front of the Elevator
+						//TODO: add them to the Elevator as a child, and use the 
+						//DESTINATION IN THE QUEUE as their queue.
+						//TODO: make their Parent the Elevator
 						return floor;
 					}
 					return false;
@@ -1249,6 +1332,9 @@ window.elefart.building = (function () {
 					for(var i = 0; i < len; i++) {
 						if(e.floorQueue[i].floorNum === floorNum) {
 							floor = e.floorQueue.splice(i, 1);
+							//TODO: if some Person has this floor as their exit, 
+							//TODO: eject them from the Elevator, and reset their
+							//TODO: parent back to the floor
 							if(e.floorQueue.length < 1) {
 								e.engine.is = OFF; //no more BuildingFloors to go to
 							}
@@ -2237,31 +2323,30 @@ window.elefart.building = (function () {
 			 */
 			var elevatorHeight = b.getShaft(1).getElevator().height;
 			var shaftStart = b.getShaft(factory.getRandomInt(1, numShafts-1)).left;
-			b.addChild(
-				Person (
+			var p = Person (
 					"Bob Bottoms", 
 					PERSON_TYPES.MALE_STANDING.row, 
 					USER_TYPES.LOCAL, 
 					b.getFloor(1), //Floor dimensions
 					elevatorHeight, //Elevator dimensions,
 					shaftStart //which ElevatorShaft to start at
-				)
-			);
+				);
+			b.addChild(p); 
+			window.bob = p; /////////////////////////////////////////////
 
 			/* 
 			 * add a 'bot' competitor
 			 */
 			shaftStart = b.getShaft(factory.getRandomInt(1, numShafts-1)).left;
-			b.addChild(
-				Person (
+			p = Person (
 					"Botboy", 
 					PERSON_TYPES.MALE_STANDING.row, 
 					USER_TYPES.BOT, 
 					b.getFloor(factory.getRandomInt(1, numFloors-1)), //Floor dimensions
 					elevatorHeight, //Elevator dimensions
 					shaftStart //which ElevatorShaft to start at
-				)
-			);
+				);
+			b.addChild(p);
 
 			/* 
 			 * add Goodies, about as many as there are ElevatorShafts
@@ -2884,6 +2969,7 @@ window.elefart.building = (function () {
 
 		//kill the old world display list
 		display.initDisplayList();
+		controller.initUpdateList();
 
 		//(re)set dimensions
 		setDimensions(display.getCSSBreakpoint());

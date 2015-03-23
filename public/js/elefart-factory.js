@@ -1818,6 +1818,92 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
+	 * @method SpriteCoords
+	 * @description create a new SpriteCoords object by the 'new' operator
+	 * instead of return
+	 */
+	function SpriteCoords (obj, coordsObj) {
+
+		//TODO: ADD THE RECT HERE EXPLICITLY, AND COMPUTE ONLY UPON AND UPDATE
+		//HAVE THE DISPLAY READ ONLY THE COMPUTED RECT
+		var getWidth = function () {
+			return this.frame.width;
+		},
+		getHeight = function () {
+			return this.frame.height;
+		},
+		getRow = function () {
+			return this.currRow;
+		},
+		getFrame = function () {
+				return this.currCol;
+		},
+		getFrameRect = function () {
+			return this.frame;
+		},
+		setRow = function (row) {
+			if(row < 0 || row > this.rows) {
+				console.log("invalid Sprite row Position:" + ", cols:" + this.cols);
+			}
+			this.currRow = row;
+			this.frame.top = row * this.frame.height;
+			this.frame.bottom = this.frame.top + this.frame.top;
+		},
+		setFrame = function (col) {
+			if(col < 0 || col > this.cols) {
+				console.log("invalid Sprite frame Position:" + ", cols:" + this.cols);
+			}
+			this.currCol = col;
+			this.frame.left = col * this.frame.width;
+			this.frame.right = this.frame.left + this.frame.width;
+			console.log("setNextFrame col:" + this.currCol + " for:" + this.nm);
+		},
+		setNextFrame = function () {
+			this.currCol += 1; 
+			if(this.currCol > this.endCol) {
+				this.currCol = this.startCol;
+			}
+			this.setFrame(this.currCol);
+		},
+		setTimeline = function (row, sequence) {
+			this.setRow(row);
+			this.startCol = this.currCol = sequence[0];
+			this.endCol = sequence[1];
+			this.setFrame(sequence[0]);
+		}
+
+		var w = Math.ceil(obj.img.width/(coordsObj.cols));
+		var h = Math.ceil(obj.img.height/(coordsObj.rows));
+
+		return {
+			nm:obj.instanceName,
+			rows:coordsObj.rows,
+			cols:coordsObj.cols,
+			currRow:coordsObj.currRow,
+			currCol:coordsObj.currCol,
+			startCol:0,
+			endCol:coordsObj.cols,
+			frame:{
+				top:coordsObj.currRow * h,
+				left:coordsObj.currCol * w,
+				bottom:this.cellHeight,
+				right:this.cellWidth,
+				width:w,
+				height:h
+			},
+			getWidth:getWidth,
+			getHeight:getHeight,
+			getRow:getRow,
+			getFrame:getFrame,
+			getFrameRect:getFrameRect,
+			setRow:setRow,
+			setFrame:setFrame,
+			setNextFrame:setNextFrame,
+			setTimeline:setTimeline
+		};
+	}
+
+	/** 
 	 * @method setSpriteCoords
 	 * @description given an image, set coordinates for timelines (rows) and 
 	 * individual image subframes to draw (columns) in an JS Image
@@ -1841,51 +1927,7 @@ window.elefart.factory = (function () {
 			elefart.showError("can't set sprite coordinates on a non-image object:" + coordsObj);
 			return false;
 		}
-		this.spriteCoords = {
-			rows:coordsObj.rows,
-			cols:coordsObj.cols,
-			currRow:coordsObj.currRow,
-			currCol:coordsObj.currCol,
-			cellWidth:toInt(this.img.width/(coordsObj.cols)),
-			cellHeight:toInt(this.img.height/(coordsObj.rows)),
-			
-			getFrame:function () {
-				return this.currRow;
-			},
-			getRow:function () {
-				return this.currCol;
-			},
-			getCellRect:function () {
-				return {
-					top:this.currRow * this.cellHeight,
-					left:this.currCol * this.cellWidth,
-					bottom:this.currRow * this.cellHeight,
-					right:this.currCol * this.cellWidth,
-					width:this.cellWidth,
-					height:this.cellHeight
-				}
-			},
-			setRow:function (row) {
-				if(row < 0 || row > this.rows) {
-					console.log("invalid Sprite Position:" + ", cols:" + this.cols);
-				}
-				this.currRow = row;
-			},
-			setFrame:function (col) {
-				if(col < 0 || col > this.cols) {
-					console.log("invalid Sprite Position:" + ", cols:" + this.cols);
-				}
-				this.currCol = col;
-			},
-			setNextFrame: function (reverse) {
-				if(reverse) {
-					this.currCol -= 1; if(this.currCol < 0) this.currCol = 0;
-				}
-				else {
-					this.currCol += 1; if(this.currCol > this.cols) this.currCol = 0;
-				}
-			}
-		};
+		this.spriteCoords = SpriteCoords(this, coordsObj);
 		return true;
 	}
 

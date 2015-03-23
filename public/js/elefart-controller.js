@@ -23,7 +23,7 @@ window.elefart.controller = (function () {
 	panels,
 	dashboard, 
 	updateList = {},
-	now, then, elapsed, fps = 0, //framerate (fps) calculations
+	now, then, elapsed, fps = 0, upint = 0, //framerate (fps) calculations
 	us, //reference to local player
 	firstTime = true;
 
@@ -72,31 +72,42 @@ window.elefart.controller = (function () {
 		//check if we've selected the Building or Controls
 		//the left coordinate must be adjusted if the GameRect is smaller than window's viewport
 		var gr = display.getGameRect();
+
+		var gameLoc = {x:touchPoint.x-gr.left, y:touchPoint.y-gr.top};
+
 		//get shaft, floor for mouse or touch
-		var tp = building.getBuilding().selected({x:touchPoint.x-gr.left, y:touchPoint.y-gr.top});
+		var tp = building.getBuilding().selected(gameLoc);
+
+		//user clicked a control
+		if(tp.controls) {
+			//TODO: route a control message to appropriate game object
+		}
 
 		//see if we clicked on a Person, not currently moving
 		if(tp.person) {
 			//TODO: connect to modal window with Person features
+			console.log("clicked on Person:" + tp.person.instanceName);
 		}
 		//see if we clicked on a Goodie, not currently movint
 		if(tp.goodie) {
 			//TODO: connect to a modal window displaying the goodie value
+			console.log("clicked on a Goodie:" + tp.goodie.instanceName);
 		}
 
 		//if the click is on the same BuildingFloor as our Person, add move to queue
 		if(tp.floor) {
-			if(us.parent == tp.floor) {
-				console.log("move character to:" + tp.shaft.shaftNum);
+			if(us.getFloor().floorNum === tp.floor.floorNum) {
+				console.log("move " + us.instanceName + " to ElevatorShaft:" + tp.shaft.shaftNum);
+				us.addMoveToShaft(gameLoc);
+			}
+
+			//if building, use mouseclick to move elevator
+			if(tp.shaft) {
+				console.log("shaft:" + tp.shaft.shaftNum + " selected");
+				var e = tp.shaft.getElevator();
+				e.addFloorToQueue(tp.floor.floorNum);
 			}
 		}
-
-		//if building, use mouseclick to move elevator
-		if(tp.shaft && tp.floor) {
-			var e = tp.shaft.getElevator();
-			e.addFloorToQueue(tp.floor.floorNum);
-		}
-
 	}
 
 	/** 
@@ -242,6 +253,15 @@ window.elefart.controller = (function () {
 		return 1000;
 	}
 
+	function getUpdateInterval () {
+		if(fps) {
+			var n = 100 * upint/fps;
+			upint = (upint * 0.9) + (n * 0.1); //smoothed
+			return (~~ (upint + (upint > 0 ? .5 : -.5)));
+		}
+		return 0;
+	}
+
 	/** 
 	 * @method gameLoop
 	 * @description regular updates (e.g. screen redraws)
@@ -250,7 +270,8 @@ window.elefart.controller = (function () {
 		var panel, ticks, count, ul, len;
 		now = Date.now();
 		elapsed = now - then;
-		////////////////////////var mini = now;
+
+		var mini = now; //////////////////////////
 
 		for(var i in panels) {
 			panel = panels[i],
@@ -280,11 +301,8 @@ window.elefart.controller = (function () {
 				panel.draw();
 			}
 		}
-			//////////////////mini = Date.now() - mini;
-			/////////////////mini = 100* mini/elapsed
-			/////////////////mini = (~~ (mini + (mini > 0 ? .5 : -.5)));
-			///////////////////console.log("Mini:" + mini + "%");
-
+			//time to complete the update alone
+			upint = Date.now() - now;
 			//reset interval
 			then = elapsed = now;
 
@@ -332,7 +350,6 @@ window.elefart.controller = (function () {
 
 		//objects that initially have their 'dirty' bit set should be drawn
 
-
 		//start the loop
 		gameLoop();
 
@@ -340,9 +357,11 @@ window.elefart.controller = (function () {
 
 	//returned object
 	return {
+		initUpdateList:initUpdateList,
 		addToUpdateList:addToUpdateList,
 		removeFromUpdateList:removeFromUpdateList,
 		getFPS:getFPS,
+		getUpdateInterval:getUpdateInterval,
 		init:init,
 		run:run
 	};

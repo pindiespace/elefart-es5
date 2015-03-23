@@ -188,7 +188,7 @@ window.elefart.display = (function () {
 		}
 		//SPRITE VALUES (added to Image)
 		characterBoard.rows = 8;
-		characterBoard.cols = 14;
+		characterBoard.cols = 15;
 		characterBoard.src = "img/game/characterboard.png";
 
 		//gas sprites
@@ -777,13 +777,14 @@ window.elefart.display = (function () {
 	 * @param {ScreenObject} the screenObject to erase
 	 */
 	function eraseObject (ctx, obj) {
-		var dWidth = Math.ceil(obj.lineWidth * 2);
+		var dWidth = obj.lineWidth + obj.lineWidth;
 		ctx.clearRect(
 			obj.left-obj.lineWidth, 
 			obj.top-obj.lineWidth, 
 			obj.width+dWidth, 
 			obj.height+dWidth
 			);
+		//if the object did a customDraw outside its Rect, erase here
 		if(obj.customErase) {
 			obj.customErase(ctx);
 		}
@@ -1322,8 +1323,11 @@ window.elefart.display = (function () {
 			 * frame here. Otherwise, getCellRect sets it to the row and 
 			 * column we define
 			 */
-			var r = obj.spriteCoords.getCellRect();
-			ctx.drawImage(
+			var r = obj.spriteCoords.getFrameRect();
+			if(obj.instanceName == "Bob Bottoms") {
+				console.log("img:" + obj.img + "  l:" + r.left)
+			}
+				ctx.drawImage(
 				obj.img,
 				r.left,
 				r.top, 
@@ -1388,7 +1392,7 @@ window.elefart.display = (function () {
 	 * @method eraseDrawLayer
 	 * @description draw a layer without erasing the whole canvas, just erase
 	 * individual objects with their 'dirty' bit set, and redraw. Provides a crude 
-	 * draw clipping function (can't use with layers that have overlapping objects) 
+	 * draw region clipping function (can't use with layers that have overlapping objects) 
 	 * to improve performance for dynamic (non-image) objects.
 	 * @param {} ctx the image context
 	 * @param {Array<Object>} layer a layer with objects to be drawn
@@ -1436,8 +1440,6 @@ window.elefart.display = (function () {
 		wctx.clearRect(0, 0, worldground.width, worldground.height)
 
 		//@link http://www.html5rocks.com/en/tutorials/canvas/performance/
-		drawLayer(wctx, displayList[LAYERS.WORLD]);
-		drawLayer(wctx, displayList[LAYERS.CLOUDS]);
 
 		//execute the display list
 		drawLayer(wctx, displayList[LAYERS.WORLD]);  //Sky
