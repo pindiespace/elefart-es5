@@ -24,7 +24,7 @@ window.elefart.controller = (function () {
 	dashboard, 
 	updateList = {},
 	now, then, elapsed, fps = 0, upint = 0, //framerate (fps) calculations
-	us, //reference to local player
+	localPlayer, //reference to local player
 	firstTime = true;
 
 	/** 
@@ -88,6 +88,7 @@ window.elefart.controller = (function () {
 			//TODO: connect to modal window with Person features
 			console.log("clicked on Person:" + tp.person.instanceName);
 		}
+
 		//see if we clicked on a Goodie, not currently movint
 		if(tp.goodie) {
 			//TODO: connect to a modal window displaying the goodie value
@@ -96,12 +97,18 @@ window.elefart.controller = (function () {
 
 		//if the click is on the same BuildingFloor as our Person, add move to queue
 		if(tp.floor) {
-			if(us.getFloor().floorNum === tp.floor.floorNum) {
-				console.log("move " + us.instanceName + " to ElevatorShaft:" + tp.shaft.shaftNum);
-				us.addMoveToShaft(gameLoc);
+
+			/*
+			 * if on the same floor as Player ('localPlayer') then move the Player.
+			 * if we didn't have a reference to the local player, we would have to 
+			 * broadcast this message to all Players
+			 */
+			if(localPlayer.getFloor().floorNum === tp.floor.floorNum) {
+				console.log("move " + localPlayer.instanceName + " to ElevatorShaft:" + tp.shaft.shaftNum);
+				localPlayer.addMoveToShaft(gameLoc);
 			}
 
-			//if building, use mouseclick to move elevator
+			//if on an Elevator, use mouseclick to move elevator
 			if(tp.shaft) {
 				console.log("shaft:" + tp.shaft.shaftNum + " selected");
 				var e = tp.shaft.getElevator();
@@ -306,10 +313,28 @@ window.elefart.controller = (function () {
 			//reset interval
 			then = elapsed = now;
 
-
-
 		requestAnimationFrame(gameLoop); 
 
+	}
+
+	/** 
+	 * @method getLocalPlayer
+	 * actively ask the Building for the current local Player
+	 */
+	function getLocalPlayer () {
+		return building.getBuilding().getLocalPlayer();
+	}
+
+	/** 
+	 * @method setLocalPlayer
+	 * @description set the local Player when the World re-inits, 
+	 * necessary since otherwise we retain a link to the earlier 
+	 * World (the "localPlayer" reference keeps the entire earlier 
+	 * World from going out of scope). Called by building.buildWorld().
+	 * @returns {Boolean} if ok, return true, else, false
+	 */
+	function setLocalPlayer (player) {
+		localPlayer = player;
 	}
 
 	/** 
@@ -340,8 +365,7 @@ window.elefart.controller = (function () {
 		}
 
 		//make reference to local Player
-		us = building.getBuilding().getUs();
-		window.us = us;
+		localPlayer = getLocalPlayer();
 
 		//TODO: probaby need a switch here for other screens
 		//set handlers associate with an active game
@@ -362,6 +386,7 @@ window.elefart.controller = (function () {
 		removeFromUpdateList:removeFromUpdateList,
 		getFPS:getFPS,
 		getUpdateInterval:getUpdateInterval,
+		setLocalPlayer:setLocalPlayer,
 		init:init,
 		run:run
 	};

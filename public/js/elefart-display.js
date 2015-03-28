@@ -1324,9 +1324,10 @@ window.elefart.display = (function () {
 			 * column we define
 			 */
 			var r = obj.spriteCoords.getFrameRect();
-			if(obj.instanceName == "Bob Bottoms") {
-				console.log("img:" + obj.img + "  l:" + r.left)
-			}
+			////if(obj.instanceName == "Bob Bottoms") {
+			////	console.log("img:" + obj.img + "  l:" + r.left)
+			////}
+			
 				ctx.drawImage(
 				obj.img,
 				r.left,

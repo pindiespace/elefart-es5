@@ -81,3 +81,6 @@ Shape->ScreenObject
 
 28. OBJECTS SHOULD BE "HOOKED UP" independent of their being initialized. In other words, object 
     tree should be assembled, then the whole tree asked to "init"
+
+
+

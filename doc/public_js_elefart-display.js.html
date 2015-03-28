@@ -226,6 +226,14 @@
 						</li>
 						
 						<li>
+							<a href="global.html#centerX">centerX</a>
+						</li>
+						
+						<li>
+							<a href="global.html#centerY">centerY</a>
+						</li>
+						
+						<li>
 							<a href="global.html#changeDisplayList">changeDisplayList</a>
 						</li>
 						
@@ -323,10 +331,6 @@
 						
 						<li>
 							<a href="global.html#drawRoundedRect">drawRoundedRect</a>
-						</li>
-						
-						<li>
-							<a href="global.html#drawSpriteFrame">drawSpriteFrame</a>
 						</li>
 						
 						<li>
@@ -451,6 +455,10 @@
 						
 						<li>
 							<a href="global.html#getLeft">getLeft</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getLocalPlayer%250Dactively%2520ask%2520the%2520Building%2520for%2520the%2520current%2520local%2520Player">getLocalPlayeractively ask the Building for the current local Player</a>
 						</li>
 						
 						<li>
@@ -802,6 +810,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#setLocalPlayer">setLocalPlayer</a>
+						</li>
+						
+						<li>
 							<a href="global.html#setOpacity">setOpacity</a>
 						</li>
 						
@@ -835,6 +847,10 @@
 						
 						<li>
 							<a href="global.html#skewShape">skewShape</a>
+						</li>
+						
+						<li>
+							<a href="global.html#SpriteCoords">SpriteCoords</a>
 						</li>
 						
 						<li>
@@ -1061,7 +1077,7 @@ window.elefart.display = (function () {
 		}
 		//SPRITE VALUES (added to Image)
 		characterBoard.rows = 8;
-		characterBoard.cols = 14;
+		characterBoard.cols = 15;
 		characterBoard.src = "img/game/characterboard.png";
 
 		//gas sprites
@@ -1650,13 +1666,14 @@ window.elefart.display = (function () {
 	 * @param {ScreenObject} the screenObject to erase
 	 */
 	function eraseObject (ctx, obj) {
-		var dWidth = Math.ceil(obj.lineWidth * 2);
+		var dWidth = obj.lineWidth + obj.lineWidth;
 		ctx.clearRect(
 			obj.left-obj.lineWidth, 
 			obj.top-obj.lineWidth, 
 			obj.width+dWidth, 
 			obj.height+dWidth
 			);
+		//if the object did a customDraw outside its Rect, erase here
 		if(obj.customErase) {
 			obj.customErase(ctx);
 		}
@@ -2190,8 +2207,17 @@ window.elefart.display = (function () {
 			ctx.globalAlpha = obj.opacity;
 		}
 		if(obj.spriteCoords) {
-			var r = obj.spriteCoords.getCellRect();
-			ctx.drawImage(
+			/* 
+			 * if we don't supply a frame and row, we get the current 
+			 * frame here. Otherwise, getCellRect sets it to the row and 
+			 * column we define
+			 */
+			var r = obj.spriteCoords.getFrameRect();
+			////if(obj.instanceName == "Bob Bottoms") {
+			////	console.log("img:" + obj.img + "  l:" + r.left)
+			////}
+			
+				ctx.drawImage(
 				obj.img,
 				r.left,
 				r.top, 
@@ -2217,38 +2243,6 @@ window.elefart.display = (function () {
 			);
 		}
 		
-		ctx.restore();
-	}
-
-	/** 
-	 * @method drawSpriteFrame
-	 * @description grab an image from a larger sprite image, part of animation sequence
-	 * more specific functions grab specific images from specific sprites.
-	 * @param {CanvasContext} ctx current drawing context
-	 * @param {ScreenObject} the ScreenObject (type ScreenSprite) to draw
-	 */
-	function drawSpriteFrame (ctx, obj) {
-		ctx.save();
-		var captRect = {
-			top:obj.type * obj.top,
-			left:obj.frame * obj.left,
-			bottom:obj.height,
-			right:obj.width,
-			width:obj.width,
-			height:obj.height
-		}
-		ctx.globalAlpha = opacity;
-		ctx.drawImage(
-			obj.img, 
-			captRect.left, 
-			captRect.top,  
-			captRect.width, 
-			captRect.height, 
-			obj.left, //sprite coordinates onscreen
-			obj.top, //destRect.top, 
-			obj.width, 
-			obj.height
-			);
 		ctx.restore();
 	}
 
@@ -2288,7 +2282,7 @@ window.elefart.display = (function () {
 	 * @method eraseDrawLayer
 	 * @description draw a layer without erasing the whole canvas, just erase
 	 * individual objects with their 'dirty' bit set, and redraw. Provides a crude 
-	 * draw clipping function (can't use with layers that have overlapping objects) 
+	 * draw region clipping function (can't use with layers that have overlapping objects) 
 	 * to improve performance for dynamic (non-image) objects.
 	 * @param {} ctx the image context
 	 * @param {Array&lt;Object>} layer a layer with objects to be drawn
@@ -2336,8 +2330,6 @@ window.elefart.display = (function () {
 		wctx.clearRect(0, 0, worldground.width, worldground.height)
 
 		//@link http://www.html5rocks.com/en/tutorials/canvas/performance/
-		drawLayer(wctx, displayList[LAYERS.WORLD]);
-		drawLayer(wctx, displayList[LAYERS.CLOUDS]);
 
 		//execute the display list
 		drawLayer(wctx, displayList[LAYERS.WORLD]);  //Sky
@@ -2613,7 +2605,6 @@ window.elefart.display = (function () {
 		drawPolygon:drawPolygon,
 		drawCloud:drawCloud,
 		drawImage:drawImage,
-		drawSpriteFrame:drawSpriteFrame,
 		drawText:drawText,
 		drawBackground:drawBackground,
 		eraseForeground:eraseForeground,
@@ -2644,7 +2635,7 @@ window.elefart.display = (function () {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Sun Mar 15th 2015 using the <a
+		on Sat Mar 28th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

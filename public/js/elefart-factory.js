@@ -1215,6 +1215,30 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
+	 * @method centerX
+	 * @description center an Rect-type object inside this object along
+	 * the x axis.
+	 * @param {ScreenObject} obj the object to be centered along its x axis
+	 */
+	function centerX(obj) {
+		var c = getCenter.apply(this);
+		obj.moveTo(c.x - Math.round(obj.width/2));
+		return true;
+	}
+
+	/** 
+	 * @method centerY
+	 * @description center an Rect-type object inside this object along
+	 * the y axis.
+	 * @param {ScreenObject} obj the object to be centered along its x axis
+	 */
+	function centerY(obj) {
+		var c = getCenter.apply(this);
+		obj.moveTo(c.y - Math.round(obj.height/2));
+		return true;
+	}
+
+	/** 
 	 * @method rectCenterOnPoint
 	 * @description center a Rect on a Point
 	 * @param {Point} centerPt the point to use
@@ -1273,30 +1297,27 @@ window.elefart.factory = (function () {
 	/** 
 	 * @method centerRectInRect
 	 * @description center a rect so it is inside, or surrounds an other Rect
-	 * @param {Rect} centerRect the Rect to center the first rect onto
+	 * @param {Rect} centerRect the Rect to center the first rect onto, Subce '
+	 * our geometric objects are extensions of Rect, most can be used as a 
+	 * Rect object, so centerRect may actually be an ScreenObject.
 	 * @returns {Boolean} if centered, return true, else false
 	 */
 	function centerInRect (centerRect, recurse) {
 		if(!centerRect.valid.apply(centerRect,[])) {
 			return false;
 		}
+		var c = getCenter.apply(centerRect);
 		switch(this.type) {
 			case TYPES.POINT:
-				var c = getCenter.apply(centerRect);
 				this.x = c.x;
 				this.y = c.y;
 				break;
 			case TYPES.RECT:
 			case TYPES.CIRCLE:
-				var c = getCenter.apply(centerRect);
+			case TYPES.POLYGON:
 				var x = c.x - Math.min(this.width/2);
 				var y = c.y - Math.min(this.height/2);
 				moveTo.apply(this, [x, y, recurse]);
-				break;
-			case TYPES.POLYGON:
-				var c = getCenter.apply(centerRect);
-				var x = c.x - Math.min(this.width/2);
-				var y = c.y - Math.min(this.height/2);
 				break;
 			default:
 				elefart.showError(this.type + " cannot use centerInRect()");
@@ -1856,7 +1877,7 @@ window.elefart.factory = (function () {
 			this.currCol = col;
 			this.frame.left = col * this.frame.width;
 			this.frame.right = this.frame.left + this.frame.width;
-			console.log("setNextFrame col:" + this.currCol + " for:" + this.nm);
+			console.log("setFrame col:" + this.currCol + " for:" + this.nm);
 		},
 		setNextFrame = function () {
 			this.currCol += 1; 
@@ -2010,6 +2031,8 @@ window.elefart.factory = (function () {
 		//setters
 		obj.move = move,
 		obj.moveTo = moveTo,
+		obj.centerX = centerX,
+		obj.centerY = centerY,
 		obj.centerOnPoint = centerOnPoint,
 		obj.centerInRect = centerInRect,
 		obj.setDimensions = setDimensions,

@@ -226,6 +226,14 @@
 						</li>
 						
 						<li>
+							<a href="global.html#centerX">centerX</a>
+						</li>
+						
+						<li>
+							<a href="global.html#centerY">centerY</a>
+						</li>
+						
+						<li>
 							<a href="global.html#changeDisplayList">changeDisplayList</a>
 						</li>
 						
@@ -323,10 +331,6 @@
 						
 						<li>
 							<a href="global.html#drawRoundedRect">drawRoundedRect</a>
-						</li>
-						
-						<li>
-							<a href="global.html#drawSpriteFrame">drawSpriteFrame</a>
 						</li>
 						
 						<li>
@@ -451,6 +455,10 @@
 						
 						<li>
 							<a href="global.html#getLeft">getLeft</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getLocalPlayer%250Dactively%2520ask%2520the%2520Building%2520for%2520the%2520current%2520local%2520Player">getLocalPlayeractively ask the Building for the current local Player</a>
 						</li>
 						
 						<li>
@@ -802,6 +810,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#setLocalPlayer">setLocalPlayer</a>
+						</li>
+						
+						<li>
 							<a href="global.html#setOpacity">setOpacity</a>
 						</li>
 						
@@ -835,6 +847,10 @@
 						
 						<li>
 							<a href="global.html#skewShape">skewShape</a>
+						</li>
+						
+						<li>
+							<a href="global.html#SpriteCoords">SpriteCoords</a>
 						</li>
 						
 						<li>
@@ -901,7 +917,7 @@ window.elefart.factory = (function () {
 	 * @readonly
 	 * @enum {String}
 	 * @typedef TYPES
-	 * @description basic geometry shapes used to create screen objects
+	 * @description basic geometry shapes used to create ScreenObjects
 	 */
 	var TYPES = {
 		POINT:"POINT",
@@ -2088,6 +2104,30 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
+	 * @method centerX
+	 * @description center an Rect-type object inside this object along
+	 * the x axis.
+	 * @param {ScreenObject} obj the object to be centered along its x axis
+	 */
+	function centerX(obj) {
+		var c = getCenter.apply(this);
+		obj.moveTo(c.x - Math.round(obj.width/2));
+		return true;
+	}
+
+	/** 
+	 * @method centerY
+	 * @description center an Rect-type object inside this object along
+	 * the y axis.
+	 * @param {ScreenObject} obj the object to be centered along its x axis
+	 */
+	function centerY(obj) {
+		var c = getCenter.apply(this);
+		obj.moveTo(c.y - Math.round(obj.height/2));
+		return true;
+	}
+
+	/** 
 	 * @method rectCenterOnPoint
 	 * @description center a Rect on a Point
 	 * @param {Point} centerPt the point to use
@@ -2146,30 +2186,27 @@ window.elefart.factory = (function () {
 	/** 
 	 * @method centerRectInRect
 	 * @description center a rect so it is inside, or surrounds an other Rect
-	 * @param {Rect} centerRect the Rect to center the first rect onto
+	 * @param {Rect} centerRect the Rect to center the first rect onto, Subce '
+	 * our geometric objects are extensions of Rect, most can be used as a 
+	 * Rect object, so centerRect may actually be an ScreenObject.
 	 * @returns {Boolean} if centered, return true, else false
 	 */
 	function centerInRect (centerRect, recurse) {
 		if(!centerRect.valid.apply(centerRect,[])) {
 			return false;
 		}
+		var c = getCenter.apply(centerRect);
 		switch(this.type) {
 			case TYPES.POINT:
-				var c = getCenter.apply(centerRect);
 				this.x = c.x;
 				this.y = c.y;
 				break;
 			case TYPES.RECT:
 			case TYPES.CIRCLE:
-				var c = getCenter.apply(centerRect);
+			case TYPES.POLYGON:
 				var x = c.x - Math.min(this.width/2);
 				var y = c.y - Math.min(this.height/2);
 				moveTo.apply(this, [x, y, recurse]);
-				break;
-			case TYPES.POLYGON:
-				var c = getCenter.apply(centerRect);
-				var x = c.x - Math.min(this.width/2);
-				var y = c.y - Math.min(this.height/2);
 				break;
 			default:
 				elefart.showError(this.type + " cannot use centerInRect()");
@@ -2691,6 +2728,92 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
+	 * @method SpriteCoords
+	 * @description create a new SpriteCoords object by the 'new' operator
+	 * instead of return
+	 */
+	function SpriteCoords (obj, coordsObj) {
+
+		//TODO: ADD THE RECT HERE EXPLICITLY, AND COMPUTE ONLY UPON AND UPDATE
+		//HAVE THE DISPLAY READ ONLY THE COMPUTED RECT
+		var getWidth = function () {
+			return this.frame.width;
+		},
+		getHeight = function () {
+			return this.frame.height;
+		},
+		getRow = function () {
+			return this.currRow;
+		},
+		getFrame = function () {
+				return this.currCol;
+		},
+		getFrameRect = function () {
+			return this.frame;
+		},
+		setRow = function (row) {
+			if(row &lt; 0 || row > this.rows) {
+				console.log("invalid Sprite row Position:" + ", cols:" + this.cols);
+			}
+			this.currRow = row;
+			this.frame.top = row * this.frame.height;
+			this.frame.bottom = this.frame.top + this.frame.top;
+		},
+		setFrame = function (col) {
+			if(col &lt; 0 || col > this.cols) {
+				console.log("invalid Sprite frame Position:" + ", cols:" + this.cols);
+			}
+			this.currCol = col;
+			this.frame.left = col * this.frame.width;
+			this.frame.right = this.frame.left + this.frame.width;
+			console.log("setFrame col:" + this.currCol + " for:" + this.nm);
+		},
+		setNextFrame = function () {
+			this.currCol += 1; 
+			if(this.currCol > this.endCol) {
+				this.currCol = this.startCol;
+			}
+			this.setFrame(this.currCol);
+		},
+		setTimeline = function (row, sequence) {
+			this.setRow(row);
+			this.startCol = this.currCol = sequence[0];
+			this.endCol = sequence[1];
+			this.setFrame(sequence[0]);
+		}
+
+		var w = Math.ceil(obj.img.width/(coordsObj.cols));
+		var h = Math.ceil(obj.img.height/(coordsObj.rows));
+
+		return {
+			nm:obj.instanceName,
+			rows:coordsObj.rows,
+			cols:coordsObj.cols,
+			currRow:coordsObj.currRow,
+			currCol:coordsObj.currCol,
+			startCol:0,
+			endCol:coordsObj.cols,
+			frame:{
+				top:coordsObj.currRow * h,
+				left:coordsObj.currCol * w,
+				bottom:this.cellHeight,
+				right:this.cellWidth,
+				width:w,
+				height:h
+			},
+			getWidth:getWidth,
+			getHeight:getHeight,
+			getRow:getRow,
+			getFrame:getFrame,
+			getFrameRect:getFrameRect,
+			setRow:setRow,
+			setFrame:setFrame,
+			setNextFrame:setNextFrame,
+			setTimeline:setTimeline
+		};
+	}
+
+	/** 
 	 * @method setSpriteCoords
 	 * @description given an image, set coordinates for timelines (rows) and 
 	 * individual image subframes to draw (columns) in an JS Image
@@ -2714,49 +2837,7 @@ window.elefart.factory = (function () {
 			elefart.showError("can't set sprite coordinates on a non-image object:" + coordsObj);
 			return false;
 		}
-		this.spriteCoords = {
-			rows:coordsObj.rows,
-			cols:coordsObj.cols,
-			currRow:coordsObj.currRow,
-			currCol:coordsObj.currCol,
-			cellWidth:toInt(this.img.width/(coordsObj.cols)),
-			cellHeight:toInt(this.img.height/(coordsObj.rows)),
-			getCellRect:function (row, col) {
-				if(!row) {
-					row = this.currRow;
-					} 
-				else {
-					if(row &lt; 0 || row > currRow) {
-						elefart.showError("Invalid Sprite row:" + row + " rows:" );
-						return false;
-					}
-					currRow = row;
-				}
-				if(!col) {
-					col = this.currCol; 
-				}
-				else {
-					if(col &lt; 0 || col > currCol) {
-						elefart.showError("Invalid Sprite column");
-						return false
-					}
-					currCol = col;
-				}
-				return {
-					top:row * this.cellHeight,
-					left:col * this.cellWidth,
-					bottom:(row) * this.cellHeight,
-					right:(col) * this.cellWidth,
-					width:this.cellWidth,
-					height:this.cellHeight
-				}
-			},
-			nextCellRect:function () {
-				currRow += 1;if(currRow > rows) currRow = 0;
-				currCol += 1;if(currCol > cols) currCol = 0;
-				getCellRect(currRow, currCol);
-			}
-		};
+		this.spriteCoords = SpriteCoords(this, coordsObj);
 		return true;
 	}
 
@@ -2839,6 +2920,8 @@ window.elefart.factory = (function () {
 		//setters
 		obj.move = move,
 		obj.moveTo = moveTo,
+		obj.centerX = centerX,
+		obj.centerY = centerY,
 		obj.centerOnPoint = centerOnPoint,
 		obj.centerInRect = centerInRect,
 		obj.setDimensions = setDimensions,
@@ -3132,6 +3215,7 @@ window.elefart.factory = (function () {
 		return r;
 	}
 
+
 	/** 
 	 * @constructor ScreenText
 	 * @classdesc draw text dynamically in a box on the canvas. Text is scaled to 
@@ -3269,7 +3353,7 @@ window.elefart.factory = (function () {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Sun Mar 15th 2015 using the <a
+		on Sat Mar 28th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>

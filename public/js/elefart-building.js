@@ -803,12 +803,16 @@ window.elefart.building = (function () {
 				adjust:DIMENSIONS.PERSON.adjust, //slow engine speed back on overshoot, lower bound 1.0, higher values reduce slow bounce
 				teleport:false, //move immediately to next destination in elevatorQueue,
 				destObj:NO_SHAFT,
+				getDest:function (xPos) {
+					return p.building.getShaftByCoord(factory.toInt(xPos));
+				},
 				getDist:function () {
 					if(this.destObj !== NO_SHAFT) {
 						//console.log("this.destObj:" + typeof this.destObj.getCenter);
 						var center = p.getCenter();
 						return factory.toInt(center.x - this.destObj.getCenter().x);
 					}
+					return NO_SHAFT;
 				}
 			};
 
@@ -829,119 +833,125 @@ window.elefart.building = (function () {
 			/* 
 			 * CONTROLLER EVENT SETTERS
 			 */
+
+			/** 
+			 * @method p.addMoveToShaft
+			 * @description add a new destination for a Player, triggered
+			 * by clicking on an ElevatorShaft on the same floor as the 
+			 * Player.
+			 * @param {Point} gameLoc the x and y coordinates clicked on
+			 */
 			p.addMoveToShaft = function (gameLoc) {
+				//determine destination
 				var engine = p.engine;
-				engine.destObj = p.building.getShaftByCoord(factory.toInt(gameLoc.x));
-				var d = engine.getDist();
+				var dest = p.engine.getDest(gameLoc.x);
+				if(dest) {
 
-				if(!engine.destObj) {
-					console.log("addMoveToShaft(): click was outside any shaft");
-					return;
-				}
-				console.log("addMoveToShaft(), dist:" + engine.getDist());
-				console.log("addMoveToShaft(), getting shaft at:" + gameLoc.x + "," + gameLoc.y);
-				console.log("addMoveShaft(), building shaft:" + engine.destObj);
+					engine.destObj = dest;
+					var d = engine.getDist();
 
-				if(engine.teleport) {
-					console.log("teleporting")
-					p.moveTo(factory.toInt(gameLoc.x - p.width/2));
-					p.removeMoveToShaft();
-				}
-				else if(engine.is === OFF) {
-					console.log("engine off")
-					if(d === undefined) {
-						console.log("addMoveToShaft, distance undefined, returning");
-						//return;
-					}
-					else if(d !== 0) {
-						//start the move
-						engine.is = ON;
-						engine.speed = PERSON_TYPES.MALE_RUNNING.speed;
+					if(d !== NO_SHAFT) {
+
 						var pType = PERSON_TYPES.MALE_RUNNING;
-						console.log("PTYPE IS:" + pType.row)
-						if(d > 0) {
-							p.spriteCoords.setTimeline(pType.row, pType.left);
-						}
-						else if (d < 0) {
-							p.spriteCoords.setTimeline(pType.row, pType.right);
+						var destCenter = dest.getCenter();
+						engine.speed = pType.speed;
+						if(Math.abs(d) < pType.speed) {
+							p.removeMoveFromShaft();
+							console.log("addMoveToShaft(): close enough to complete move (" + d + ")");
+							return false;
 						}
 
-						console.log("SSSSSSSSSSSSSSSSSstart:" + p.spriteCoords.startCol + 
-							" current:" + p.spriteCoords.currCol,
-							" end:" + p.spriteCoords.endCol + 
-							" row:" + p.spriteCoords.currRow
-							);
-						console.log("Engine:" + engine.is + ", Person moving to shaft:" + engine.destObj.shaftNum);
+						//sufficiently far away that we have to add a move
+						if(d > 0) {
+							engine.is = ON;
+							p.spriteCoords.setTimeline(pType.row, pType.left);
+							console.log("addMoveToShaft(): setting move to LEFT, engine:" + p.engine.is);
+						}
+						else if(d < 0) {
+							engine.is = ON;
+							p.spriteCoords.setTimeline(pType.row, pType.right);
+							console.log("addMoveToShaft(): setting move to RIGHT, engine:" + p.engine.is);
+						}
 					}
 					else {
-						console.log("engine on, turning off")
-						p.removeMoveToShaft();
+						console.log("addMoveToShaft(): assigned dest, invalid distance");
 					}
 				}
 				else {
-					//do nothing, we are already moving
-					console.log("engine on, already moving:" + engine.is);
-				}
-			}
+					console("addMoveToShaft(): click outside any coordinate");
+					return false;
 
-			p.removeMoveToShaft = function () {
+				}
+				return true;
+			};
+
+			p.removeMoveFromShaft = function () {
+				console.log("removeMoveFromShaft(): removing");
 				var engine = p.engine;
+				engine.is = OFF;
+				engine.destObj.centerX(p);
+				engine.destObj = NO_SHAFT;
 				var pType = PERSON_TYPES.MALE_STANDING;
-				if(engine.is === ON) {
-					console.log("Person engine on, dest reached, removing move");
-					engine.speed = PERSON_TYPES.MALE_STANDING.speed;
-					p.spriteCoords.setTimeline(pType.row, pType.left);
-					engine.is = OFF;
-					engine.destObj = NO_SHAFT;
+				engine.speed = pType.speed;
+				p.spriteCoords.setTimeline(pType.row, pType.left);
+				return true;
+			};
+
+/////////////////////////////////////
+				if(p.instanceName == "Bob Bottoms") {
+					window.engine = p.engine;
 				}
-				else {
-					console.log("tried to remove when Person engine was off")
-				}
-			}
+/////////////////////////////////////
 
 			/* 
 			 * time-dependent animation, triggered by addToUpdateList
 			 */
 			p.updateByTime = function () {
+
 				var engine = p.engine;
-				var speed = engine.speed,
-				sCenter;
+
 				if(engine.is === ON) {
-					console.log("updateByTIme, engine on")
-					sCenter = sCenter = engine.destObj.getCenter();
-					if(engine.destObj) {
-						if(engine.teleport === true) { //instant move
-							console.log("instant move")
-							p.moveTo(factory.toInt(sCenter.x + p.width/2), p.top);
-						}
-						else { //animated move
-							var d = engine.getDist();
-							console.log("d:" + engine.getDist())
-							var adist = Math.abs(d);
-							if(adist > speed) {
-								if(d > speed) {
-									console.log("> move")
-									p.move(-speed, 0);
-								}
-								else if(d < speed) {
-									console.log("< move")
-									p.move(speed, 0);
-								}
-								//advance Person sprite animation
-								p.spriteCoords.setNextFrame(); //PROBLEM SEEMS TO BE HERE
-							}
-							else {
-								p.moveTo(factory.toInt(sCenter.x - p.width/2), p.top);
-								p.removeMoveToShaft();
-							}
-						}
-						//TODO: advance Person sprite farting, if it happens
+
+					console.log("updating");
+
+					if(engine.destObj === NO_SHAFT) {
+						console.log("Person.updateByTime(): ERROR: update Function run, but no shaft assigned");
+						return;
+					}
+
+					var d = engine.getDist();
+					if(d === NO_SHAFT) {
+						console.log("Person.updateByTime(): no destination shaft, removing");
+						p.removeMoveFromShaft();
+						return;
+					}
+
+					var speed = engine.speed;
+
+					if(Math.abs(d) < speed) {
+						console.log("Person.updateByTime(): arrived");
+						p.removeMoveFromShaft();
+						return;
+					}
+
+					if(d > speed) {
+						console.log("> move")
+						p.move(-speed, 0);
+						p.spriteCoords.setNextFrame();
+					}
+					else if(d < speed) {
+						console.log("< move")
+						p.move(speed, 0);
+						p.spriteCoords.setNextFrame();
 					}
 				}
 				else {
-					//engine OFF, take no action here
+					//if(p.instanceName === "Bob Bottoms") {
+					//	console.log("engine is OFF");
+					//}
 				}
-			};
+			}
+
 
 			/*
 			 * draw a custom image of the user's instanceName
@@ -2297,7 +2307,7 @@ window.elefart.building = (function () {
 				return false;
 			}
 
-			b.getUs = function (pt) {
+			b.getLocalPlayer = function (pt) {
 				return b.getChildByType(BUILDING_TYPES.PERSON, false, "userType", USER_TYPES.LOCAL)[0];
 			}
 
@@ -2826,11 +2836,12 @@ window.elefart.building = (function () {
 	 * - children: individual control types
 	 * @returns {Contorls|false} the user controls for the game
 	 */
-	function Controls (world, buildingBottom) {
-		var t = buildingBottom;
+	function Controls (world) {
+
+		var t = world.getBuilding().bottom; //buildingBottom;
 		var l = world.left;
 		var w = world.width;
-		var h = world.bottom - buildingBottom;
+		var h = world.bottom - t;
 		var c = factory.ScreenRect(
 				l, 
 				t, 
@@ -2978,11 +2989,11 @@ window.elefart.building = (function () {
 		//reset the world
 		world = World();
 		if(world) {
+			//this has to be re-set in Controller
 			world.addChild(Sky(world));
-			//world.addChild(Sun(world));
 			world.addChild(Building(world));
-			var top = world.getBuilding().bottom;
-			world.addChild(Controls(world, top));
+			controller.setLocalPlayer(world.getBuilding().getLocalPlayer());
+			world.addChild(Controls(world));
 
 		} //end of if w
 	}

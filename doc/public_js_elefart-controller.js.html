@@ -226,6 +226,14 @@
 						</li>
 						
 						<li>
+							<a href="global.html#centerX">centerX</a>
+						</li>
+						
+						<li>
+							<a href="global.html#centerY">centerY</a>
+						</li>
+						
+						<li>
 							<a href="global.html#changeDisplayList">changeDisplayList</a>
 						</li>
 						
@@ -323,10 +331,6 @@
 						
 						<li>
 							<a href="global.html#drawRoundedRect">drawRoundedRect</a>
-						</li>
-						
-						<li>
-							<a href="global.html#drawSpriteFrame">drawSpriteFrame</a>
 						</li>
 						
 						<li>
@@ -451,6 +455,10 @@
 						
 						<li>
 							<a href="global.html#getLeft">getLeft</a>
+						</li>
+						
+						<li>
+							<a href="global.html#getLocalPlayer%250Dactively%2520ask%2520the%2520Building%2520for%2520the%2520current%2520local%2520Player">getLocalPlayeractively ask the Building for the current local Player</a>
 						</li>
 						
 						<li>
@@ -802,6 +810,10 @@
 						</li>
 						
 						<li>
+							<a href="global.html#setLocalPlayer">setLocalPlayer</a>
+						</li>
+						
+						<li>
 							<a href="global.html#setOpacity">setOpacity</a>
 						</li>
 						
@@ -835,6 +847,10 @@
 						
 						<li>
 							<a href="global.html#skewShape">skewShape</a>
+						</li>
+						
+						<li>
+							<a href="global.html#SpriteCoords">SpriteCoords</a>
 						</li>
 						
 						<li>
@@ -896,7 +912,8 @@ window.elefart.controller = (function () {
 	panels,
 	dashboard, 
 	updateList = {},
-	now, then, elapsed, fps = 0, //framerate (fps) calculations
+	now, then, elapsed, fps = 0, upint = 0, //framerate (fps) calculations
+	localPlayer, //reference to local player
 	firstTime = true;
 
 	/** 
@@ -944,12 +961,48 @@ window.elefart.controller = (function () {
 		//check if we've selected the Building or Controls
 		//the left coordinate must be adjusted if the GameRect is smaller than window's viewport
 		var gr = display.getGameRect();
+
+		var gameLoc = {x:touchPoint.x-gr.left, y:touchPoint.y-gr.top};
+
 		//get shaft, floor for mouse or touch
-		var tp = building.getBuilding().selected({x:touchPoint.x-gr.left, y:touchPoint.y-gr.top});
-		//if building, use mouseclick to move elevator
-		if(tp.shaft &amp;&amp; tp.floor) {
-			var e = tp.shaft.getElevator();
-			e.addFloorToQueue(tp.floor.floorNum);
+		var tp = building.getBuilding().selected(gameLoc);
+
+		//user clicked a control
+		if(tp.controls) {
+			//TODO: route a control message to appropriate game object
+		}
+
+		//see if we clicked on a Person, not currently moving
+		if(tp.person) {
+			//TODO: connect to modal window with Person features
+			console.log("clicked on Person:" + tp.person.instanceName);
+		}
+
+		//see if we clicked on a Goodie, not currently movint
+		if(tp.goodie) {
+			//TODO: connect to a modal window displaying the goodie value
+			console.log("clicked on a Goodie:" + tp.goodie.instanceName);
+		}
+
+		//if the click is on the same BuildingFloor as our Person, add move to queue
+		if(tp.floor) {
+
+			/*
+			 * if on the same floor as Player ('localPlayer') then move the Player.
+			 * if we didn't have a reference to the local player, we would have to 
+			 * broadcast this message to all Players
+			 */
+			if(localPlayer.getFloor().floorNum === tp.floor.floorNum) {
+				console.log("move " + localPlayer.instanceName + " to ElevatorShaft:" + tp.shaft.shaftNum);
+				localPlayer.addMoveToShaft(gameLoc);
+			}
+
+			//if on an Elevator, use mouseclick to move elevator
+			if(tp.shaft) {
+				console.log("shaft:" + tp.shaft.shaftNum + " selected");
+				var e = tp.shaft.getElevator();
+				e.addFloorToQueue(tp.floor.floorNum);
+			}
 		}
 	}
 
@@ -1096,6 +1149,15 @@ window.elefart.controller = (function () {
 		return 1000;
 	}
 
+	function getUpdateInterval () {
+		if(fps) {
+			var n = 100 * upint/fps;
+			upint = (upint * 0.9) + (n * 0.1); //smoothed
+			return (~~ (upint + (upint > 0 ? .5 : -.5)));
+		}
+		return 0;
+	}
+
 	/** 
 	 * @method gameLoop
 	 * @description regular updates (e.g. screen redraws)
@@ -1104,7 +1166,8 @@ window.elefart.controller = (function () {
 		var panel, ticks, count, ul, len;
 		now = Date.now();
 		elapsed = now - then;
-		//console.log("FPS:" + elapsed);
+
+		var mini = now; //////////////////////////
 
 		for(var i in panels) {
 			panel = panels[i],
@@ -1134,11 +1197,33 @@ window.elefart.controller = (function () {
 				panel.draw();
 			}
 		}
+			//time to complete the update alone
+			upint = Date.now() - now;
 			//reset interval
 			then = elapsed = now;
 
 		requestAnimationFrame(gameLoop); 
 
+	}
+
+	/** 
+	 * @method getLocalPlayer
+	 * actively ask the Building for the current local Player
+	 */
+	function getLocalPlayer () {
+		return building.getBuilding().getLocalPlayer();
+	}
+
+	/** 
+	 * @method setLocalPlayer
+	 * @description set the local Player when the World re-inits, 
+	 * necessary since otherwise we retain a link to the earlier 
+	 * World (the "localPlayer" reference keeps the entire earlier 
+	 * World from going out of scope). Called by building.buildWorld().
+	 * @returns {Boolean} if ok, return true, else, false
+	 */
+	function setLocalPlayer (player) {
+		localPlayer = player;
 	}
 
 	/** 
@@ -1153,6 +1238,7 @@ window.elefart.controller = (function () {
 
 		dashboard = elefart.dashboard;
 		then = now = Date.now(); //fps
+
 		initUpdateList(); //initialize the update list
 		firstTime = false;
 	}
@@ -1167,13 +1253,15 @@ window.elefart.controller = (function () {
 			init();
 		}
 
+		//make reference to local Player
+		localPlayer = getLocalPlayer();
+
 		//TODO: probaby need a switch here for other screens
 		//set handlers associate with an active game
 		setGameHandlers(display.getControlCanvas()); //Topmost Canvas Object
 		//initialize FPS variables
 
 		//objects that initially have their 'dirty' bit set should be drawn
-
 
 		//start the loop
 		gameLoop();
@@ -1182,9 +1270,12 @@ window.elefart.controller = (function () {
 
 	//returned object
 	return {
+		initUpdateList:initUpdateList,
 		addToUpdateList:addToUpdateList,
 		removeFromUpdateList:removeFromUpdateList,
 		getFPS:getFPS,
+		getUpdateInterval:getUpdateInterval,
+		setLocalPlayer:setLocalPlayer,
 		init:init,
 		run:run
 	};
@@ -1210,7 +1301,7 @@ window.elefart.controller = (function () {
 					
 		<span class="jsdoc-message">
 		Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha11</a>
-		on Sun Mar 15th 2015 using the <a
+		on Sat Mar 28th 2015 using the <a
 			href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 		</span>
 				</footer>
