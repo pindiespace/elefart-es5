@@ -1052,6 +1052,7 @@ window.elefart.building = (function () {
 				e.setRectBorderRadius(3);
 				e.floor = building.getFloorByCoord(e.top + factory.toInt(e.height/2)); //get the default assigned BuildingFloor
 				e.floorQueue = [];
+				e.peopleList = []; //persons on the elevator
 
 				//animation movement params
 				e.engine = {
@@ -1176,6 +1177,7 @@ window.elefart.building = (function () {
 				}
 
 				//add getters and setters
+
 				e.getShaft = function () {
 					return e.parent;
 				}
@@ -1195,6 +1197,24 @@ window.elefart.building = (function () {
 				//get the number of floors our ElevatorShaft goes to
 				e.getNumFloors = function () {
 					return e.getShaft().getFloors().length;
+				}
+
+
+				//a Person requests getting on the Elevator to go to a specific floor
+				e.addPerson = function (person) {
+					//ck if person is in front of elevator
+					//confirm the just clicked on another floor
+					//scan the queue to see if we're going there
+					//if not, add destination floor to queue
+					//add Person to update (move) list
+				}
+
+				//A person requests to leave the Elevator on a specified floor
+				e.removePerson = function (person) {
+					//confirm person is in the Elevator
+					//if so, confirm we are stopped at a floor
+					//if so, eject the person onto the floor and remove 
+					//them from our list
 				}
 
 				/** 
@@ -2193,6 +2213,26 @@ window.elefart.building = (function () {
 			var numFloors = b.getNumFloors();
 			for(i = 0; i < numFloors; i++) {
 				b.addChild(BuildingFloor(b, i, numFloors));
+			}
+
+			b.getElevatorsOnFloor = function (floor) {
+				var onFloor = [];
+				var elevs = b.getElevators();
+				var numElevators = elevs.length;
+				for(i = 0; i < numElevators; i++) {
+					var ele = elevs[i];
+					if(ele.floorQueue.length === 0) {
+						//check coordinates
+						if(ele.bottom >= floor.bottom && 
+							e.top <= floor.top) {
+							onFloor.push(ele);
+						}
+					}
+				}
+				if(onFloor.length > 0) {
+					return onFloor;
+				}
+				return false;
 			}
 
 			/** 

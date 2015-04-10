@@ -98,14 +98,30 @@ window.elefart.controller = (function () {
 		//if the click is on the same BuildingFloor as our Person, add move to queue
 		if(tp.floor) {
 
+			var pFloor = localPlayer.getFloor().floorNum;
+
 			/*
 			 * if on the same floor as Player ('localPlayer') then move the Player.
 			 * if we didn't have a reference to the local player, we would have to 
 			 * broadcast this message to all Players
 			 */
-			if(localPlayer.getFloor().floorNum === tp.floor.floorNum) {
+			if(pFloor === tp.floor.floorNum) {
 				console.log("move " + localPlayer.instanceName + " to ElevatorShaft:" + tp.shaft.shaftNum);
 				localPlayer.addMoveToShaft(gameLoc);
+			}
+			else {
+				var elevs = building.getBuilding().getElevatorsOnFloor();
+				if(elevs) {
+					var len = elevs.length;
+					for(var i = 0; i < len; i++) {
+						if(tp.floor.floorNum !== pFloor) {
+							e.addPerson(localPlayer); //add Person to Elevator
+						}
+					}
+				}
+				//click on a different floor
+				//find the Elevator associated with that floor (if any)
+				//have the Elevator figure out if the Person should be added
 			}
 
 			//if on an Elevator, use mouseclick to move elevator
