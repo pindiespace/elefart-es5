@@ -1202,6 +1202,7 @@ window.elefart.building = (function () {
 
 				//a Person requests getting on the Elevator to go to a specific floor
 				e.addPerson = function (person) {
+					console.log("ELEVATOR IS adding person");
 					//ck if person is in front of elevator
 					//confirm the just clicked on another floor
 					//scan the queue to see if we're going there
@@ -1211,6 +1212,7 @@ window.elefart.building = (function () {
 
 				//A person requests to leave the Elevator on a specified floor
 				e.removePerson = function (person) {
+					console.log("ELEVATOR IS removing person");
 					//confirm person is in the Elevator
 					//if so, confirm we are stopped at a floor
 					//if so, eject the person onto the floor and remove 
@@ -2218,14 +2220,16 @@ window.elefart.building = (function () {
 			b.getElevatorsOnFloor = function (floor) {
 				var onFloor = [];
 				var elevs = b.getElevators();
-				var numElevators = elevs.length;
-				for(i = 0; i < numElevators; i++) {
-					var ele = elevs[i];
-					if(ele.floorQueue.length === 0) {
+				window.elevs = elevs;
+				var len = elevs.length;
+				console.log("NUMBER OF ELEVATORS:"+len);
+				for(i = 0; i < len; i++) {
+					var elev = elevs[i];
+					if(elev.floorQueue.length === 0) {
 						//check coordinates
-						if(ele.bottom >= floor.bottom && 
-							e.top <= floor.top) {
-							onFloor.push(ele);
+						if(elev.bottom >= floor.bottom && 
+							elev.top <= floor.top) {
+							onFloor.push(elev);
 						}
 					}
 				}
@@ -2329,7 +2333,14 @@ window.elefart.building = (function () {
 			b.addChild(BuildingRoof(b, roofShaft));
 
 			b.getElevators = function () {
-				return b.getChildByType(BUILDING_TYPES.ELEVATOR, false);
+				var shafts = b.getChildByType(BUILDING_TYPES.ELEVATOR_SHAFT, false);
+				var len = shafts.length;
+				var elevs = []; 
+				for(var i = 0; i < len; i++) {
+					elevs.push(shafts[i].getChildByType(BUILDING_TYPES.ELEVATOR, false)[0]);
+				}
+				
+				return elevs;
 			}
 
 			b.getPeople = function () {

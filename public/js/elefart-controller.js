@@ -110,7 +110,9 @@ window.elefart.controller = (function () {
 				localPlayer.addMoveToShaft(gameLoc);
 			}
 			else {
-				var elevs = building.getBuilding().getElevatorsOnFloor();
+				console.log("clicked on floor without our Person!!");
+				var elevs = building.getBuilding().getElevatorsOnFloor(tp.floor);
+				////////window.elevs = elevs; /////////////////////////////////
 				if(elevs) {
 					var len = elevs.length;
 					for(var i = 0; i < len; i++) {
