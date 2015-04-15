@@ -110,20 +110,18 @@ window.elefart.controller = (function () {
 				localPlayer.addMoveToShaft(gameLoc);
 			}
 			else {
-				console.log("clicked on floor without our Person!!");
-				var elevs = building.getBuilding().getElevatorsOnFloor(tp.floor);
-				////////window.elevs = elevs; /////////////////////////////////
-				if(elevs) {
+					console.log("clicked on floor without our Person!!");
+					var elevs = building.getBuilding().getElevators();
 					var len = elevs.length;
 					for(var i = 0; i < len; i++) {
-						if(tp.floor.floorNum !== pFloor) {
-							e.addPerson(localPlayer); //add Person to Elevator
+						var e = elevs[i];
+						console.log("E:" + e)
+						if(localPlayer.left >= e.left && localPlayer.right <= e.right) {
+							if(e.engine.is === false) {
+								e.addPerson(localPlayer, tp.floor);
+							}
 						}
 					}
-				}
-				//click on a different floor
-				//find the Elevator associated with that floor (if any)
-				//have the Elevator figure out if the Person should be added
 			}
 
 			//if on an Elevator, use mouseclick to move elevator

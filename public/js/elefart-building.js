@@ -890,7 +890,8 @@ window.elefart.building = (function () {
 				var engine = p.engine;
 				engine.is = OFF;
 				engine.destObj.centerX(p);
-				engine.destObj = NO_SHAFT;
+				engine.destObj = NO_SHAFT;   //shaft Person is moving to
+				engine.destFloor = NO_FLOOR; //destination floor of person in Elevator
 				var pType = PERSON_TYPES.MALE_STANDING;
 				engine.speed = pType.speed;
 				p.spriteCoords.setTimeline(pType.row, pType.left);
@@ -1201,18 +1202,22 @@ window.elefart.building = (function () {
 
 
 				//a Person requests getting on the Elevator to go to a specific floor
-				e.addPerson = function (person) {
+				e.addPerson = function (person, floor) {
 					console.log("ELEVATOR IS adding person");
-					//ck if person is in front of elevator
-					//confirm the just clicked on another floor
-					//scan the queue to see if we're going there
-					//if not, add destination floor to queue
-					//add Person to update (move) list
+
+					if(!e.floorInQueue(floor)) {
+						person.destFloor = floor.floorNum;
+						e.addFloorToQueue(floor);
+					}
+					//add the dest floor to the Person
+					getBuilding().removeChild(person); //remove Person from BuildingFloor
+					e.addChild(person); //add Person to Elevator
 				}
 
 				//A person requests to leave the Elevator on a specified floor
 				e.removePerson = function (person) {
 					console.log("ELEVATOR IS removing person");
+					e.removeChild(person);
 					//confirm person is in the Elevator
 					//if so, confirm we are stopped at a floor
 					//if so, eject the person onto the floor and remove 
@@ -1358,8 +1363,17 @@ window.elefart.building = (function () {
 						console.log("couldn't find floor:" + floor);
 						return false;
 					}
+					//check if People need to get out of Elevator
+					var len = e.peopleList.length;
+					for(var i = 0; i < len; i++) {
+						var p = e.peopleList[i];
+						if(p.floor.floorNum === floorNum) {
+							console.log("Person:"+ p.instanceName + " leaving Elevator:" + e.instanceName);
+							e.removePerson(p);
+						}
+					}
 					//otherwise, remove the BuildingFloor from floorQueue
-					console.log("removing floor with floorNum:"+ floor.floorNum)
+					console.log("removing floor with floorNum:"+ floor.floorNum);
 					var len = e.floorQueue.length;
 					for(var i = 0; i < len; i++) {
 						if(e.floorQueue[i].floorNum === floorNum) {
@@ -2222,7 +2236,6 @@ window.elefart.building = (function () {
 				var elevs = b.getElevators();
 				window.elevs = elevs;
 				var len = elevs.length;
-				console.log("NUMBER OF ELEVATORS:"+len);
 				for(i = 0; i < len; i++) {
 					var elev = elevs[i];
 					if(elev.floorQueue.length === 0) {
@@ -2393,7 +2406,6 @@ window.elefart.building = (function () {
 					shaftStart //which ElevatorShaft to start at
 				);
 			b.addChild(p); 
-			window.bob = p; /////////////////////////////////////////////
 
 			/* 
 			 * add a 'bot' competitor

@@ -1669,7 +1669,7 @@ window.elefart.factory = (function () {
 				return false;
 			}
 		}
-		elefart.showError(this.type + " removeChild() child not an object");
+		elefart.showError(this.type + " removeChild() " + child.instanceName + " not in this object("+this.instanceName+")");
 		return false;
 	}
 
