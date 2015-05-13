@@ -817,16 +817,29 @@ window.elefart.building = (function () {
 			};
 
 			/* 
-			 * STATE ENGINE for person. The "getters" are passive, 
-			 * and their values are changed by actions in the game. 
-			 * 
+			 * STATE ENGINE for person. 
 			 * GETTERS
 			 */
 			p.getFloor = function () {
+				var floors = getBuilding().getFloors();
+				var len = floors.length;
+				for(var i = 0; i < len; i++) {
+					var floor = floors[i];
+					if(p.top <= floor.top && p.bottom >= floor.bottom) {
+						p.floor = floor;
+					}
+				}
 				return p.floor;
 			}
 
 			p.getElevator = function () {
+				var elevators = getBuilding().getElevators();
+				var len = elevators.length;
+				for(var i = 0; i < len; i++) {
+					if(elevator.left <= p.left && elevator.right >= p.right) {
+						p.elevator = elevator;
+					}
+				}
 				return p.elevator;
 			}
 
@@ -1122,7 +1135,7 @@ window.elefart.building = (function () {
 							if(engine.teleport === true) {
 								console.log("teleport")
 								var diff = dest.bottom - e.bottom;
-								e.move(0, diff);
+								e.move(0, diff, true);
 								engine.teleport = false;
 							}
 							else if(e.bottom === dest.bottom) {
@@ -1139,17 +1152,17 @@ window.elefart.building = (function () {
 									if(inc < 1) {
 										e.floor = dest;
 										e.removeFloorFromQueue(dest);
-										e.moveTo(e.left, dest.bottom - e.height);
+										e.moveTo(e.left, dest.bottom - e.height, true);
 									}
 									else {
 										inc /= engine.adjust; //slow the return
-										e.move(0, inc); //bounce
+										e.move(0, inc, true); //bounce
 									}
 								}
 								else {
 									if(slow < 1.0) speed *= slow;
 									if(speed < 2.0) speed = 1.0;
-									e.move(0, -speed); //default speed
+									e.move(0, -speed, true); //default speed
 								}
 							}
 							else if(e.floor.bottom < dest.bottom) {
@@ -1163,11 +1176,11 @@ window.elefart.building = (function () {
 									}
 									else {
 										inc /= engine.adjust; //slow the return
-										e.move(0, inc); //bounce
+										e.move(0, inc, true); //bounce
 									}
 								}
 								else {
-									e.move(0, speed); //default speed
+									e.move(0, speed, true); //default speed
 								}
 							}
 						} //floorQueue > 0
@@ -1218,6 +1231,8 @@ window.elefart.building = (function () {
 				e.removePerson = function (person) {
 					console.log("ELEVATOR IS removing person");
 					e.removeChild(person);
+					getBuilding().addChild(person);
+					person.getFloor(); //sets person to right
 					//confirm person is in the Elevator
 					//if so, confirm we are stopped at a floor
 					//if so, eject the person onto the floor and remove 

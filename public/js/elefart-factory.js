@@ -1158,7 +1158,7 @@ window.elefart.factory = (function () {
 		if(recurse && this.children) {
 			for(var i = 0; i < this.children.length; i++) {
 				var child = this.children[i];
-				if(!child.move.apply(this, [dx, dy, recurse])) {
+				if(!child.move.apply(child, [dx, dy, recurse])) {
 					return false;
 				}
 			}
@@ -1206,7 +1206,7 @@ window.elefart.factory = (function () {
 		if(recurse && this.children) {
 			for(var i = 0; i < this.children.length; i++) {
 				var child = this.children[i];
-				if(!child.moveTo.apply(this, [x, y, recurse])) {
+				if(!child.moveTo.apply(child, [x, y, recurse])) {
 					return false;
 				}
 			}
@@ -1286,7 +1286,7 @@ window.elefart.factory = (function () {
 		if(recurse && this.children) {
 			for(var i = 0; i < this.children.length; i++) {
 				var child = this.children[i];
-				if(!child.centerOnPoint.apply(this, [dx, dy, recurse])) {
+				if(!child.centerOnPoint.apply(child, [dx, dy, recurse])) {
 					return false;
 				}
 			}
@@ -1328,7 +1328,7 @@ window.elefart.factory = (function () {
 		if(recurse && this.children) {
 			for(var i = 0; i < this.children.length; i++) {
 				var child = this.children[i];
-				if(!child.centerInRect.apply(this, [dx, dy, recurse])) {
+				if(!child.centerInRect.apply(child, [dx, dy, recurse])) {
 					return false;
 				}
 			}
@@ -1477,7 +1477,7 @@ window.elefart.factory = (function () {
 		if(recurse && this.children) {
 			for(var i = 0; i < this.children.length; i++) {
 				var child = this.children[i];
-				if(!child.shrink.apply(this, [pixels, recurse])) {
+				if(!child.shrink.apply(child, [pixels, recurse])) {
 					return false;
 				}
 			}
@@ -1541,7 +1541,7 @@ window.elefart.factory = (function () {
 		if(recurse && this.children) {
 			for(var i = 0; i < this.children.length; i++) {
 				var child = this.children[i];
-				if(!child.scale.apply(this, [scaleX, scaleY, recurse])) {
+				if(!child.scale.apply(child, [scaleX, scaleY, recurse])) {
 					return false;
 				}
 			}
