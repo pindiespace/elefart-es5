@@ -1008,10 +1008,10 @@ window.elefart.factory = (function () {
 	 * @returns {Boolean} if Point inside Rect, return true, else false
 	 */
 	function ptInside(pt, rect) {
-		if(pt.x >= this.left && 
-			pt.x <= this.right && 
-			pt.y >= this.top &&
-			pt.y <= this.bottom) {
+		if(pt.x >= rect.left && 
+			pt.x <= rect.right && 
+			pt.y >= rect.top &&
+			pt.y <= rect.bottom) {
 			return true;
 		}
 		return false;

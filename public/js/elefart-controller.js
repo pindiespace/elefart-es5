@@ -77,60 +77,52 @@ window.elefart.controller = (function () {
 
 		//get shaft, floor for mouse or touch
 		var tp = building.getBuilding().selected(gameLoc);
-
-		//user clicked a control
-		if(tp.controls) {
-			//TODO: route a control message to appropriate game object
-		}
-
-		//see if we clicked on a Person, not currently moving
+        
+        /* 
+         * LOGIC:
+         * if 
+         * if we click on an ElevatorShaft, and the Player is on that floor 
+         * if same floor, add Player to Elevator
+         * if different floor, move Elevator to floor
+         *
+         * 
+         */
+        
+        //we clicked on a Person, not currently moving
 		if(tp.person) {
 			//TODO: connect to modal window with Person features
 			console.log("clicked on Person:" + tp.person.instanceName);
 		}
 
-		//see if we clicked on a Goodie, not currently movint
+		//see if we clicked on a Goodie, not currently moving
 		if(tp.goodie) {
 			//TODO: connect to a modal window displaying the goodie value
 			console.log("clicked on a Goodie:" + tp.goodie.instanceName);
 		}
-
-		//if the click is on the same BuildingFloor as our Person, add move to queue
-		if(tp.floor) {
-
-			var pFloor = localPlayer.getFloor().floorNum;
-
-			/*
-			 * if on the same floor as Player ('localPlayer') then move the Player.
-			 * if we didn't have a reference to the local player, we would have to 
-			 * broadcast this message to all Players
-			 */
-			if(pFloor === tp.floor.floorNum) {
-				console.log("move " + localPlayer.instanceName + " to ElevatorShaft:" + tp.shaft.shaftNum);
-				localPlayer.addMoveToShaft(gameLoc);
-			}
-			else {
-					console.log("clicked on floor without our Person!!");
-					var elevs = building.getBuilding().getElevators();
-					var len = elevs.length;
-					for(var i = 0; i < len; i++) {
-						var e = elevs[i];
-						console.log("E:" + e)
-						if(localPlayer.left >= e.left && localPlayer.right <= e.right) {
-							if(e.engine.is === false) {
-								e.addPerson(localPlayer, tp.floor);
-							}
-						}
-					}
-			}
-
-			//if on an Elevator, use mouseclick to move elevator
-			if(tp.shaft) {
-				console.log("shaft:" + tp.shaft.shaftNum + " selected");
-				var e = tp.shaft.getElevator();
-				e.addFloorToQueue(tp.floor.floorNum);
-			}
-		}
+    
+        if(tp.shaft) {
+            console.log("clicked on an ElevatorShaft:" + tp.shaft.instanceName);
+            //if local Player on same floor, move Player, not Elevator
+            //if Player is already at the shaft, move the Elevator to the Floor
+            //if Player is superimposed on Elevator, do nothing
+            //if Player is on a shaft, and the Elevator is on a different floor, move elevator to Player
+            //if Player on different floor, move Elevator to floor
+            var playerFloor   = localPlayer.getFloor();
+            var playerShaft   = localPlayer.getShaft();
+            var elevator      = tp.shaft.getElevator();
+            var elevatorFloor = elevator.getFloor();
+            if(tp.floor && playerFloor) {
+                if(playerShaft !== tp.shaft) {
+                    localPlayer.addMoveToShaft(gameLoc);
+                }
+                else {
+                    elevator.addPerson(localPlayer, tp.floor);
+                    elevator.addFloorToQueue(tp.floor.floorNum);
+                }
+            }
+            
+        }
+    
 	}
 
 	/** 

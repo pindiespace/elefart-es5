@@ -728,7 +728,8 @@ window.elefart.building = (function () {
 	 * "attach" to both BuildingFloors (includng the BuildingRoof) and Elevators.
 	 * @returns {Person|false} a Person object, or false
 	 */
-	function Person (characterName, characterType, userType, floor, elevatorHeight, shaftStart) {
+	function Person (characterName, characterType, userType, floor, 
+                      elevatorHeight, shaftStart) {
 
 		//var l = floor.left; //Person must start on a BuildingFloor
 		var l = shaftStart;
@@ -743,7 +744,7 @@ window.elefart.building = (function () {
 
 		//TODO: THIS COULD BE ANIMATED IN....
 
-		var scale = elevatorHeight * characterBoard.rows/characterBoard.height;
+		var scale = 0.9 * (elevatorHeight * characterBoard.rows/characterBoard.height);
 		var h = factory.toInt(scale * characterBoard.height/characterBoard.rows);
 		var w = factory.toInt(scale * characterBoard.width/characterBoard.cols);
 		var t = floor.walkLine - h;
@@ -765,7 +766,7 @@ window.elefart.building = (function () {
 		if(p) {
 			p.name = BUILDING_TYPES.PERSON;
 			p.instanceName = characterName;
-
+            
 			p.setSpriteCoords({
 				rows:characterBoard.rows, //0-14
 				cols:characterBoard.cols, //0- 7
@@ -784,8 +785,8 @@ window.elefart.building = (function () {
 
 			//set the BuildingFloor (switch on state changes)
 			p.building = floor.parent;
-			p.floor = floor;
-			p.elevator = NO_ELEVATOR;
+			//p.floor = floor;
+			//p.elevator = NO_ELEVATOR;
 
 			//add health object
 			p.health = new Health(p);
@@ -823,24 +824,40 @@ window.elefart.building = (function () {
 			p.getFloor = function () {
 				var floors = getBuilding().getFloors();
 				var len = floors.length;
+                var center = p.getCenter();
 				for(var i = 0; i < len; i++) {
 					var floor = floors[i];
-					if(p.top <= floor.top && p.bottom >= floor.bottom) {
-						p.floor = floor;
+                    if(floor.pointInside(center)) {
+						return floor;
 					}
 				}
-				return p.floor;
+				return false;
 			}
+            
+            p.getShaft = function () {
+                var shafts = getBuilding().getShafts();
+                var len = shafts.length;
+                var center = p.getCenter();
+                for(var i = 0; i < len; i++) {
+                    var shaft = shafts[i];
+                    if(shaft.pointInside(center)) {
+                        return shaft;
+                    }
+                }
+                return false;
+            }
 
 			p.getElevator = function () {
 				var elevators = getBuilding().getElevators();
 				var len = elevators.length;
+                var center = p.getCenter();
 				for(var i = 0; i < len; i++) {
-					if(elevator.left <= p.left && elevator.right >= p.right) {
-						p.elevator = elevator;
-					}
+                    var e = elevators[i];
+                    if(e.pointInside(center)) {
+                        return e;
+                    }
 				}
-				return p.elevator;
+				return false;
 			}
 
 			/* 
@@ -878,16 +895,19 @@ window.elefart.building = (function () {
 						if(d > 0) {
 							engine.is = ON;
 							p.spriteCoords.setTimeline(pType.row, pType.left);
-							console.log("addMoveToShaft(): setting move to LEFT, engine:" + p.engine.is);
+                            //TODO: if we're attached to an Elevator, disconnect us
+							console.log("addMoveToShaft(): move LEFT, engine.is:" + engine.is);
 						}
 						else if(d < 0) {
 							engine.is = ON;
 							p.spriteCoords.setTimeline(pType.row, pType.right);
-							console.log("addMoveToShaft(): setting move to RIGHT, engine:" + p.engine.is);
+                            //TODO: if we're attached to an Elevator, disconnect us
+							console.log("addMoveToShaft(): move RIGHT, engine.is:" + engine.is);
 						}
 					}
 					else {
 						console.log("addMoveToShaft(): assigned dest, invalid distance");
+                        return false;
 					}
 				}
 				else {
@@ -911,18 +931,16 @@ window.elefart.building = (function () {
 				return true;
 			};
 
-/////////////////////////////////////
-				if(p.instanceName == "Bob Bottoms") {
-					window.engine = p.engine;
-				}
-/////////////////////////////////////
-
 			/* 
 			 * time-dependent animation, triggered by addToUpdateList
 			 */
 			p.updateByTime = function () {
 
 				var engine = p.engine;
+                
+                if(p.flag === true) {
+                    console.log("engine state:" + engine.is);
+                }
 
 				if(engine.is === ON) {
 
@@ -1222,22 +1240,31 @@ window.elefart.building = (function () {
 						person.destFloor = floor.floorNum;
 						e.addFloorToQueue(floor);
 					}
-					//add the dest floor to the Person
-					getBuilding().removeChild(person); //remove Person from BuildingFloor
-					e.addChild(person); //add Person to Elevator
+                    //Person must be in front of Elevator
+                    if(e.pointInside(person.getCenter())) {
+                        //add the dest floor to the Person
+                        getBuilding().removeChild(person); //remove Person from BuildingFloor
+                        if(!e.personInside(person)) {
+                            e.addChild(person); //add Person to Elevator
+                        }
+                    }
 				}
 
-				//A person requests to leave the Elevator on a specified floor
+				//A Person requests to leave the Elevator on a specified floor
 				e.removePerson = function (person) {
 					console.log("ELEVATOR IS removing person");
 					e.removeChild(person);
 					getBuilding().addChild(person);
 					person.getFloor(); //sets person to right
-					//confirm person is in the Elevator
-					//if so, confirm we are stopped at a floor
-					//if so, eject the person onto the floor and remove 
-					//them from our list
 				}
+                
+                //check to see if Person currently in Elevator
+                e.personInside = function (person) {
+                    if(person.parentNode === e) {
+                        return true;
+                    }
+                    return false;
+                }
 
 				/** 
 				 * @method e.moveToFloor 
@@ -2281,7 +2308,8 @@ window.elefart.building = (function () {
 
 				//recover Building objects under this click
 
-				var result = {}, shaft, floor, person, goodie;
+				var result = {}, shaft, elev, floor, person, goodie;
+                
 				result.person = b.getPersonByCoord(pt);
 
 				result.goodie = b.getGoodieByCoord(pt);
@@ -2290,10 +2318,17 @@ window.elefart.building = (function () {
 				if(shaft !== false) {
 					result.shaft = shaft;
 				}
+                
 				floor = b.getFloorByCoord(pt.y);
 				if(floor !== false) {
 					result.floor = floor;
 				}
+                
+                elev = b.getElevatorByCoord(pt);
+                if(elev !== false) {
+                    result.elev = elev;
+                }
+                
 				//if not found check the BuildingRoof
 				if(!result.floor && shaft.top < b.top) {
 					console.log("checking for ROOF")
@@ -2335,6 +2370,17 @@ window.elefart.building = (function () {
 				}
 				return false;
 			}
+            
+            b.getElevatorByCoord = function (pt) {
+                var elevs = b.getElevators();
+                for(var i = 0; i < elevs.length; i++) {
+                    var e = elevs[i];
+                    if(e.pointInside(pt)) {
+                        return e;
+                    }
+                }
+                return false;
+            }
 
 			//compute which shaft will go to the BuildingRoof
 			var numRoofShaft = 0;
