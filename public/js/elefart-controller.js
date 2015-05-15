@@ -198,11 +198,13 @@ window.elefart.controller = (function () {
 	function addToUpdateList (obj) {
 		if(obj && obj.type) {
 			if(!obj.panel) {
-				elefart.showError("controller.addToUpdateList(), MUST add ScreenObject:" + obj.instanceName + " to display list first!");
+				var nm = obj.instanceName || "no name";
+				elefart.showError("controller.addToUpdateList(), MUST add ScreenObject:" + obj.type + "("+nm+") to display list first!");
 				return false;
 			}
 			if(!obj.updateByTime) {
-				elefart.showError("controller.addToUpdateList() " + obj.instanceName + " missing updateByTime() function");
+				var nm = obj.instanceName || "no name";
+				elefart.showError("controller.addToUpdateList() " + obj.type + "("+nm+") missing updateByTime() function");
 				return false;
 			}
 			var panel = updateList[obj.panel];
@@ -230,7 +232,8 @@ window.elefart.controller = (function () {
 	function removeFromUpdateList (obj) {
 		if(obj && obj.type) {
 			if(!obj.panel) {
-				elefart.showError("controller.removeFromUpdateList(), MUST add ScreenObject:" + obj.type + " to display list first!");
+				var nm = obj.instanceName || "no name";
+				elefart.showError("controller.removeFromUpdateList(), MUST add ScreenObject:" + obj.type + "("+nm+") to display list first!");
 				return false;
 			}
 			var panel = updateList[obj.panel];

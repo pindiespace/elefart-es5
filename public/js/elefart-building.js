@@ -4,7 +4,7 @@
  * users, goodies, gas) used during gameplay.
  * @requires elefart
  * @requires elefart.factory
- * @requires elefart.dashboard
+ * @requires elefart.dashboardf
  * @requires elefart.display
  * @requires elefart.controller
  * @version 0.1.1
@@ -698,7 +698,7 @@ window.elefart.building = (function () {
 
 			g.name = BUILDING_TYPES.GAS;
 			g.parent = person;
-			g.instanceName = "Gas" + gasType;
+			g.instanceName = "Gas:" + gasType;
 			return g;
 		}
 		//fallthrough
@@ -937,6 +937,10 @@ window.elefart.building = (function () {
 			p.updateByTime = function () {
 
 				var engine = p.engine;
+
+				if(p.userType === USER_TYPES.LOCAL) {
+					console.log("local user")
+				}
                 
                 if(p.flag === true) {
                     console.log("engine state:" + engine.is);
@@ -1016,6 +1020,7 @@ window.elefart.building = (function () {
 
 			//add Gas, one of each type to charge up this Person
 			for(var i in GAS_TYPES) {
+				console.log("GAS TYPES:" + i)
 				p.addChild(Gas(p, i));
 			}
 
@@ -1171,6 +1176,7 @@ window.elefart.building = (function () {
 										e.floor = dest;
 										e.removeFloorFromQueue(dest);
 										e.moveTo(e.left, dest.bottom - e.height, true);
+										console.log("crap 1177")
 									}
 									else {
 										inc /= engine.adjust; //slow the return
@@ -1191,6 +1197,7 @@ window.elefart.building = (function () {
 										e.floor = dest;
 										e.removeFloorFromQueue(dest);
 										e.moveTo(e.left, dest.bottom - e.height);
+										console.log("crap 1201")
 									}
 									else {
 										inc /= engine.adjust; //slow the return
@@ -3160,7 +3167,7 @@ window.elefart.building = (function () {
 		PERSON_TYPES = common.PERSON_TYPES,
 		USER_TYPES = common.USER_TYPES,
 		GOODIE_TYPES = common.GOODIE_TYPES,
-		GAS_TYPES = common, GAS_TYPES;
+		GAS_TYPES = common.GAS_TYPES;
 
 		firstTime = false;
 	}

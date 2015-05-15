@@ -1222,7 +1222,9 @@ window.elefart.factory = (function () {
 	 */
 	function centerX(obj) {
 		var c = getCenter.apply(this);
-		obj.moveTo(c.x - Math.round(obj.width/2));
+		window.objj = obj;
+		var y = obj.y || obj.top; //in case obj is not a Point
+		obj.moveTo(c.x - Math.round(obj.width/2), y);
 		return true;
 	}
 
@@ -1866,6 +1868,7 @@ window.elefart.factory = (function () {
 			if(row < 0 || row > this.rows) {
 				console.log("invalid Sprite row Position:" + ", cols:" + this.cols);
 			}
+
 			this.currRow = row;
 			this.frame.top = row * this.frame.height;
 			this.frame.bottom = this.frame.top + this.frame.top;
