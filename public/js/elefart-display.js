@@ -718,7 +718,7 @@ window.elefart.display = (function () {
 				displayList[layer].push(obj); 
 			}
 			else {
-				layer = obj.layer;
+				layer = obj.layer; //add object (back) to its assigned layer
 			}
 			obj.panel = getPanel(layer);
 			displayList[layer].push(obj);

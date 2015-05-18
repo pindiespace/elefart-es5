@@ -1660,7 +1660,7 @@ window.elefart.factory = (function () {
 				var len = children.length;
 				for(var i = 0; i < len; i++) {
 				if(child === children[i]) {
-					child.removeFromLists();
+					child.removeFromLists(); //removes from display and update both
 					children.splice(i, 1)[0]; //display and controller references gone, ok to delete all
 					return child;
 					}

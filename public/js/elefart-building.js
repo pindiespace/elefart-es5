@@ -1260,6 +1260,7 @@ window.elefart.building = (function () {
                         getBuilding().removeChild(person); //remove Person from BuildingFloor
                         if(!e.personInside(person)) {
                             e.addChild(person); //add Person to Elevator
+                            
                         }
                     }
                     console.log("elevator::addPerson()," + controller.inUpdateList(person));
@@ -1273,8 +1274,6 @@ window.elefart.building = (function () {
 					getBuilding().addChild(person);
 					person.getFloor(); //sets person to right
 					console.log("elevator::removePerson()," + controller.inUpdateList(person));
-
-					controller.addToUpdateList(person);
 				}
                 
                 //check to see if Person currently in Elevator
