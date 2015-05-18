@@ -250,6 +250,25 @@ window.elefart.controller = (function () {
 		return false;
 	}
 
+	/** 
+	 * @method inUpdateList
+	 * @description determine if the object is part of any update list
+	 * @param {Point|Line|Rect|Circle|Polygon|ScreenSprite} obj the object
+	 * @returns if in an update list, return the list name, else false
+	 */
+	function inUpdateList (obj) {
+		for (var j in updateList) {
+				var panel = updateList[j];
+			for(var i in panel) {
+				//console.log("ooooooobj:" + obj + " panel:" + i + " key:" + i);
+				if(obj.instanceName === panel[i].instanceName) {
+					return "controller::inUpdateList: obj:" + obj + " panel:" + i + " key:" + i;
+				}
+			}
+		}
+		return "object not in update list";
+	}
+
 	/**  
 	 * ========================================= 
 	 * GAME LOOP 
@@ -395,6 +414,7 @@ window.elefart.controller = (function () {
 		initUpdateList:initUpdateList,
 		addToUpdateList:addToUpdateList,
 		removeFromUpdateList:removeFromUpdateList,
+		inUpdateList:inUpdateList,
 		getFPS:getFPS,
 		getUpdateInterval:getUpdateInterval,
 		setLocalPlayer:setLocalPlayer,

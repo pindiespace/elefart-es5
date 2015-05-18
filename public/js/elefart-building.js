@@ -877,6 +877,7 @@ window.elefart.building = (function () {
 				var dest = p.engine.getDest(gameLoc.x);
 				if(dest) {
 
+
 					engine.destObj = dest;
 					var d = engine.getDist();
 
@@ -897,12 +898,18 @@ window.elefart.building = (function () {
 							p.spriteCoords.setTimeline(pType.row, pType.left);
                             //TODO: if we're attached to an Elevator, disconnect us
 							console.log("addMoveToShaft(): move LEFT, engine.is:" + engine.is);
+							console.log("person::addMoveToShaft()," + controller.inUpdateList(p));
+							display.addToDisplayList(p); //NOTE: THIS FIXED IT!!!
+							controller.addToUpdateList(p); ///////////////////
 						}
 						else if(d < 0) {
 							engine.is = ON;
 							p.spriteCoords.setTimeline(pType.row, pType.right);
                             //TODO: if we're attached to an Elevator, disconnect us
 							console.log("addMoveToShaft(): move RIGHT, engine.is:" + engine.is);
+							console.log("person::addMoveToShaft()," + controller.inUpdateList(p));
+							display.addToDisplayList(p); //NOTE: THIS FIXED IT!!!
+							controller.addToUpdateList(p); ///////////////////////
 						}
 					}
 					else {
@@ -939,7 +946,7 @@ window.elefart.building = (function () {
 				var engine = p.engine;
 
 				if(p.userType === USER_TYPES.LOCAL) {
-					console.log("local user")
+					console.log("person::updateByTime(), local user")
 				}
                 
                 if(p.flag === true) {
@@ -1255,6 +1262,8 @@ window.elefart.building = (function () {
                             e.addChild(person); //add Person to Elevator
                         }
                     }
+                    console.log("elevator::addPerson()," + controller.inUpdateList(person));
+
 				}
 
 				//A Person requests to leave the Elevator on a specified floor
@@ -1263,6 +1272,9 @@ window.elefart.building = (function () {
 					e.removeChild(person);
 					getBuilding().addChild(person);
 					person.getFloor(); //sets person to right
+					console.log("elevator::removePerson()," + controller.inUpdateList(person));
+
+					controller.addToUpdateList(person);
 				}
                 
                 //check to see if Person currently in Elevator
