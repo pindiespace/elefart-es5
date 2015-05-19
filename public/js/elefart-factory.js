@@ -1222,7 +1222,6 @@ window.elefart.factory = (function () {
 	 */
 	function centerX(obj) {
 		var c = getCenter.apply(this);
-		window.objj = obj;
 		var y = obj.y || obj.top; //in case obj is not a Point
 		obj.moveTo(c.x - Math.round(obj.width/2), y);
 		return true;
@@ -1600,7 +1599,9 @@ window.elefart.factory = (function () {
 	 * @method addChild
 	 * @description add a child ScreenObject to an parent Object
 	 * @param {Object} a child object, either Point, Line, 
-	 * Rect, Circle, Polygon
+	 * Rect, Circle, Polygon. NOTE: we don't change the display or 
+     * update list when we add the child
+     * @returns {Boolean} if added, return true, else false
 	 */
 	function addChild(child) {
 		if(this.children) {
@@ -1651,16 +1652,20 @@ window.elefart.factory = (function () {
 	 * the displayList (elefart-display) and updateList (elefart-controller).
 	 * @param {Number|ScreenObject} child the id of the object, or the actual object. If the 
 	 * object is passed, the method checks for an Id value and proceeds.
+     * @param {Boolean} removeFromList if true, remove child from displayLists, otherwise 
+     * don't touch the display lists
 	 * @returns {Object|false} if ok, return the removed child, else false
 	 */
-	function removeChild(child) {
+	function removeChild(child, removeFromList=true) {
 		if(child && child.id) {
 			var children = this.children;
 			if(children) {
 				var len = children.length;
 				for(var i = 0; i < len; i++) {
 				if(child === children[i]) {
-					child.removeFromLists(); //removes from display and update both
+                    if(removeFromList === true) {
+                        child.removeFromLists(); //removes from display and update both
+                    }
 					children.splice(i, 1)[0]; //display and controller references gone, ok to delete all
 					return child;
 					}
@@ -1880,7 +1885,7 @@ window.elefart.factory = (function () {
 			this.currCol = col;
 			this.frame.left = col * this.frame.width;
 			this.frame.right = this.frame.left + this.frame.width;
-			console.log("setFrame col:" + this.currCol + " for:" + this.nm);
+			//console.log("setFrame col:" + this.currCol + " for:" + this.nm);
 		},
 		setNextFrame = function () {
 			this.currCol += 1; 

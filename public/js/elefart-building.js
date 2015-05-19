@@ -877,7 +877,6 @@ window.elefart.building = (function () {
 				var dest = p.engine.getDest(gameLoc.x);
 				if(dest) {
 
-
 					engine.destObj = dest;
 					var d = engine.getDist();
 
@@ -899,8 +898,6 @@ window.elefart.building = (function () {
                             //TODO: if we're attached to an Elevator, disconnect us
 							console.log("addMoveToShaft(): move LEFT, engine.is:" + engine.is);
 							console.log("person::addMoveToShaft()," + controller.inUpdateList(p));
-							display.addToDisplayList(p); //NOTE: THIS FIXED IT!!!
-							controller.addToUpdateList(p); ///////////////////
 						}
 						else if(d < 0) {
 							engine.is = ON;
@@ -908,8 +905,6 @@ window.elefart.building = (function () {
                             //TODO: if we're attached to an Elevator, disconnect us
 							console.log("addMoveToShaft(): move RIGHT, engine.is:" + engine.is);
 							console.log("person::addMoveToShaft()," + controller.inUpdateList(p));
-							display.addToDisplayList(p); //NOTE: THIS FIXED IT!!!
-							controller.addToUpdateList(p); ///////////////////////
 						}
 					}
 					else {
@@ -930,6 +925,7 @@ window.elefart.building = (function () {
 				var engine = p.engine;
 				engine.is = OFF;
 				engine.destObj.centerX(p);
+                
 				engine.destObj = NO_SHAFT;   //shaft Person is moving to
 				engine.destFloor = NO_FLOOR; //destination floor of person in Elevator
 				var pType = PERSON_TYPES.MALE_STANDING;
@@ -955,16 +951,16 @@ window.elefart.building = (function () {
 
 				if(engine.is === ON) {
 
-					console.log("updating");
+					//console.log("updating");
 
 					if(engine.destObj === NO_SHAFT) {
-						console.log("Person.updateByTime(): ERROR: update Function run, but no shaft assigned");
+						//console.log("Person.updateByTime(): ERROR: update Function run, but no shaft assigned");
 						return;
 					}
 
 					var d = engine.getDist();
 					if(d === NO_SHAFT) {
-						console.log("Person.updateByTime(): no destination shaft, removing");
+						//console.log("Person.updateByTime(): no destination shaft, removing");
 						p.removeMoveFromShaft();
 						return;
 					}
@@ -972,18 +968,18 @@ window.elefart.building = (function () {
 					var speed = engine.speed;
 
 					if(Math.abs(d) < speed) {
-						console.log("Person.updateByTime(): arrived");
+						//console.log("Person.updateByTime(): arrived");
 						p.removeMoveFromShaft();
 						return;
 					}
 
 					if(d > speed) {
-						console.log("> move")
+						//console.log("> move")
 						p.move(-speed, 0);
 						p.spriteCoords.setNextFrame();
 					}
 					else if(d < speed) {
-						console.log("< move")
+						//console.log("< move")
 						p.move(speed, 0);
 						p.spriteCoords.setNextFrame();
 					}
@@ -1150,7 +1146,9 @@ window.elefart.building = (function () {
 
 				/** 
 				 * @method Elevator.updateByTime()
-				 * @description update Elevator position
+				 * @description update Elevator position, along with any Persons inside 
+                 * elevator. NOTE: this doesn't affect the update or draw listing of the 
+                 * Persons, just changes their position.
 				 * @returns {Boolean} if object changed in any way, return true, else false
 				 */
 				e.updateByTime = function () {
@@ -1183,7 +1181,6 @@ window.elefart.building = (function () {
 										e.floor = dest;
 										e.removeFloorFromQueue(dest);
 										e.moveTo(e.left, dest.bottom - e.height, true);
-										console.log("crap 1177")
 									}
 									else {
 										inc /= engine.adjust; //slow the return
@@ -1204,7 +1201,6 @@ window.elefart.building = (function () {
 										e.floor = dest;
 										e.removeFloorFromQueue(dest);
 										e.moveTo(e.left, dest.bottom - e.height);
-										console.log("crap 1201")
 									}
 									else {
 										inc /= engine.adjust; //slow the return
@@ -1257,7 +1253,7 @@ window.elefart.building = (function () {
                     //Person must be in front of Elevator
                     if(e.pointInside(person.getCenter())) {
                         //add the dest floor to the Person
-                        getBuilding().removeChild(person); //remove Person from BuildingFloor
+                        getBuilding().removeChild(person, false); //remove Person from BuildingFloor
                         if(!e.personInside(person)) {
                             e.addChild(person); //add Person to Elevator
                             
@@ -1270,7 +1266,7 @@ window.elefart.building = (function () {
 				//A Person requests to leave the Elevator on a specified floor
 				e.removePerson = function (person) {
 					console.log("ELEVATOR IS removing person");
-					e.removeChild(person);
+					e.removeChild(person, false);
 					getBuilding().addChild(person);
 					person.getFloor(); //sets person to right
 					console.log("elevator::removePerson()," + controller.inUpdateList(person));
@@ -1455,8 +1451,6 @@ window.elefart.building = (function () {
 				//e.moveToFloor(shaft.getEndFloor());
 				display.addToDisplayList(e, display.LAYERS.ELESPACE1);
 				controller.addToUpdateList(e);
-
-				//////window.elev = e; ///////////////////////////////////////
 				return e;
 			}
 				//fallthrough
@@ -2294,7 +2288,6 @@ window.elefart.building = (function () {
 			b.getElevatorsOnFloor = function (floor) {
 				var onFloor = [];
 				var elevs = b.getElevators();
-				window.elevs = elevs;
 				var len = elevs.length;
 				for(i = 0; i < len; i++) {
 					var elev = elevs[i];
