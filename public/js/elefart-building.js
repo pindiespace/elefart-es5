@@ -747,7 +747,8 @@ window.elefart.building = (function () {
 		var scale = 0.9 * (elevatorHeight * characterBoard.rows/characterBoard.height);
 		var h = factory.toInt(scale * characterBoard.height/characterBoard.rows);
 		var w = factory.toInt(scale * characterBoard.width/characterBoard.cols);
-		var t = floor.walkLine - h;
+		var dfloor = floor.bottom  - floor.walkLine;
+		var t = floor.bottom - h;
 
 		//create the Person
 		var p = factory.ScreenRect(
@@ -830,6 +831,10 @@ window.elefart.building = (function () {
                     if(floor.pointInside(center)) {
 						return floor;
 					}
+				}
+				floor = getBuilding().getRoof(); //ROOF is a floor
+				if(floor.pointInside(center)) {
+					return floor;
 				}
 				return false;
 			}
@@ -922,15 +927,14 @@ window.elefart.building = (function () {
 
 			p.removeMoveFromShaft = function () {
 				console.log("removeMoveFromShaft(): removing");
+				var pType = PERSON_TYPES.MALE_STANDING;
+				p.spriteCoords.setTimeline(pType.row, pType.left);
 				var engine = p.engine;
 				engine.is = OFF;
-				engine.destObj.centerX(p);
-                
+				engine.destObj.centerX(p);           
 				engine.destObj = NO_SHAFT;   //shaft Person is moving to
 				engine.destFloor = NO_FLOOR; //destination floor of person in Elevator
-				var pType = PERSON_TYPES.MALE_STANDING;
 				engine.speed = pType.speed;
-				p.spriteCoords.setTimeline(pType.row, pType.left);
 				return true;
 			};
 
@@ -941,13 +945,9 @@ window.elefart.building = (function () {
 
 				var engine = p.engine;
 
-				if(p.userType === USER_TYPES.LOCAL) {
-					console.log("person::updateByTime(), local user")
-				}
-                
-                if(p.flag === true) {
-                    console.log("engine state:" + engine.is);
-                }
+				//if(p.userType === USER_TYPES.LOCAL) {
+				//	console.log("person::updateByTime(), local user")
+				//}
 
 				if(engine.is === ON) {
 
@@ -1180,7 +1180,7 @@ window.elefart.building = (function () {
 									if(inc < 1) {
 										e.floor = dest;
 										e.removeFloorFromQueue(dest);
-										e.moveTo(e.left, dest.bottom - e.height, true);
+										e.moveTo(e.left, dest.bottom - e.height, false); //don't adjust passengers
 									}
 									else {
 										inc /= engine.adjust; //slow the return
@@ -1256,7 +1256,6 @@ window.elefart.building = (function () {
                         getBuilding().removeChild(person, false); //remove Person from BuildingFloor
                         if(!e.personInside(person)) {
                             e.addChild(person); //add Person to Elevator
-                            
                         }
                     }
                     console.log("elevator::addPerson()," + controller.inUpdateList(person));
@@ -1268,7 +1267,6 @@ window.elefart.building = (function () {
 					console.log("ELEVATOR IS removing person");
 					e.removeChild(person, false);
 					getBuilding().addChild(person);
-					person.getFloor(); //sets person to right
 					console.log("elevator::removePerson()," + controller.inUpdateList(person));
 				}
                 
