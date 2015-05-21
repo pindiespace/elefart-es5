@@ -782,12 +782,7 @@ window.elefart.building = (function () {
 			p.characterType = characterType;
 
 			//specify user type (bot, local, network)
-			p.userType = userType;
-
-			//set the BuildingFloor (switch on state changes)
-			p.building = floor.parent;
-			//p.floor = floor;
-			//p.elevator = NO_ELEVATOR;
+			p.userType = userType;			
 
 			//add health object
 			p.health = new Health(p);
@@ -806,7 +801,7 @@ window.elefart.building = (function () {
 				teleport:false, //move immediately to next destination in elevatorQueue,
 				destObj:NO_SHAFT,
 				getDest:function (xPos) {
-					return p.building.getShaftByCoord(factory.toInt(xPos));
+					return building.getBuilding().getShaftByCoord(factory.toInt(xPos));
 				},
 				getDist:function () {
 					if(this.destObj !== NO_SHAFT) {
@@ -878,10 +873,12 @@ window.elefart.building = (function () {
 			 */
 			p.addMoveToShaft = function (gameLoc) {
 				//determine destination
+				console.log("in addMoveToShaft")
+				//TODO: DEST FAILS!!!!!!!!!!!!!!
 				var engine = p.engine;
 				var dest = p.engine.getDest(gameLoc.x);
+				console.log("parent::addMoveToShaft(), dest is:" + dest);
 				if(dest) {
-
 					engine.destObj = dest;
 					var d = engine.getDist();
 
@@ -922,6 +919,7 @@ window.elefart.building = (function () {
 					return false;
 
 				}
+				console.log("added move to shaft");
 				return true;
 			};
 
@@ -937,6 +935,25 @@ window.elefart.building = (function () {
 				engine.speed = pType.speed;
 				return true;
 			};
+
+			/** 
+			 * @method p.inMovingElevator
+			 * @description determine if Person is in moving elevator, and can't run. Works 
+			 * because Person is added to Elevator in elefart.factory as a child object 
+			 * during Elevator motion
+			 */
+			p.inMovingElevator = function () {
+				console.log("Person.parent:" + p.parent);
+				window.pparent = p.parent;
+				if(p.parent) console.log("p.parent.instanceName:" + p.parent.instanceName);
+
+				if(p.parent.name === BUILDING_TYPES.ELEVATOR) {
+					if(parent.engine.is === ON) {
+						return true;
+					}
+				}
+				return false;
+			}
 
 			/* 
 			 * time-dependent animation, triggered by addToUpdateList
@@ -1027,6 +1044,7 @@ window.elefart.building = (function () {
 				p.addChild(Gas(p, i));
 			}
 
+			floor.parent.addChild(p); //defaults to
 			display.addToDisplayList(p, display.LAYERS.PEOPLE);
 			controller.addToUpdateList(p);
 			return p;
@@ -1255,7 +1273,7 @@ window.elefart.building = (function () {
                         //add the dest floor to the Person
                         getBuilding().removeChild(person, false); //remove Person from BuildingFloor
                         if(!e.personInside(person)) {
-                            e.addChild(person); //add Person to Elevator
+                            e.addChild(person); //add Person to Elevator, Elevator becomes parent
                         }
                     }
                     console.log("elevator::addPerson()," + controller.inUpdateList(person));
@@ -1266,7 +1284,7 @@ window.elefart.building = (function () {
 				e.removePerson = function (person) {
 					console.log("ELEVATOR IS removing person");
 					e.removeChild(person, false);
-					getBuilding().addChild(person);
+					building.getBuilding().addChild(person);
 					console.log("elevator::removePerson()," + controller.inUpdateList(person));
 				}
                 
@@ -2328,9 +2346,15 @@ window.elefart.building = (function () {
 					result.shaft = shaft;
 				}
                 
+                //get the floor by coordinates
 				floor = b.getFloorByCoord(pt.y);
 				if(floor !== false) {
 					result.floor = floor;
+				}
+
+				//the ROOF is not a floor, but Players can go to its
+				if(!floor) {
+					floor = b.getRoof();
 				}
                 
                 elev = b.getElevatorByCoord(pt);

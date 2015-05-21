@@ -112,8 +112,11 @@ window.elefart.controller = (function () {
             var elevator      = tp.shaft.getElevator();
             var elevatorFloor = elevator.getFloor();
             console.log("tp.floor:"+ tp.floor + " playerFloor:" + playerFloor);
-            if(tp.floor && playerFloor) {
+            var inMover = localPlayer.inMovingElevator();
+            if(inMover) console.log("in moving elevator"); else console.log("not in moving elevator")
+            if(!localPlayer.inMovingElevator() && tp.floor && playerFloor) {
                 if(playerShaft !== tp.shaft) {
+                	console.log("add player move to shaft");
                     localPlayer.addMoveToShaft(gameLoc);
                 }
                 else if (elevatorFloor === building.getBuilding().getRoof()) {
