@@ -118,7 +118,10 @@ window.elefart.building = (function () {
 		GOODIE:"GOODIE",
 		GAS:"GAS",
 		HEALTH: "HEALTH",
+        LABELS: "LABELS",
 		FPS: "FPS",
+        CONTROL_LOGO: "CONTROL_LOGO",
+        CONTROL_LIST: "CONTROL_LIST",
 		CONTROLS:"CONTROLS"
 	};
 
@@ -263,10 +266,19 @@ window.elefart.building = (function () {
 	},
 
 	DIMENSIONS[BUILDING_TYPES.FPS] = {
-		width: 0.2, //RELATIVE to Coontrols
+		width: 0.2, //RELATIVE to Controls
 		height:0.25
 	},
-
+        
+    DIMENSIONS[BUILDING_TYPES.CONTROL_LOGO] = {
+        width:0.35,
+        height:0.5
+    },
+        
+    DIMENSIONS[BUILDING_TYPES.CONTROL_LIST] = {
+        width: 0.5, //RELATIVE to Controls
+        height:0.3
+    },
 	DIMENSIONS[BUILDING_TYPES.CONTROLS] = {
 		top: 0.8,
 		left:0.0,
@@ -987,13 +999,13 @@ window.elefart.building = (function () {
 					}
 
 					var d = engine.getDist();
+					var speed = engine.speed;
+                    
 					if(d === NO_SHAFT) {
 						//console.log("Person.updateByTime(): no destination shaft, removing");
 						p.removeMoveFromShaft();
 						return;
 					}
-
-					var speed = engine.speed;
 
 					if(Math.abs(d) < speed) {
 						//console.log("Person.updateByTime(): arrived");
@@ -1001,7 +1013,7 @@ window.elefart.building = (function () {
 						return;
 					}
 
-					if(d > speed) {
+					else if(d > speed) {
 						//console.log("> move")
 						p.move(-speed, 0);
 						p.spriteCoords.setNextFrame();
@@ -1051,7 +1063,7 @@ window.elefart.building = (function () {
 
 			//add Gas, one of each type to charge up this Person
 			for(var i in GAS_TYPES) {
-				console.log("GAS TYPES:" + i)
+				/////console.log("GAS TYPES:" + i)
 				p.addChild(Gas(p, i));
 			}
 
@@ -1292,8 +1304,10 @@ window.elefart.building = (function () {
                     //Person must be in front of Elevator
                     if(e.pointInside(person.getCenter())) {
                         //add the dest floor to the Person
+                        console.log("Person is in front of elevator");
                         e.getBuilding().removeChild(person, false); //remove Person from BuildingFloor
                         if(!e.personInside(person)) {
+                            console.log("Person in front, but not inside elevator, add them");
                             e.addChild(person); //add Person to Elevator, Elevator becomes parent
                         }
                     }
@@ -2515,7 +2529,7 @@ window.elefart.building = (function () {
 					elevatorHeight, //Elevator dimensions,
 					shaftStart //which ElevatorShaft to start at
 				);
-			b.addChild(p); 
+			//b.addChild(p); 
 
 			/* 
 			 * add a 'bot' competitor
@@ -2529,7 +2543,7 @@ window.elefart.building = (function () {
 					elevatorHeight, //Elevator dimensions
 					shaftStart //which ElevatorShaft to start at
 				);
-			b.addChild(p);
+			//b.addChild(p);
 
 			/* 
 			 * add Goodies, about as many as there are ElevatorShafts
@@ -2959,28 +2973,220 @@ window.elefart.building = (function () {
 	 * CONTROL PANEL AND INDIVIDUAL CONTROLS
 	 * ============================
 	 */
+    
+    
+    /** 
+     * @constructor ControlGoodieList
+     * @classdesc a display of Goodies picked up by Player
+     */
+    function ControlGoodieList (controls) {
+        
+        var w = factory.toInt(DIMENSIONS.CONTROL_LIST.width * controls.width);
+        var h = factory.toInt(DIMENSIONS.CONTROL_LIST.height * controls.height);
+        var textSize = controls.fontSize;
+        var t = controls.top + controls.margin;
+        var l = controls.right - controls.margin - w;
+        
+        var g = factory.ScreenRect (
+            l,
+            t,
+            w,
+            h,
+            1,
+            display.COLORS.BLACK,
+            display.COLORS.WHITE,
+            display.LAYERS.CONTROLS,
+            false,
+            false,
+            6
+        );
+        
+        if(g) {
+            g.name = BUILDING_TYPES.CONTROL_LIST;
+            g.instanceName = "Goodie Scorecard";
+            g.getBuilding = world.getBuilding;
+            g.getChildByType = getChildByType;
+            
+            //custom drawing for the list of Goodies
+            g.customDraw = function (ctx) {
+                //TODO: ask the Goodies to Redraw themselves here
+            }
+            
+            //update animation function
+            g.updateByTime = function () {
+                //TODO: add to update list
+				//TODO: List current Goodie List here
+			}
+            
+            g.drawGoodies = function (person) {
+                var goodies = person.getGoodies();
+                //TODO: draw all the Goodies owned by a Person
+            }
+            
+            var labelText = "Goodies:";
+            var labelWidth = display.textPixelWidth (labelText, textSize + " pt " + controls.controlFont) + h + h; 
+            var fl = factory.ScreenText(
+                l - labelWidth,
+                t,
+                labelWidth,
+                h,
+                controls.controlFont,
+                h,
+                labelText,
+                display.COLORS.BLACK, 
+                "top",
+                0,
+				display.COLORS.NONE, //Rect stroke color
+				display.COLORS.NONE, //Rect fill color
+				display.LAYERS.CONTROLS //dynamic
+            );
+
+            if(fl) {
+            fl.name = BUILDING_TYPES.LABELS;
+            fl.instanceName = "Goodies Scorecard Label";
+            fl.getBuilding = world.getBuilding;
+            fl.getChildByType = getChildByType;
+            display.addToDisplayList(fl, display.LAYERS.CONTROLS);
+            }
+            else {
+                elefart.showError("failed to create Goodie Scorecard label");
+            }
+
+            //add to displayList (update list later)
+            g.addChild(fl);
+            display.addToDisplayList(g, display.LAYERS.CONTROLS);
+            return g;
+        }
+		//fallthrough
+		elefart.showError("failed to create Goodie Scorecard");
+		return false;       
+    }
+
+    /** 
+     * @constructor ControlGasList
+     * @classdesc a display of Gas (Farts) remaining in the Player
+     * @param {Controls} controls the parent Controls container
+     * @returns {ControlLogo|false} the ControlLogo object     */
+    function ControlGasList (controls) {
+        
+        var w = factory.toInt(DIMENSIONS.CONTROL_LIST.width * controls.width);
+        var h = factory.toInt(DIMENSIONS.CONTROL_LIST.height * controls.height);
+        var textSize = controls.fontSize;
+        var t = controls.top + controls.margin + h;
+        var l = controls.right - controls.margin - w;
+        
+        var g = factory.ScreenRect (
+            l,
+            t,
+            w,
+            h,
+            1,
+            display.COLORS.BLACK,
+            display.COLORS.WHITE,
+            display.LAYERS.CONTROLS,
+            false,
+            false,
+            6
+        );
+        
+        if(g) {
+            g.name = BUILDING_TYPES.CONTROL_LIST;
+            g.instanceName = "Gas Scorecard";
+            g.getBuilding = world.getBuilding;
+            g.getChildByType = getChildByType;
+            
+            //custom drawing for the list of Farts
+            g.customDraw = function (ctx) {
+                //TODO: ask the farts to redraw themselves here
+            }
+            
+            //update animation function (standard will just redraw the Rect)
+            g.updateByTime = function () {
+                //TODO: add to update list
+				//TODO: List current Goodie List here
+			}
+            
+            g.drawGas = function (person) {
+                var farts = person.getGas();
+                var len = farts.length;
+                //TODO: draw all the Farts owned by a Person
+                //compute allowed width and height for gas
+                var fartWidth = g.width/farts.width;
+                var fartHeight = g.height;
+                for(var i = 0; i < len; i++) {
+                    if(fart.img) {
+                        //draw the Image
+                    }
+                    else {
+                        //draw the InstanceName only
+                    }
+                }
+            }
+            
+            var labelText = "Farts:";
+            var labelWidth = display.textPixelWidth (labelText, textSize + " pt " + controls.controlFont) + h + h; 
+            var fl = factory.ScreenText(
+                l - labelWidth,
+                t,
+                labelWidth,
+                h,
+                controls.controlFont,
+                h,
+                labelText,
+                display.COLORS.BLACK, 
+                "top",
+                0,
+				display.COLORS.NONE, //Rect stroke color
+				display.COLORS.NONE, //Rect fill color
+				display.LAYERS.CONTROLS //dynamic
+            );
+
+            if(fl) {
+                fl.name = BUILDING_TYPES.LABELS;
+                fl.instanceName = "Fart Scorecard Label";
+                fl.getBuilding = world.getBuilding;
+                fl.getChildByType = getChildByType;
+                g.addChild(fl);
+                display.addToDisplayList(fl, display.LAYERS.CONTROLS);
+            }
+            else {
+                elefart.showError("failed to create Fart Scorecard label");
+            }
+            
+            //add to displayList (update list later)
+            display.addToDisplayList(g, display.LAYERS.CONTROLS);
+            return g;
+        }
+		//fallthrough
+		elefart.showError("failed to create Fart Scorecard");
+		return false;         
+    }
 
 	/** 
 	 * @constructor ControlFPS
 	 * @classdesc an FPS display
+     * @param {Controls} controls the parent Controls container
+     * @returns {ControlLogo|false} the ControlLogo object     
 	 */
 	function ControlFPS (controls) {
-
-		var font = "Georgia";
 
 		var w = factory.toInt(DIMENSIONS.FPS.width * controls.width);
 		var h = factory.toInt(DIMENSIONS.FPS.height * controls.height); 
 		var textSize = h;
 		var t = controls.bottom - controls.margin - h;
-		var l = controls.right - controls.margin - w;
+        
+        var labelText = "FPS:";
+        var labelWidth = display.textPixelWidth (labelText, textSize + " px " + controls.controlFont) + h; 
+
+		var l = controls.left + controls.margin + labelWidth;
 
 		var f = factory.ScreenText(
 				l, 
 				t, 
 				w, 
 				h, 
-				font,
-				h,
+				controls.controlFont,
+				textSize,
 				"0000", //text
 				display.COLORS.BLACK, //text color
 				"top", //text alignment relative to baseline
@@ -2994,6 +3200,41 @@ window.elefart.building = (function () {
 			f.instanceName = "FPS";
             f.getBuilding = world.getBuilding;
 			f.getChildByType = getChildByType; //generic child getter function
+            
+            /* 
+             * add Label (note correction for too small measure of 
+             * the pixel width of the text)
+             */
+            var labelText = "FPS:";
+            var labelWidth = display.textPixelWidth (labelText, textSize + " px " + controls.controlFont) + h; 
+            
+            var fl = factory.ScreenText(
+                l - labelWidth,
+                t,
+                labelWidth,
+                h,
+                controls.controlFont,
+                textSize,
+                labelText,
+                display.COLORS.BLACK, 
+                "top",
+                0,
+				display.COLORS.NONE, //Rect stroke color
+				display.COLORS.NONE, //Rect fill color
+				display.LAYERS.CONTROLS //dynamic
+            );
+
+            if(fl) {
+                fl.name = BUILDING_TYPES.LABELS;
+                fl.instanceName = "FPS Label";
+                fl.getBuilding = world.getBuilding;
+                fl.getChildByType = getChildByType;
+                f.addChild(fl);
+                display.addToDisplayList(fl, display.LAYERS.CONTROLS);
+            }
+            else {
+                elefart.showError("failed to create ControlFPS Label");
+            }
 
 			/* 
 			 * update frames per second ByTime
@@ -3001,8 +3242,6 @@ window.elefart.building = (function () {
 			f.updateByTime = function () {
 				f.text = controller.getFPS();
 			}
-
-			f.getChildByType = getChildByType; //generic child getter function
 
 			display.addToDisplayList(f, display.LAYERS.CONTROLS);
 			controller.addToUpdateList(f);
@@ -3013,14 +3252,63 @@ window.elefart.building = (function () {
 		elefart.showError("failed to create ControlFPS");
 		return false;
 	}
+    
+    
+    /** 
+     * @constructor ControlLogo
+     * @classdesc logo for the game appearin in the Controls area. Making it an 
+     * Screen Object allows it to animate and be manipulated by the user.
+     * @param {Controls} controls the parent Controls container
+     * @returns {ControlLogo|false} the ControlLogo object
+     */
+    function ControlLogo (controls) {
+        
+        //TODO: MAKE THIS MORE SOPHISTICATED
+ 		var w = factory.toInt(DIMENSIONS.CONTROL_LOGO.width * controls.width);
+		var h = factory.toInt(DIMENSIONS.CONTROL_LOGO.height * controls.height); 
+		var textSize = h;
+		var t = controls.bottom - controls.margin - h;
+        var l = 0;
+        var t = controls.top + controls.margin;
+       
+        var labelText = "ELEFART:";
+        var labelWidth = display.textPixelWidth (labelText, textSize + " px " + controls.controlFont) + h; 
+            
+        var cl = factory.ScreenText(
+                l,
+                t,
+                labelWidth,
+                h,
+                controls.controlFont,
+                textSize,
+                labelText,
+                display.COLORS.BLACK, 
+                "top",
+                0,
+				display.COLORS.NONE, //Rect stroke color
+				display.COLORS.NONE, //Rect fill color
+				display.LAYERS.CONTROLS //dynamic
+        );
+
+        if(cl) {
+            cl.name = BUILDING_TYPES.LABELS;
+            cl.instanceName = "Elefart Logo";
+            cl.getBuilding = world.getBuilding;
+            cl.getChildByType = getChildByType;
+            display.addToDisplayList(cl, display.LAYERS.CONTROLS);
+            return cl;
+        }
+        
+    }
 
 	/** 
 	 * @constructor Controls
 	 * @classdesc the container for the user controls below the building
+     * @param {World} world the world object for the game (includes everything)
 	 * - parent: world
 	 * - grandparent: none
 	 * - children: individual control types
-	 * @returns {Contorls|false} the user controls for the game
+	 * @returns {Controls|false} the user controls for the game
 	 */
 	function Controls (world) {
 
@@ -3045,9 +3333,11 @@ window.elefart.building = (function () {
 		if(c) {
 			c.name = BUILDING_TYPES.CONTROLS;
 			c.instanceName = "Control Panel";
-			c.margin = factory.toInt(DIMENSIONS.CONTROLS.margin * w); //relative to Width
+			c.margin = factory.toInt(DIMENSIONS.CONTROLS.margin * h); //relative to Width
             c.getBuilding = world.getBuilding;
 			c.getChildByType = getChildByType; //generic child getter function
+            c.controlFont = "Georgia";  //default font for Controls
+            c.controlFontSize = 10; //default font size (in pixels) for Controls
             
             c.getControlsByCoord = function (pt) {
                 if(pt.y >= c.bottom && pt.y <= c.top) {
@@ -3061,9 +3351,18 @@ window.elefart.building = (function () {
 			//Add label "elefart"
 
 			//add individual Controls
+            
+            //logo
+            c.addChild(ControlLogo(c));
 
 			//fps
 			c.addChild(ControlFPS(c));
+            
+            //goodie list
+            c.addChild(ControlGoodieList(c));
+            
+            //fart list
+            c.addChild(ControlGasList(c));
 
 			//add control Panel to display list
 			display.addToDisplayList(c, display.LAYERS.WORLD); //visible

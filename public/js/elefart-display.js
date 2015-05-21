@@ -459,6 +459,21 @@ window.elefart.display = (function () {
 		img.src = canvas.toDataURL("image/png", 1.0); //full quality
 		return img;
 	}
+    
+    /** 
+     * @method textPixelWidth
+     * @description get the width of a font and size in pixels for accurate text positioning. 
+     * @param {String} text the text to render with the font properties
+     * @param {String} fontStr the string defining font qualities
+     * example: ctx.font = "italic bold 10pt Courier"
+     * @returns {Number} width of text in pixels
+     */
+    function textPixelWidth (text, fontStr) {
+ 		c = document.createElement("canvas");
+		var pctx = c.getContext("2d");
+        pctx.font = fontStr;
+		return factory.toInt(pctx.measureText(text).width); //measure width of text
+    }
 
 	/** 
 	 * @method textToPNG
@@ -1690,6 +1705,7 @@ window.elefart.display = (function () {
 		getCharacterBoard:getCharacterBoard,
 		getGasBoard:getGasBoard,
 		getGoodieBoard:getGoodieBoard,
+        textPixelWidth:textPixelWidth,
 		textToPNG:textToPNG,
 		getCSSBreakpoint:getCSSBreakpoint,
 		getGameRect:getGameRect,
