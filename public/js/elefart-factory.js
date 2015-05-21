@@ -1653,10 +1653,11 @@ window.elefart.factory = (function () {
 	 * @param {Number|ScreenObject} child the id of the object, or the actual object. If the 
 	 * object is passed, the method checks for an Id value and proceeds.
      * @param {Boolean} removeFromList if true, remove child from displayLists, otherwise 
-     * don't touch the display lists
+     * don't touch the display (elefart.display) and updatate list (elefart.controller)
 	 * @returns {Object|false} if ok, return the removed child, else false
 	 */
-	function removeChild(child, removeFromList=true) {
+	function removeChild(child, removeFromList) {
+        if(removeFromList === undefined) removeFromList = false;
 		if(child && child.id) {
 			var children = this.children;
 			if(children) {

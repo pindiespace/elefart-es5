@@ -76,7 +76,7 @@ window.elefart.controller = (function () {
 		var gameLoc = {x:touchPoint.x-gr.left, y:touchPoint.y-gr.top};
 
 		//get shaft, floor for mouse or touch
-		var tp = building.getBuilding().selected(gameLoc);
+		var tp = building.getWorld().selected(gameLoc);
         
         /* 
          * LOGIC:
@@ -99,7 +99,10 @@ window.elefart.controller = (function () {
 			//TODO: connect to a modal window displaying the goodie value
 			console.log("clicked on a Goodie:" + tp.goodie.instanceName);
 		}
-    
+  
+        var playerFloor   = localPlayer.getFloor();
+        var playerShaft   = localPlayer.getShaft();
+
         if(tp.shaft) {
             console.log("clicked on an ElevatorShaft:" + tp.shaft.instanceName);
             //if local Player on same floor, move Player, not Elevator
@@ -107,8 +110,6 @@ window.elefart.controller = (function () {
             //if Player is superimposed on Elevator, do nothing
             //if Player is on a shaft, and the Elevator is on a different floor, move elevator to Player
             //if Player on different floor, move Elevator to floor
-            var playerFloor   = localPlayer.getFloor();
-            var playerShaft   = localPlayer.getShaft();
             var elevator      = tp.shaft.getElevator();
             var elevatorFloor = elevator.getFloor();
             console.log("tp.floor:"+ tp.floor + " playerFloor:" + playerFloor);
@@ -126,10 +127,15 @@ window.elefart.controller = (function () {
                     elevator.addPerson(localPlayer, tp.floor);
                     elevator.addFloorToQueue(tp.floor.floorNum);
                 }
-            }
-            
+            } 
         }
-    
+        else if(tp.floor) {
+            console.log("no shaft selected, on Roof");
+            //find the ElevatorShaft underneath
+            if(tp.floor.getShaftUnderneath(gameLoc)) {
+                localPlayer.addMoveToShaft(gameLoc);
+            }
+        }
 	}
 
 	/** 

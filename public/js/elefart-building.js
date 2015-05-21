@@ -592,6 +592,7 @@ window.elefart.building = (function () {
 				g.instanceName = "Goodie type:" + goodieType;
 				//g.parent = building; //do before adding to displayList
 				g.parent = goodieFloor;
+                g.getBuilding = world.getBuilding;
 				g.getChildByType = getChildByType;
 
 				g.setSpriteCoords({
@@ -650,6 +651,8 @@ window.elefart.building = (function () {
 			h.name = BUILDING_TYPES.HEALTH;
 			h.parent = person;
 			h.instanceName = person.instanceName + "'s health";
+            h.getBuilding = world.getBuilding;
+			h.getChildByType = getChildByType; //generic child getter function
 			h.value = 100; //perfect health
 			return h;
 		}
@@ -699,6 +702,8 @@ window.elefart.building = (function () {
 			g.name = BUILDING_TYPES.GAS;
 			g.parent = person;
 			g.instanceName = "Gas:" + gasType;
+            g.getBuilding = world.getBuilding;
+			g.getChildByType = getChildByType; //generic child getter function
 			return g;
 		}
 		//fallthrough
@@ -786,7 +791,8 @@ window.elefart.building = (function () {
 
 			//add health object
 			p.health = new Health(p);
-
+            
+            p.getBuilding = world.getBuilding;
 			p.getChildByType = getChildByType;
 
 			//walking queues
@@ -801,7 +807,12 @@ window.elefart.building = (function () {
 				teleport:false, //move immediately to next destination in elevatorQueue,
 				destObj:NO_SHAFT,
 				getDest:function (xPos) {
-					return building.getBuilding().getShaftByCoord(factory.toInt(xPos));
+					return p.getBuilding().getShaftByCoord(
+                        factory.Point(
+                            factory.toInt(xPos),
+                            p.getBuilding().top + 1
+                        )
+                    );
 				},
 				getDist:function () {
 					if(this.destObj !== NO_SHAFT) {
@@ -818,7 +829,7 @@ window.elefart.building = (function () {
 			 * GETTERS
 			 */
 			p.getFloor = function () {
-				var floors = getBuilding().getFloors();
+				var floors = p.getBuilding().getFloors();
 				var len = floors.length;
                 var center = p.getCenter();
 				for(var i = 0; i < len; i++) {
@@ -827,7 +838,7 @@ window.elefart.building = (function () {
 						return floor;
 					}
 				}
-				floor = getBuilding().getRoof(); //ROOF is a floor
+				floor = p.getBuilding().getRoof(); //ROOF is a floor
 				if(floor.pointInside(center)) {
 					return floor;
 				}
@@ -835,7 +846,7 @@ window.elefart.building = (function () {
 			}
             
             p.getShaft = function () {
-                var shafts = getBuilding().getShafts();
+                var shafts = p.getBuilding().getShafts();
                 var len = shafts.length;
                 var center = p.getCenter();
                 for(var i = 0; i < len; i++) {
@@ -848,7 +859,7 @@ window.elefart.building = (function () {
             }
 
 			p.getElevator = function () {
-				var elevators = getBuilding().getElevators();
+				var elevators = p.getBuilding().getElevators();
 				var len = elevators.length;
                 var center = p.getCenter();
 				for(var i = 0; i < len; i++) {
@@ -948,7 +959,7 @@ window.elefart.building = (function () {
 				if(p.parent) console.log("p.parent.instanceName:" + p.parent.instanceName);
 
 				if(p.parent.name === BUILDING_TYPES.ELEVATOR) {
-					if(parent.engine.is === ON) {
+					if(p.parent.engine.is === ON) {
 						return true;
 					}
 				}
@@ -995,7 +1006,7 @@ window.elefart.building = (function () {
 						p.move(-speed, 0);
 						p.spriteCoords.setNextFrame();
 					}
-					else if(d < speed) {
+					else if(d <= speed) {
 						//console.log("< move")
 						p.move(speed, 0);
 						p.spriteCoords.setNextFrame();
@@ -1106,9 +1117,15 @@ window.elefart.building = (function () {
 			if(e) {
 				e.name = BUILDING_TYPES.ELEVATOR;
 				e.instanceName = "Elevator #:" + shaft.shaftNum;
+                e.getBuilding = world.getBuilding;
+                e.getChildByType = getChildByType; //generic child getter function
 				e.parent = shaft;      //set parent early, before addChild
 				e.setRectBorderRadius(3);
-				e.floor = building.getFloorByCoord(e.top + factory.toInt(e.height/2)); //get the default assigned BuildingFloor
+				e.floor = building.getFloorByCoord(
+                    factory.Point(building.top+1, 
+                    e.top + factory.toInt(e.height/2)
+                    )
+                ); //get the default assigned BuildingFloor
 				e.floorQueue = [];
 				e.peopleList = []; //persons on the elevator
 
@@ -1243,7 +1260,11 @@ window.elefart.building = (function () {
 				}
 
 				e.getFloor = function () {
-					return e.getShaft().parent.getFloorByCoord(e.top + factory.toInt(e.height/2));
+					return e.getShaft().parent.getFloorByCoord(
+                        factory.Point(parent.top+1, 
+                            e.top + factory.toInt(e.height/2)
+                        )
+                    );
 				}
 
 				/** 
@@ -1271,7 +1292,7 @@ window.elefart.building = (function () {
                     //Person must be in front of Elevator
                     if(e.pointInside(person.getCenter())) {
                         //add the dest floor to the Person
-                        getBuilding().removeChild(person, false); //remove Person from BuildingFloor
+                        e.getBuilding().removeChild(person, false); //remove Person from BuildingFloor
                         if(!e.personInside(person)) {
                             e.addChild(person); //add Person to Elevator, Elevator becomes parent
                         }
@@ -1284,7 +1305,7 @@ window.elefart.building = (function () {
 				e.removePerson = function (person) {
 					console.log("ELEVATOR IS removing person");
 					e.removeChild(person, false);
-					building.getBuilding().addChild(person);
+					e.getBuilding().addChild(person);
 					console.log("elevator::removePerson()," + controller.inUpdateList(person));
 				}
                 
@@ -1366,7 +1387,7 @@ window.elefart.building = (function () {
 					else {
 						floorNum = floor;
 						if(floorNum === ROOF && e.parent.hasShaftTop) {
-							floor = getBuilding().getRoof();
+							floor = e.getBuilding().getRoof();
 						}
 						else {
 							var floors = e.getFloors();
@@ -1396,7 +1417,7 @@ window.elefart.building = (function () {
 					if(floorNum === ROOF && e.parent.hasShaftTop) {
 						console.log("add ROOF:" + floor + " to Elevator:" + e.id + " queue")
 						e.engine.is = ON;
-						e.floorQueue.push(world.getBuilding().getRoof());
+						e.floorQueue.push(e.getBuilding().getRoof());
 						return floor;
 					}
 					var fl = e.parent.floorInShaft(floor); //some shafts don't go to all floors
@@ -1513,6 +1534,7 @@ window.elefart.building = (function () {
 				d.name = BUILDING_TYPES.ELEVATOR_DOORS;
 				d.instanceName = "ElevatorDoor, floor:"+ floor.floorNum + "shaft:" + shaft.shaftNum; //NOTE: ONE-BASED
 				d.parent = shaft; //do before adding to displayList
+                d.getBuilding = world.getBuilding;
 				d.getChildByType = getChildByType;
 
 				d.setOpacity(0.2); ////////////////////////////////////////////almost transparent for now
@@ -1637,6 +1659,7 @@ window.elefart.building = (function () {
 				}
 				s.parent = building; //need early assignment before addChild
 				//assign generic getter function
+                s.getBuilding = world.getBuilding;
 				s.getChildByType = getChildByType;
 
 				//functions that Elevator can query for its position
@@ -1836,6 +1859,7 @@ window.elefart.building = (function () {
 				currCol:0
 			});
 			//assign generic getter function
+            f.getBuilding = world.getBuilding;
 			f.getChildByType = getChildByType;
 			display.addToDisplayList(f, display.LAYERS.BUILDING);
 
@@ -1917,7 +1941,7 @@ window.elefart.building = (function () {
 
 	/* 
 	 * ============================
-	 * BUILDING ROOF
+	 * BUILDING SIGN
 	 * ============================
 	 */
 
@@ -1960,6 +1984,8 @@ window.elefart.building = (function () {
 		if(s) {
 			s.name = BUILDING_TYPES.BUILDING_SIGN;
 			s.instanceName = "GasLight Building Sign";
+            s.getBuilding = world.getBuilding;
+			s.getChildByType = getChildByType; //generic child getter function
 			display.addToDisplayList(s, display.LAYERS.BUILDING);
 			return s;
 			}
@@ -2007,7 +2033,7 @@ window.elefart.building = (function () {
 				c.roofShaft = roofShaft;
 
 				//getters for ElevatorShaft punching through BuildingRoof
-				c.getRoofShaft = function () {
+				c.getShaft = function () {
 					return c.roofShaft;
 				}
 
@@ -2019,6 +2045,17 @@ window.elefart.building = (function () {
 				c.updateByTime = function () {
 					return false;
 				}
+                
+                c.getShaft = function () {
+                    return roofShaft;
+                }
+                
+                c.getShaftByCoord = function (pt) {
+                    if(c.pointInside(pt)) {
+                        return roofShaft;
+                    }
+                    return false;
+                }
 
 				//get wallpaper bitmap
 				var wallPaper = display.getHotelWalls();
@@ -2049,8 +2086,10 @@ window.elefart.building = (function () {
 				});
 
 				cb.instanceName = "Roof Cupola Back";
-				cb.roofShaft = roofShaft;
-
+				cb.getBuilding = world.getBuilding;
+                cb.getChildByType = getChildByType; //generic child getter function
+                cb.roofShaft = roofShaft;
+                
 				c.addChild(cb);
 
 				//add a shadow
@@ -2120,6 +2159,7 @@ window.elefart.building = (function () {
 		if(r) {
 			r.name = BUILDING_TYPES.BUILDING_ROOF;
 			r.instanceName = "Building Roof";
+            r.getBuilding = world.getBuilding;
 			r.getChildByType = getChildByType; //generic child getter function
 			r.floorNum = ROOF;
 			r.walkLine = building.top-roofWidth;
@@ -2130,7 +2170,7 @@ window.elefart.building = (function () {
 				return r.getChildByType(BUILDING_TYPES.BUILDING_ROOF_SIDE, false);
 			}
 
-			r.getRoofShaft = function () {
+			r.getShaft = function () {
 				return r.roofShaft;
 			}
 
@@ -2178,8 +2218,22 @@ window.elefart.building = (function () {
 			r.getRoofCupola = function () {
 				return r.getChildByType(BUILDING_TYPES.BUILDING_ROOF_CUPOLA, false)[0];
 			}
+            
+            r.getShaftByCoord = function (pt) {
+                return r.getRoofCupola().getShaftByCoord(pt);
+            }
+            
+            //shafts don't extend to BuildingRoof, but we need their coords to move a Person
+            r.getShaftUnderneath = function (pt) {
+                return r.getBuilding().getShaftByCoord(
+                    factory.Point(
+                        r.getBuilding().top,
+                        pt.y)
+                );                 
+            }
+           
 			//add the Building Cupola on the BuildingRoof
-			r.addChild(BuildingCupola(building, r, roofShaft, ss));
+			r.addChild(BuildingCupola(building, r, roofShaft, ss)); 
 
 			return r;
 		}
@@ -2233,6 +2287,7 @@ window.elefart.building = (function () {
 			b.name = BUILDING_TYPES.BUILDING;
 			b.instanceName = "GasLight Building";
 			b.parent = world; //NOTE: have to do here since addChild hasn't happened
+            b.getBuilding = world.getBuilding;
 			b.getChildByType = getChildByType; //generic child getter function
 
 			//add to Building's outline to displayList BEFORE creating BuildingFloors
@@ -2267,7 +2322,8 @@ window.elefart.building = (function () {
 			 * @param {Number} y the y coordinate, absolute for entire game
 			 * @returns {Number} the floor number, or false
 			 */
-			b.getFloorByCoord = function (y) {
+			b.getFloorByCoord = function (pt) {
+                var y = pt.y;
 				var floors = b.getFloors();
 				var len = floors.length;
 				for(var i = 0; i < len; i++) {
@@ -2276,7 +2332,8 @@ window.elefart.building = (function () {
 						return floor;
 					}
 				}
-				return false;
+                return b.getRoofByCoord(pt);
+				//return false;
 			}
 			//NOTE: these getters return results based on CALCULATED, not actual BuildingFloors and ElevatorShafts
 			b.getFloors = function () {
@@ -2321,56 +2378,6 @@ window.elefart.building = (function () {
 				return false;
 			}
 
-			/** 
-			 * @method shaftFloorSelected 
-			 * @description stats for a selected Point (e.g. from a mouseclick)
-			 * @param {Point} pt the point of the user selection (mouse, touch)
-			 * @returns {Object} object containing shaft and floor selected, or 
-			 * false for one or both.
-			 */
-			b.selected = function (pt) {
-				if(!pt || !factory.isNumber(pt.x) || !factory.isNumber(pt.y)) {
-					elefart.showError("Building.selected() invalid coords, x:" + x + " y:" + y);
-				}
-
-				//recover Building objects under this click
-
-				var result = {}, shaft, elev, floor, person, goodie;
-                
-				result.person = b.getPersonByCoord(pt);
-
-				result.goodie = b.getGoodieByCoord(pt);
-
-				shaft = b.getShaftByCoord(pt.x);
-				if(shaft !== false) {
-					result.shaft = shaft;
-				}
-                
-                //get the floor by coordinates
-				floor = b.getFloorByCoord(pt.y);
-				if(floor !== false) {
-					result.floor = floor;
-				}
-
-				//the ROOF is not a floor, but Players can go to its
-				if(!floor) {
-					floor = b.getRoof();
-				}
-                
-                elev = b.getElevatorByCoord(pt);
-                if(elev !== false) {
-                    result.elev = elev;
-                }
-                
-				//if not found check the BuildingRoof
-				if(!result.floor && shaft.top < b.top) {
-					console.log("checking for ROOF")
-					result.floor = b.getRoof();
-				}
-
-				return result;
-			}
-
 			//get the number of ElevatorShafts we WILL create (getNumShafts() calcs number needed)
 			var numShafts = b.getNumShafts();
 
@@ -2392,7 +2399,8 @@ window.elefart.building = (function () {
 			 * @param {Number } x the x coordinate, absolute
 			 * @returns {ScreenObject|false}
 			 */
-			b.getShaftByCoord = function (x) {
+			b.getShaftByCoord = function (pt) {
+                var x = pt.x;
 				var shafts = b.getShafts();
 				var len = shafts.length;
 				for(var i = 0; i < len; i++) {
@@ -2434,6 +2442,14 @@ window.elefart.building = (function () {
 			b.getRoof = function () {
 				return b.getChildByType(BUILDING_TYPES.BUILDING_ROOF, false)[0];
 			}
+            
+            b.getRoofByCoord = function (pt) {
+                var r = b.getRoof();
+                if(r.pointInside(pt)) {
+                    return r;
+                }
+                return false;
+            }
 
 			//create and add BuildingRoof, Floor# -1, and with a opening for the roofShaft
 			var roofShaft = b.getShaft(numRoofShaft);
@@ -2649,6 +2665,7 @@ window.elefart.building = (function () {
 			c.distance = distance; //used to animate Cloud layers
 			c.name = BUILDING_TYPES.CLOUD;
 			c.instanceName = "Cloud";
+            c.getBuilding = world.getBuilding;
 			c.getChildByType = getChildByType; //generic child getter function
 			display.addToDisplayList(c, display.LAYERS.CLOUDS); //get layer and panel for display
 
@@ -2720,6 +2737,7 @@ window.elefart.building = (function () {
 			if(s) {
 				s.name = BUILDING_TYPES.SUN;
 				s.instanceName = "Sun";
+                s.getBuilding = world.getBuilding;
 				s.getChildByType = getChildByType; //generic child getter function
 
 				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
@@ -2773,6 +2791,7 @@ window.elefart.building = (function () {
 			if(c) {
 				c.name = BUILDING_TYPES.CORONA;
 				c.instanceName = "Corona";
+                c.getBuilding = world.getBuilding;
 				c.getChildByType = getChildByType; //generic child getter function
 				display.addToDisplayList(c, display.LAYERS.WORLD);
 				return c;
@@ -2844,8 +2863,16 @@ window.elefart.building = (function () {
 			if(s) {
 				s.name = BUILDING_TYPES.SKY;
 				s.instanceName = "Sky";
-				s.getChildByType = getChildByType; //generic child getter function
+				s.getBuilding = world.getBuilding;
+                s.getChildByType = getChildByType; //generic child getter function
 				display.addToDisplayList(s, display.LAYERS.WORLD); //visible
+                
+                s.getSkyByCoord = function (y) {
+                    if(y >= s.bottom && y <= s.top) {
+                        return s;
+                    }
+                    return false;
+                }
 
 				//getter for the Sun
 				s.getSun = function () {
@@ -2965,6 +2992,8 @@ window.elefart.building = (function () {
 		if(f) {
 			f.name = BUILDING_TYPES.FPS;
 			f.instanceName = "FPS";
+            f.getBuilding = world.getBuilding;
+			f.getChildByType = getChildByType; //generic child getter function
 
 			/* 
 			 * update frames per second ByTime
@@ -2987,7 +3016,7 @@ window.elefart.building = (function () {
 
 	/** 
 	 * @constructor Controls
-	 * @classdesc the user controls below the building
+	 * @classdesc the container for the user controls below the building
 	 * - parent: world
 	 * - grandparent: none
 	 * - children: individual control types
@@ -3014,11 +3043,18 @@ window.elefart.building = (function () {
 
 		//set additional Building properties and add child objects
 		if(c) {
-			c.type = BUILDING_TYPES.CONTROLS;
+			c.name = BUILDING_TYPES.CONTROLS;
 			c.instanceName = "Control Panel";
 			c.margin = factory.toInt(DIMENSIONS.CONTROLS.margin * w); //relative to Width
-
+            c.getBuilding = world.getBuilding;
 			c.getChildByType = getChildByType; //generic child getter function
+            
+            c.getControlsByCoord = function (pt) {
+                if(pt.y >= c.bottom && pt.y <= c.top) {
+                    return c;
+                }
+                return false;
+            }
 
 			//Add margin border
 
@@ -3104,14 +3140,45 @@ window.elefart.building = (function () {
 				 * Building, otherwise false
 				 */
 				wo.buildingSelected = function (pt) {
-					var building = w.getBuilding();
+					var building = wo.getBuilding();
 					if(pt.y > building.top && pt.y < building.bottom) {
 						if(pt.x > building.left && pt.x < building.right) {
-							return true;
+							return building;
 						}
 					}
 					return false;
 				};
+                
+                /* 
+                 * return a object with all objects under a Point coordinate
+                 * used by Controller to route mouseclicks and touch events
+                 */
+                wo.selected = function (pt) {
+                    
+				    if(!pt || !factory.isNumber(pt.x) || !factory.isNumber(pt.y)) {
+					   elefart.showError("World.selected() invalid Point coords supplied, x:" + x + " y:" + y);
+				    }
+
+				    var result = {};
+                
+                    result.building = wo.buildingSelected(pt);
+                    if(result.building) {
+                        var b = result.building;
+				        result.person   = b.getPersonByCoord(pt);
+				        result.goodie   = b.getGoodieByCoord(pt);
+				        result.shaft    = b.getShaftByCoord(pt);
+				        result.floor    = b.getFloorByCoord(pt);
+                        result.elev     = b.getElevatorByCoord(pt);
+                    }
+                    else {
+                        result.sky      = wo.getSky().getSkyByCoord(pt);
+                        result.controls = wo.getControls().getControlsByCoord(pt);
+                        result.floor    = wo.getBuilding().getFloorByCoord(pt);
+                        result.shaft    = result.floor.getShaftByCoord(pt);
+                    }
+                    
+				    return result;
+                } //end of .selected
 
 				return wo;
 				}
