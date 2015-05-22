@@ -715,7 +715,19 @@ window.elefart.building = (function () {
 			g.parent = person;
 			g.instanceName = "Gas:" + gasType;
             g.getBuilding = world.getBuilding;
+            g.getControls = world.getControls;
 			g.getChildByType = getChildByType; //generic child getter function
+
+			//animate gas during discharge
+			g.updateByTime = function () {
+
+			}
+
+			//remove Gas from Building after it is discharged
+			g.removeGas = function () {
+
+			}
+
 			return g;
 		}
 		//fallthrough
@@ -804,7 +816,8 @@ window.elefart.building = (function () {
 			//add health object
 			p.health = new Health(p);
             
-            p.getBuilding = world.getBuilding;
+            p.getBuilding = world.getBuilding; //Building
+            p.getControls = world.getControls; //Controls
 			p.getChildByType = getChildByType;
 
 			//walking queues
@@ -888,6 +901,52 @@ window.elefart.building = (function () {
 			 */
 
 			/** 
+			 * @method addGoodie
+			 * @description add a Goodie to a Person when they 
+			 * walk past it. The Controller determines if they 
+			 * overlap, and calls this function as necessary
+			 * @param {Goodie} goodie the intersected Goodie. It is 
+			 * necesssary to decouple the Goodie from the Building as 
+			 * well.
+			 */
+			p.addGoodie = function (goodie) {
+				console.log("add a goodie:" + goodie.instanceName);
+				return;
+				/////////////////////////////////////////
+				p.getBuilding().removeChild(goodie);
+				p.addChild(goodie);
+				//update display lists. Captured 
+				//Goodies are shown in the Control rather than
+				//Building area
+				goodie.removeFromLists(goodie);
+				p.getControls().setGoodie(goodie);
+			}
+
+			/** 
+			 * @method removeGoodie
+			 * @description remove a Goodie when it is used by the Person, 
+			 * e.g. used to combat enemy Gas. The Goode never returns to 
+			 * the Building, instead it is deleted
+			 */
+			p.removeGoodie = function (goodie) {
+				p.removeChild(goodie);
+				p.getControls().removeGoodie(goodie);
+			}
+
+			//tell the Gas to remove itself from the Controls, add to the Building 
+			//animate, then disappear. When the Gas is attached to the Building, it 
+			//can affect other players
+			p.doGas = function () {
+				console.log("Player " + p.instanceName + " breaking wind...");
+			}
+
+			//tell the Gas to display itself in the Controls area
+			//done on startup
+			p.addToGasList = function () {
+				//p.getControls().addGas(g);
+			}
+
+			/** 
 			 * @method p.addMoveToShaft
 			 * @description add a new destination for a Player, triggered
 			 * by clicking on an ElevatorShaft on the same floor as the 
@@ -897,7 +956,6 @@ window.elefart.building = (function () {
 			p.addMoveToShaft = function (gameLoc) {
 				//determine destination
 				console.log("in addMoveToShaft")
-				//TODO: DEST FAILS!!!!!!!!!!!!!!
 				var engine = p.engine;
 				var dest = p.engine.getDest(gameLoc.x);
 				console.log("parent::addMoveToShaft(), dest is:" + dest);
@@ -960,6 +1018,17 @@ window.elefart.building = (function () {
 			};
 
 			/** 
+			 * @method p.isMovingOnFloor
+			 * @description check if the Player is currently moving
+			 */
+			p.isMovingOnFloor = function () {
+				 if(p.engine.is === ON) {
+				 	return true;
+				 }
+				 return false;
+			}
+
+			/** 
 			 * @method p.inMovingElevator
 			 * @description determine if Person is in moving elevator, and can't run. Works 
 			 * because Person is added to Elevator in elefart.factory as a child object 
@@ -997,6 +1066,18 @@ window.elefart.building = (function () {
 						//console.log("Person.updateByTime(): ERROR: update Function run, but no shaft assigned");
 						return;
 					}
+
+					//TODO: see if we encountered a Goodie
+					var goodies = p.getBuilding().getGoodies();
+					if(goodies.length > 0) {
+						var center = p.getCenter();
+						for(var i = 0; i < goodies.length; i++) {
+							if(goodies[i].pointInside(center)) {
+								p.addGoodie(goodies[i]);
+							}
+						}
+					}
+
 
 					var d = engine.getDist();
 					var speed = engine.speed;
@@ -3344,6 +3425,52 @@ window.elefart.building = (function () {
                     return c;
                 }
                 return false;
+            }
+
+            //Goodies picked up by a Person are displayed in Controls
+            c.setGoodie = function (goodie) {
+            	var goodieList = c.getChildByType(BUILDING_TYPES.GOODIE, false);
+            	for (var i = 0; i < goodieList.length; i++) {
+            		if(goodie === goodieList[i]) {
+            			return false;
+            		}
+            	}
+            	return c.addToDisplayList(goodie, display.LAYERS.CONTROLS);
+            }
+
+            //Gas stored by a Person are displayed in Controls
+            c.setGas = function (gas) {
+            	var gasList = c.getChildByType(BUILDING_TYPES.GAS, false);
+            	for (var i = 0; i < gasList.length; i++) {
+            		if(gas === gasList[i]) {
+            			return false;
+            		}
+            	}
+            	return c.addToDisplayList(gas, display.LAYERS.CONTROLS);
+            }
+
+            //remove a Goodie
+            c.removeGoodie = function (goodie) {
+            	var goodieList = c.getChildByType(BUILDING_TYPES.GOODIE, false);
+            	for(var i = 0; i < goodieList.length; i++) {
+            		if(goodie === goodieList[i]) {
+            			display.removeFromLists(goodie);
+            			c.removeChild(goodie);
+            			delete goodie;
+            		}
+            	}
+            }
+
+            //remove Gas
+            c.removeGas = function (gas) {
+            	var gasList = c.getChildByType(BUILDING_TYPES.GAS, false);
+            	for(var i = 0; i < gasList.length; i++) {
+            		if(gas === gasList[i]) {
+            			display.removeFromLists(gas);
+            			c.removeChild(gas);
+            			delete gas; 
+            		}
+            	}
             }
 
 			//Add margin border

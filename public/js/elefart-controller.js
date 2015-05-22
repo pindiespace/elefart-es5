@@ -58,6 +58,14 @@ window.elefart.controller = (function () {
 	 */
 	function handleKeypress (keyCode) {
 		console.log("key pressed:" + keyCode);
+		//if spacebar, have local Person emit Gas
+		switch(keyCode) {
+			case 32:        //SPACEBAR
+				localPlayer.doGas();
+				break;
+			default:
+				break;
+		}
 	}
 
 	/** 
