@@ -698,6 +698,10 @@ window.elefart.factory = (function () {
 	 * GETTERS AND OBJECT COLLISION TESTS
 	 * ============================
 	 */
+	
+	function getLineWidth () {
+		return this.lineWidth;
+	}
 
 	/** 
 	 * @method getX
@@ -1154,7 +1158,10 @@ window.elefart.factory = (function () {
 				return false;
 				break;
 		}
-		//update children
+		//update children only if they can be moved
+		if(this.immobile) {
+			return;
+		}
 		if(recurse && this.children) {
 			for(var i = 0; i < this.children.length; i++) {
 				var child = this.children[i];
@@ -2025,6 +2032,7 @@ window.elefart.factory = (function () {
 	 */
 	function addFns (obj) {
 		//getters
+		obj.getLineWidth = getLineWidth,
 		obj.getX = getX,
 		obj.getY = getY,
 		obj.getWidth = getWidth,
@@ -2066,6 +2074,8 @@ window.elefart.factory = (function () {
 		obj.setLayer = setLayer;
 		//dirty bit, never been drawn before
 		obj.dirty = true;
+		//object immobile bit
+		obj.immobile = false;
 		return obj;
 	}
 

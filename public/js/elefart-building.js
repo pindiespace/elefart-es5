@@ -611,6 +611,9 @@ window.elefart.building = (function () {
 				g.parent = goodieFloor;
                 g.getBuilding = world.getBuilding;
 				g.getChildByType = getChildByType;
+			
+				//goodies are immobile, even if in recursive drawing
+				g.immobile = true;
 
 				g.setSpriteCoords({
 					rows:goodieBoard.rows, //0-9
@@ -722,6 +725,9 @@ window.elefart.building = (function () {
             g.getBuilding = world.getBuilding;
             g.getControls = world.getControls;
 			g.getChildByType = getChildByType; //generic child getter function
+			
+			//goodies are immobile, even if in recursive drawing
+			g.immobile = true;
 
 			//animate gas during discharge
 			g.updateByTime = function () {
@@ -781,7 +787,7 @@ window.elefart.building = (function () {
 		var scale = 0.9 * (elevatorHeight * characterBoard.rows/characterBoard.height);
 		var h = factory.toInt(scale * characterBoard.height/characterBoard.rows);
 		var w = factory.toInt(scale * characterBoard.width/characterBoard.cols);
-		var dfloor = floor.bottom  - floor.walkLine;
+		var dfloor = floor.bottom  - floor.getWalkLine(); //walkLine;
 		var t = floor.bottom - h;
 
 		//create the Person
@@ -888,6 +894,7 @@ window.elefart.building = (function () {
                 return false;
             }
 
+			//Elevator Person is in front of
 			p.getElevator = function () {
 				var elevators = p.getBuilding().getElevators();
 				var len = elevators.length;
@@ -904,7 +911,8 @@ window.elefart.building = (function () {
 			/* 
 			 * CONTROLLER EVENT SETTERS
 			 */
-
+			
+			
 			/** 
 			 * @method addGoodie
 			 * @description add a Goodie to a Person when they 
@@ -1019,6 +1027,14 @@ window.elefart.building = (function () {
 				engine.destObj = NO_SHAFT;   //shaft Person is moving to
 				engine.destFloor = NO_FLOOR; //destination floor of person in Elevator
 				engine.speed = pType.speed;
+				
+				//adjust Person so their feet match the Elevator
+				var elev = p.getElevator();
+				if(elev) {
+					var d = elev.bottom - factory.toInt(elev.getLineWidth()/2) - p.bottom;
+					p.move(0, d);
+				}
+				
 				return true;
 			};
 
@@ -1274,7 +1290,7 @@ window.elefart.building = (function () {
 					var eTop = e.top - ctx.lineWidth;
 					var epTop = e.parent.top;
 					var center = e.parent.left + (e.parent.width/2);
-					ctx.clearRect(center-8, epTop, 16, e.top - epTop);
+					ctx.clearRect(center-9, epTop, 18, e.top - epTop);
 				}
 
 				/** 
@@ -1358,8 +1374,8 @@ window.elefart.building = (function () {
 				}
 
 				e.getFloor = function () {
-					return e.getShaft().parent.getFloorByCoord(
-                        factory.Point(parent.top+1, 
+					return e.getBuilding().getFloorByCoord(
+                        factory.Point(e.getShaft().top+1, 
                             e.top + factory.toInt(e.height/2)
                         )
                     );
@@ -1381,24 +1397,38 @@ window.elefart.building = (function () {
 
 				//a Person requests getting on the Elevator to go to a specific floor
 				e.addPerson = function (person, floor) {
-					console.log("ELEVATOR IS adding person");
-
-					if(!e.floorInQueue(floor)) {
-						person.destFloor = floor.floorNum;
-						e.addFloorToQueue(floor);
+					console.log("ELEVATOR IS adding person:" + person.instanceName);
+					
+					if(person.getFloor() === floor) {
+						console.log("Person already on floor:" + floor.floorNum);
+							return false;
 					}
+					
                     //Person must be in front of Elevator
                     if(e.pointInside(person.getCenter())) {
-                        //add the dest floor to the Person
+						
                         console.log("Person is in front of elevator");
+						
+						if(!e.floorInQueue(floor)) {
+							console.log("Person wants floor NOT in queue");
+							e.addFloorToQueue(floor);
+						}
+                        //add the dest floor to the Person
+						person.destFloorNum = floor.floorNum;
+						console.log("Person's dest floor:" + person.destFloorNum);
+
                         e.getBuilding().removeChild(person, false); //remove Person from BuildingFloor
+						
                         if(!e.personInside(person)) {
-                            console.log("Person in front, but not inside elevator, add them");
+                            console.log("Person in front, but not inside elevator, add them to Elevator:" + e.instanceName);
+							var l = person.left;
+							var t = e.bottom - person.height - 4;
+							person.moveTo(l, t);
                             e.addChild(person); //add Person to Elevator, Elevator becomes parent
                         }
                     }
                     console.log("elevator::addPerson()," + controller.inUpdateList(person));
-
+					return true;
 				}
 
 				//A Person requests to leave the Elevator on a specified floor
@@ -1406,6 +1436,13 @@ window.elefart.building = (function () {
 					console.log("ELEVATOR IS removing person");
 					e.removeChild(person, false);
 					e.getBuilding().addChild(person);
+					
+					//reset Person's walklink if they are out of position
+					//var d =  person.getFloor().walkLine - person.bottom;
+					var d = person.getFloor().getWalkLine() - person.bottom;
+					console.log("PERSON D ISSSSS:" + d);
+					person.move(0, d);
+					
 					console.log("elevator::removePerson()," + controller.inUpdateList(person));
 				}
                 
@@ -1480,6 +1517,12 @@ window.elefart.building = (function () {
 				 * at updates
 				 */
 				e.addFloorToQueue = function (floor) {
+					
+					if(floor === e.getFloor()) {
+						console.log("Elevator::addFloorToQueue()::already on floor:" + floor.floorNum);
+						return false;
+					}
+					
 					var floorNum, i, len;
 					if(!factory.isNumber(floor)) {
 						floorNum = floor.floorNum;
@@ -1557,10 +1600,13 @@ window.elefart.building = (function () {
 						return false;
 					}
 					//check if People need to get out of Elevator
+					e.peopleList = e.getChildByType(BUILDING_TYPES.PERSON, false);
 					var len = e.peopleList.length;
+					console.log("Elevator::removeFloorFromQueue()::checking if any of the " + len + " People need to get out");
 					for(var i = 0; i < len; i++) {
 						var p = e.peopleList[i];
-						if(p.floor.floorNum === floorNum) {
+						
+						if(p.destFloorNum === floorNum) {
 							console.log("Person:"+ p.instanceName + " leaving Elevator:" + e.instanceName);
 							e.removePerson(p);
 						}
@@ -1975,6 +2021,11 @@ window.elefart.building = (function () {
 				if(baseHeight > MAX_WALLS) baseHeight = MAX_WALLS;
 				return baseHeight;
 			}
+			
+			f.getWalkLine = function () {
+				var fb = f.getFloorBase();
+				return fb.top + f.height - fb.getLineWidth();
+			}
 
 			/** 
 			 * @method BuildingFloor.getFloorBase
@@ -1982,7 +2033,7 @@ window.elefart.building = (function () {
 			 * @returns {ScreenRect} the ScreenRect creating the visible floor.
 			 */
 			f.getFloorBase = function () {
-				return f.getChildByType(BUILDING_TYPES.BUILDING_FLOORBASE);
+				return f.getChildByType(BUILDING_TYPES.BUILDING_FLOORBASE)[0];
 			}
 
 			var baseHeight = f.getBaseHeight();
@@ -2314,6 +2365,10 @@ window.elefart.building = (function () {
 			r.addChild(roofRight);
 			display.addToDisplayList(roofRight, display.LAYERS.ELEBACK);
 
+			r.getWalkLine = function () {
+				return r.bottom - r.getLineWidth() - r.getBuilding().getLineWidth();
+			}
+			
 			//getter for RoofCupola
 			r.getRoofCupola = function () {
 				return r.getChildByType(BUILDING_TYPES.BUILDING_ROOF_CUPOLA, false)[0];
@@ -3125,7 +3180,7 @@ window.elefart.building = (function () {
 					var t = g.top;
 					var l = g.left; //list (not its label)
 					for(var i = 0; i < len; i++) {
-						gList[i].moveTo(t, l + factory.toInt(i * w));
+						gList[i].moveTo(l + factory.toInt(i * w), t );
 					}
 				}
             }
@@ -3155,9 +3210,19 @@ window.elefart.building = (function () {
 					}
 				}
 				gList.push(goodie);
-				g.calcGoodieLayout();
+				
+				//we have to erase a static image, and redraw it elsewhere
+				var c = display.getBackgroundCanvas();
+				var ctx = c.getContext("2d");
+				ctx.save();
 				display.removeFromDisplayList(goodie);
+				display.eraseObject(ctx, goodie);
+				//ctx.rect(goodie.left, goodie.top, goodie.width, goodie.height);
+				//ctx.clip();
+				ctx.restore();
+				g.calcGoodieLayout();
 				display.addToDisplayList(goodie, display.LAYERS.CONTROLS);
+				display.drawBackground();
 				return true;
 			}
 

@@ -99,20 +99,20 @@ window.elefart.controller = (function () {
         //we clicked on a Person, not currently moving
 		if(tp.person) {
 			//TODO: connect to modal window with Person features
-			console.log("clicked on Person:" + tp.person.instanceName);
+			console.log("controller::clicked on Person:" + tp.person.instanceName);
 		}
 
 		//see if we clicked on a Goodie, not currently moving
 		if(tp.goodie) {
 			//TODO: connect to a modal window displaying the goodie value
-			console.log("clicked on a Goodie:" + tp.goodie.instanceName);
+			console.log("controller::clicked on a Goodie:" + tp.goodie.instanceName);
 		}
   
         var playerFloor   = localPlayer.getFloor();
         var playerShaft   = localPlayer.getShaft();
 
         if(tp.shaft) {
-            console.log("clicked on an ElevatorShaft:" + tp.shaft.instanceName);
+            console.log("controller::clicked on an ElevatorShaft:" + tp.shaft.instanceName);
             //if local Player on same floor, move Player, not Elevator
             //if Player is already at the shaft, move the Elevator to the Floor
             //if Player is superimposed on Elevator, do nothing
@@ -120,25 +120,25 @@ window.elefart.controller = (function () {
             //if Player on different floor, move Elevator to floor
             var elevator      = tp.shaft.getElevator();
             var elevatorFloor = elevator.getFloor();
-            console.log("tp.floor:"+ tp.floor + " playerFloor:" + playerFloor);
+            console.log("controller::tp.floor:"+ tp.floor + " playerFloor:" + playerFloor);
             var inMover = localPlayer.inMovingElevator();
             if(inMover) {
-				console.log("in moving elevator"); 
+				console.log("controller::in moving elevator"); 
 			}
 			else {
-				console.log("not in moving elevator");
+				console.log("controller::not in moving elevator");
 			}
+			
             if(!localPlayer.inMovingElevator() && tp.floor && playerFloor) {
                 if(playerShaft !== tp.shaft && playerFloor === tp.floor) {
-                	console.log("add player move to shaft");
+                	console.log("controller::move Player to shaft");
                     localPlayer.addMoveToShaft(gameLoc);
                 }
-                //else if (elevatorFloor === building.getBuilding().getRoof()) {
-                //	console.log("dude is on the roof");
-                //}
                 else if(tp.shaft === localPlayer.getShaft()) {
-                    elevator.addPerson(localPlayer, tp.floor);
-                    elevator.addFloorToQueue(tp.floor.floorNum);
+					if(elevator.getFloor() !== tp.floor) { //make sure dest floor is different from current floor
+                    	elevator.addPerson(localPlayer, tp.floor);
+                    	elevator.addFloorToQueue(tp.floor.floorNum);
+					}
                 }
 				else {
 					//do nothing
@@ -146,7 +146,7 @@ window.elefart.controller = (function () {
             } 
         }
         else if(tp.floor) {
-            console.log("no shaft selected, on Roof");
+            console.log("controller::no shaft selected, on Roof");
             //find the ElevatorShaft underneath
             if(tp.floor.getShaftUnderneath(gameLoc)) {
                 localPlayer.addMoveToShaft(gameLoc);

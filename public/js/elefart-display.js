@@ -736,6 +736,7 @@ window.elefart.display = (function () {
 				layer = obj.layer; //add object (back) to its assigned layer
 			}
 			obj.panel = getPanel(layer);
+			obj.layer = layer; //update layer
 			displayList[layer].push(obj);
 		}
 		else {
@@ -759,12 +760,14 @@ window.elefart.display = (function () {
 			pos = checkIfInLayer(obj, layer);
 			if(pos) {
 				obj.panel = false; //no panel when removed
+				obj.layer = null;
 				displayList[layer].splice(pos, 1); //remove element reference
 			}
 		}
 		else {
 			pos = checkIfInList(obj);
 			if(pos) {
+				obj.layer = null;
 				displayList[pos.layer].splice(pos, 1); //remove element
 			}
 		}
@@ -1405,7 +1408,7 @@ window.elefart.display = (function () {
 	 */
 
 	/** 
-	 * @method eraseDrawLayer
+	 * @method eraseLayer
 	 * @description draw a layer without erasing the whole canvas, just erase
 	 * individual objects with their 'dirty' bit set, and redraw. Provides a crude 
 	 * draw region clipping function (can't use with layers that have overlapping objects) 
@@ -1471,7 +1474,7 @@ window.elefart.display = (function () {
 
 	/** 
 	 * @method getBackgroundCanvas
-	 * @description get a reference to the foreground canvas
+	 * @description get a reference to the background canvas
 	 */
 	function getBackgroundCanvas () {
 		if(firstTime) return false;
