@@ -122,19 +122,27 @@ window.elefart.controller = (function () {
             var elevatorFloor = elevator.getFloor();
             console.log("tp.floor:"+ tp.floor + " playerFloor:" + playerFloor);
             var inMover = localPlayer.inMovingElevator();
-            if(inMover) console.log("in moving elevator"); else console.log("not in moving elevator")
+            if(inMover) {
+				console.log("in moving elevator"); 
+			}
+			else {
+				console.log("not in moving elevator");
+			}
             if(!localPlayer.inMovingElevator() && tp.floor && playerFloor) {
                 if(playerShaft !== tp.shaft && playerFloor === tp.floor) {
                 	console.log("add player move to shaft");
                     localPlayer.addMoveToShaft(gameLoc);
                 }
-                else if (elevatorFloor === building.getBuilding().getRoof()) {
-                	console.log("dude is on the roof");
-                }
-                else {
+                //else if (elevatorFloor === building.getBuilding().getRoof()) {
+                //	console.log("dude is on the roof");
+                //}
+                else if(tp.shaft === localPlayer.getShaft()) {
                     elevator.addPerson(localPlayer, tp.floor);
                     elevator.addFloorToQueue(tp.floor.floorNum);
                 }
+				else {
+					//do nothing
+				}
             } 
         }
         else if(tp.floor) {

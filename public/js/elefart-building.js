@@ -119,9 +119,10 @@ window.elefart.building = (function () {
 		GAS:"GAS",
 		HEALTH: "HEALTH",
         LABELS: "LABELS",
-		FPS: "FPS",
+		CONTROL_FPS: "CONTROL_FPS",
         CONTROL_LOGO: "CONTROL_LOGO",
-        CONTROL_LIST: "CONTROL_LIST",
+        CONTROL_GOODIE_LIST: "CONTROL_GOODIE_LIST",
+        CONTROL_GAS_LIST: "CONTROL_GAS_LIST",
 		CONTROLS:"CONTROLS"
 	};
 
@@ -265,7 +266,7 @@ window.elefart.building = (function () {
 		maxGas:6
 	},
 
-	DIMENSIONS[BUILDING_TYPES.FPS] = {
+	DIMENSIONS[BUILDING_TYPES.CONTROL_FPS] = {
 		width: 0.2, //RELATIVE to Controls
 		height:0.25
 	},
@@ -275,7 +276,11 @@ window.elefart.building = (function () {
         height:0.5
     },
         
-    DIMENSIONS[BUILDING_TYPES.CONTROL_LIST] = {
+    DIMENSIONS[BUILDING_TYPES.CONTROL_GAS_LIST] = {
+        width: 0.5, //RELATIVE to Controls
+        height:0.3
+    },
+    DIMENSIONS[BUILDING_TYPES.CONTROL_GOODIE_LIST] = {
         width: 0.5, //RELATIVE to Controls
         height:0.3
     },
@@ -911,15 +916,14 @@ window.elefart.building = (function () {
 			 */
 			p.addGoodie = function (goodie) {
 				console.log("add a goodie:" + goodie.instanceName);
-				return;
+				//return;
 				/////////////////////////////////////////
 				p.getBuilding().removeChild(goodie);
 				p.addChild(goodie);
 				//update display lists. Captured 
 				//Goodies are shown in the Control rather than
 				//Building area
-				goodie.removeFromLists(goodie);
-				p.getControls().setGoodie(goodie);
+				p.getControls().getGoodieList().addToGoodieList(goodie);
 			}
 
 			/** 
@@ -930,7 +934,7 @@ window.elefart.building = (function () {
 			 */
 			p.removeGoodie = function (goodie) {
 				p.removeChild(goodie);
-				p.getControls().removeGoodie(goodie);
+				p.getControls().getGoodieList().removeFromGoodieList(goodie);
 			}
 
 			//tell the Gas to remove itself from the Controls, add to the Building 
@@ -943,6 +947,7 @@ window.elefart.building = (function () {
 			//tell the Gas to display itself in the Controls area
 			//done on startup
 			p.addToGasList = function () {
+                console.log("add gas:" + gas.instanceName);
 				//p.getControls().addGas(g);
 			}
 
@@ -3062,8 +3067,8 @@ window.elefart.building = (function () {
      */
     function ControlGoodieList (controls) {
         
-        var w = factory.toInt(DIMENSIONS.CONTROL_LIST.width * controls.width);
-        var h = factory.toInt(DIMENSIONS.CONTROL_LIST.height * controls.height);
+        var w = factory.toInt(DIMENSIONS.CONTROL_GOODIE_LIST.width * controls.width);
+        var h = factory.toInt(DIMENSIONS.CONTROL_GOODIE_LIST.height * controls.height);
         var textSize = controls.fontSize;
         var t = controls.top + controls.margin;
         var l = controls.right - controls.margin - w;
@@ -3083,10 +3088,12 @@ window.elefart.building = (function () {
         );
         
         if(g) {
-            g.name = BUILDING_TYPES.CONTROL_LIST;
+            g.name = BUILDING_TYPES.CONTROL_GOODIE_LIST;
             g.instanceName = "Goodie Scorecard";
             g.getBuilding = world.getBuilding;
             g.getChildByType = getChildByType;
+            
+            g.goodieList = [];
             
             //custom drawing for the list of Goodies
             g.customDraw = function (ctx) {
@@ -3099,11 +3106,83 @@ window.elefart.building = (function () {
 				//TODO: List current Goodie List here
 			}
             
-            g.drawGoodies = function (person) {
-                var goodies = person.getGoodies();
-                //TODO: draw all the Goodies owned by a Person
+			/** 
+			 * @method calcGoodieLayout
+			 * @description (re)calcuate Goodie layout when a Goodie 
+			 * is added or removed
+			 */
+            g.calcGoodieLayout  = function () {
+                var len = g.goodieList.length;
+				if(len) {
+					var gList = g.goodieList;
+					var w = gList[0].width;
+					var max = factory.toInt(g.width/w);
+					if(len > max) {
+						console.log("error: too many goodies");
+						return;
+					}
+					//position the goodies
+					var t = g.top;
+					var l = g.left; //list (not its label)
+					for(var i = 0; i < len; i++) {
+						gList[i].moveTo(t, l + factory.toInt(i * w));
+					}
+				}
             }
             
+            
+			/** 
+			 * @method initGoodieList
+			 * @description initialize the update list for the application
+			 */
+			g.initGoodieList = function () {
+				g.goodieList = [];
+			}
+
+			/** 
+			 * @method addToUpdateList
+			 * @description add an object to the visual display list
+			 * @param {Point|Line|Rect|Circle|Polygon|ScreenSprite} obj the object to draw
+			 * @param {PANELS} panel (optional) the panel where the object is drawn by display
+			 * @returns {Boolean} if added, return true, else false
+			 */
+			g.addToGoodieList = function (goodie) {
+				var gList = g.goodieList;
+				var len = gList.length;
+				for(var i = 0; i < len; i++) {
+					if(gList[i] === goodie) {
+						return false; //already there
+					}
+				}
+				gList.push(goodie);
+				g.calcGoodieLayout();
+				display.removeFromDisplayList(goodie);
+				display.addToDisplayList(goodie, display.LAYERS.CONTROLS);
+				return true;
+			}
+
+			/** 
+			 * @method removeFromUpdateList
+			 * @description remove an object from drawing display list. By default, it is non-recursive.
+			 * @param {Point|Line|Rect|Circle|Polygon|ScreenSprite} obj the object to draw
+			 * @param {PANELS} panel (optional) the display list panel to draw in (optional)
+			 * @returns {Boolean} if removed, else false;
+			 */
+			g.removeFromGoodieList = function (goodie) {
+				var gList = g.goodieList;
+				var len = gList.length;
+				for(var i = 0; i < len; i++) {
+					if(gList[i] === goodie) {
+						gList.splice(i, 1); //remove element reference
+						calcGoodieLayout(); //recalculate goodie display
+						var parent = goodie.parent; //remove goodie reference from parent
+						parent.removeChild(goodie); //removes from all lists
+						return true;
+					}
+				}
+				return false;
+			}
+  
             var labelText = "Goodies:";
             var labelWidth = display.textPixelWidth (labelText, textSize + " pt " + controls.controlFont) + h + h; 
             var fl = factory.ScreenText(
@@ -3150,8 +3229,8 @@ window.elefart.building = (function () {
      * @returns {ControlLogo|false} the ControlLogo object     */
     function ControlGasList (controls) {
         
-        var w = factory.toInt(DIMENSIONS.CONTROL_LIST.width * controls.width);
-        var h = factory.toInt(DIMENSIONS.CONTROL_LIST.height * controls.height);
+        var w = factory.toInt(DIMENSIONS.CONTROL_GAS_LIST.width * controls.width);
+        var h = factory.toInt(DIMENSIONS.CONTROL_GAS_LIST.height * controls.height);
         var textSize = controls.fontSize;
         var t = controls.top + controls.margin + h;
         var l = controls.right - controls.margin - w;
@@ -3171,7 +3250,7 @@ window.elefart.building = (function () {
         );
         
         if(g) {
-            g.name = BUILDING_TYPES.CONTROL_LIST;
+            g.name = BUILDING_TYPES.CONTROL_GAS_LIST;
             g.instanceName = "Gas Scorecard";
             g.getBuilding = world.getBuilding;
             g.getChildByType = getChildByType;
@@ -3251,8 +3330,8 @@ window.elefart.building = (function () {
 	 */
 	function ControlFPS (controls) {
 
-		var w = factory.toInt(DIMENSIONS.FPS.width * controls.width);
-		var h = factory.toInt(DIMENSIONS.FPS.height * controls.height); 
+		var w = factory.toInt(DIMENSIONS.CONTROL_FPS.width * controls.width);
+		var h = factory.toInt(DIMENSIONS.CONTROL_FPS.height * controls.height); 
 		var textSize = h;
 		var t = controls.bottom - controls.margin - h;
         
@@ -3277,7 +3356,7 @@ window.elefart.building = (function () {
 				display.LAYERS.CONTROLS //dynamic
 			);
 		if(f) {
-			f.name = BUILDING_TYPES.FPS;
+			f.name = BUILDING_TYPES.CONTROL_FPS;
 			f.instanceName = "FPS";
             f.getBuilding = world.getBuilding;
 			f.getChildByType = getChildByType; //generic child getter function
@@ -3426,70 +3505,34 @@ window.elefart.building = (function () {
                 }
                 return false;
             }
-
-            //Goodies picked up by a Person are displayed in Controls
-            c.setGoodie = function (goodie) {
-            	var goodieList = c.getChildByType(BUILDING_TYPES.GOODIE, false);
-            	for (var i = 0; i < goodieList.length; i++) {
-            		if(goodie === goodieList[i]) {
-            			return false;
-            		}
-            	}
-            	return c.addToDisplayList(goodie, display.LAYERS.CONTROLS);
-            }
-
-            //Gas stored by a Person are displayed in Controls
-            c.setGas = function (gas) {
-            	var gasList = c.getChildByType(BUILDING_TYPES.GAS, false);
-            	for (var i = 0; i < gasList.length; i++) {
-            		if(gas === gasList[i]) {
-            			return false;
-            		}
-            	}
-            	return c.addToDisplayList(gas, display.LAYERS.CONTROLS);
-            }
-
-            //remove a Goodie
-            c.removeGoodie = function (goodie) {
-            	var goodieList = c.getChildByType(BUILDING_TYPES.GOODIE, false);
-            	for(var i = 0; i < goodieList.length; i++) {
-            		if(goodie === goodieList[i]) {
-            			display.removeFromLists(goodie);
-            			c.removeChild(goodie);
-            			delete goodie;
-            		}
-            	}
-            }
-
-            //remove Gas
-            c.removeGas = function (gas) {
-            	var gasList = c.getChildByType(BUILDING_TYPES.GAS, false);
-            	for(var i = 0; i < gasList.length; i++) {
-            		if(gas === gasList[i]) {
-            			display.removeFromLists(gas);
-            			c.removeChild(gas);
-            			delete gas; 
-            		}
-            	}
-            }
-
-			//Add margin border
-
-			//Add label "elefart"
-
-			//add individual Controls
             
-            //logo
+            //logo control
             c.addChild(ControlLogo(c));
+			
+			c.getControlLogo = function () {
+				return c.getChildByType(BUILDING_TYPES.CONTROL_LOGO, false)[0];
+			}
 
-			//fps
+			//fps control
 			c.addChild(ControlFPS(c));
+			
+			c.getControlFPS = function () {
+				return c.getChildByType(BUILDING_TYPES.CONTROL_FPS, false)[0];
+			}
             
-            //goodie list
+            //goodie list control
             c.addChild(ControlGoodieList(c));
+			
+			c.getGoodieList = function () {
+				return c.getChildByType(BUILDING_TYPES.CONTROL_GOODIE_LIST, false)[0];
+			}
             
-            //fart list
+            //fart list control
             c.addChild(ControlGasList(c));
+			
+			c.getGasList = function () {
+				return c.getChildByType(BUILDING_TYPES.CONTROL_GAS_LIST, false)[0];
+			}
 
 			//add control Panel to display list
 			display.addToDisplayList(c, display.LAYERS.WORLD); //visible
