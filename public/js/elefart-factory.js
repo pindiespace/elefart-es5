@@ -50,7 +50,11 @@ window.elefart.factory = (function () {
 		TOP:1,
 		RIGHT:2,
 		BOTTOM:3,
-		LEFT:4
+		LEFT:4,
+		TOPIN:5,
+		RIGHTIN:6,
+		BOTTOMIN:7,
+		LEFTIN:8
 	};
 
 
@@ -1345,6 +1349,56 @@ window.elefart.factory = (function () {
 	}
 
 	/** 
+	 * @method positionOn
+	 * @description position a ScreenObject on another ScreenObject
+	 * @param {ScreenObject} Object to be positioned
+	 * @param {SIDES} the side to position on - top, left, bottom, right
+	 * @param {Boolean} useBorder if true, position on border, else on the object base size
+	 */
+	function positionOn (obj, side, useBorder) {
+		if(obj && side) {
+			var b, d, w = obj.width, h = obj.height;
+			if(useBorder) {
+				b = obj.getLineWidth();
+			}
+
+			//TODO: test these conditions
+			switch(side) {
+				case SIDES.TOP:
+					d = obj.top - this.top - b - this.height;
+					break;
+				case SIDES.TOPIN:
+					d = obj.top - this.top + b;
+					break;
+				case SIDES.RIGHT:
+					d = this.right - obj.right + this.width + b;
+					this.move(d,  0);
+					break;
+				case SIDES.RIGHTIN:
+					d = this.right - obj.right - b;
+					break;
+				case SIDES.BOTTOM:
+					d =  obj.bottom - this.bottom + this.height + b;
+					this.move(0, b);
+					break;
+				case SIDES.BOTTOMIN:
+					d =  obj.bottom - this.bottom - b;
+					this.move(0, d);
+					break;				
+				case SIDES.LEFT:
+					d = this.left - obj.left - this.width - b;
+					this.move(d, 0);
+					break;
+				case SIDES.LEFTIN:
+					d = this.left - obj.left + b;
+					break;
+				default:
+					console.log("positionOn::invalid side:" + side);
+			}
+		}
+	}
+
+	/** 
 	 * @method setBorderRadius
 	 * @description set rounded Rect, in current version all cornder has the 
 	 * same rounding
@@ -2052,6 +2106,7 @@ window.elefart.factory = (function () {
 		obj.centerY = centerY,
 		obj.centerOnPoint = centerOnPoint,
 		obj.centerInRect = centerInRect,
+		obj.positionOn = positionOn,
 		obj.setDimensions = setDimensions,
 		obj.setRectBorderRadius = setRectBorderRadius,
 		obj.shrink = shrink,

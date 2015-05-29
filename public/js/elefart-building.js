@@ -954,9 +954,13 @@ window.elefart.building = (function () {
 
 			//tell the Gas to display itself in the Controls area
 			//done on startup
-			p.addToGasList = function () {
+			p.addGas = function () {
                 console.log("add gas:" + gas.instanceName);
 				//p.getControls().addGas(g);
+			}
+
+			p.removeGas = function () {
+
 			}
 
 			/** 
@@ -1437,12 +1441,11 @@ window.elefart.building = (function () {
 					e.removeChild(person, false);
 					e.getBuilding().addChild(person);
 					
-					//reset Person's walklink if they are out of position
-					//var d =  person.getFloor().walkLine - person.bottom;
-					var d = person.getFloor().getWalkLine() - person.bottom;
-					console.log("PERSON D ISSSSS:" + d);
-					person.move(0, d);
-					
+					//reset Person's walkline  to BuildingFloor if they are out of position
+					var f = person.getFloor();
+					var lw = f.getFloorBase().getLineWidth();
+					person.positionOn(f, factory.SIDES.BOTTOMIN, true);
+					person.move(0, -lw);
 					console.log("elevator::removePerson()," + controller.inUpdateList(person));
 				}
                 
@@ -2367,6 +2370,11 @@ window.elefart.building = (function () {
 
 			r.getWalkLine = function () {
 				return r.bottom - r.getLineWidth() - r.getBuilding().getLineWidth();
+			}
+
+
+			r.getFloorBase = function () {
+				return r;
 			}
 			
 			//getter for RoofCupola
