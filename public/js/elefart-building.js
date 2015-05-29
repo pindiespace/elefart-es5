@@ -731,11 +731,25 @@ window.elefart.building = (function () {
 
 			//animate gas during discharge
 			g.updateByTime = function () {
+				//go through Gas fromes in a defined pattern with defined time intervals
+			}
+
+			g.customDraw = function () {
 
 			}
 
-			//remove Gas from Building after it is discharged
-			g.removeGas = function () {
+			//triggered by Person, start Gas Animation
+			g.startGas = function () {
+
+			}
+
+			//reached the end of the script, end Gas animation
+			g.endGas = function () {
+
+			}
+
+			//set the timeline for different Gas types (sequence of frames to play)
+			g.setTimeline = function () {
 
 			}
 
@@ -934,6 +948,10 @@ window.elefart.building = (function () {
 				p.getControls().getGoodieList().addToGoodieList(goodie);
 			}
 
+			p.getGoodies = function () {
+				return s.getChildByType(BUILDING_TYPES.GOODIES, false);
+			};
+
 			/** 
 			 * @method removeGoodie
 			 * @description remove a Goodie when it is used by the Person, 
@@ -945,22 +963,37 @@ window.elefart.building = (function () {
 				p.getControls().getGoodieList().removeFromGoodieList(goodie);
 			}
 
+			//tell the Gas to display itself in the Controls area
+			//done on startup
+			p.addGas = function (gas) {
+                console.log("add gas:" + gas.instanceName);
+				//p.getControls().addGas(g);
+				p.getBuilding().removeChild(gas);
+				p.addChild(gas);
+				//update display lists. Captured 
+				//Goodies are shown in the Control rather than
+				//Building area
+				p.getControls().getGasList().addToGasList(gas);
+
+			}
+
+			p.getGas = function () {
+				return s.getChildByType(BUILDING_TYPES.GAS, false);
+			};
+
 			//tell the Gas to remove itself from the Controls, add to the Building 
 			//animate, then disappear. When the Gas is attached to the Building, it 
 			//can affect other players
-			p.doGas = function () {
+			p.doGas = function (gas) {
 				console.log("Player " + p.instanceName + " breaking wind...");
+				//make gas visible
+				//play through a lifetie
+				//remove when done
 			}
 
-			//tell the Gas to display itself in the Controls area
-			//done on startup
-			p.addGas = function () {
-                console.log("add gas:" + gas.instanceName);
-				//p.getControls().addGas(g);
-			}
-
-			p.removeGas = function () {
-
+			p.removeGas = function (gas) {
+				p.removeChild(gas);
+				p.getControls().getGasList().removeFromGoodieList(gas);
 			}
 
 			/** 
@@ -1159,19 +1192,6 @@ window.elefart.building = (function () {
 				ctx.clearRect(p.right, yCenter, p.nameImg.width, p.nameImg.height+ 1);
 			};
 
-			p.getGoodies = function () {
-				return s.getChildByType(BUILDING_TYPES.GOODIES, false);
-			};
-
-			p.getGas = function () {
-				return s.getChildByType(BUILDING_TYPES.GAS, false);
-			};
-
-			//add Gas, one of each type to charge up this Person
-			for(var i in GAS_TYPES) {
-				/////console.log("GAS TYPES:" + i)
-				p.addChild(Gas(p, i));
-			}
 
 			floor.parent.addChild(p); //defaults to
 			display.addToDisplayList(p, display.LAYERS.PEOPLE);
