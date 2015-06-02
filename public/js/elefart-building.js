@@ -725,6 +725,13 @@ window.elefart.building = (function () {
             g.getBuilding = world.getBuilding;
             g.getControls = world.getControls;
 			g.getChildByType = getChildByType; //generic child getter function
+
+			g.setSpriteCoords({
+					rows:gasBoard.rows, //0-9
+					cols:gasBoard.cols, //0-1
+					currRow:gasType,
+					currCol:0
+			}); //this ad
 			
 			//goodies are immobile, even if in recursive drawing
 			g.immobile = true;
@@ -732,6 +739,8 @@ window.elefart.building = (function () {
 			//animate gas during discharge
 			g.updateByTime = function () {
 				//go through Gas fromes in a defined pattern with defined time intervals
+
+				//g.spriteCoords.setNextFrame();
 			}
 
 			g.customDraw = function () {
@@ -740,12 +749,14 @@ window.elefart.building = (function () {
 
 			//triggered by Person, start Gas Animation
 			g.startGas = function () {
-
+				controller.addToUpdateList(g);
+				display.addToDisplayList(g);
 			}
 
 			//reached the end of the script, end Gas animation
 			g.endGas = function () {
-
+				display.removeFromDisplayList(g);
+				controller.removeFromUpdateList(g);
 			}
 
 			//set the timeline for different Gas types (sequence of frames to play)
@@ -968,12 +979,12 @@ window.elefart.building = (function () {
 			p.addGas = function (gas) {
                 console.log("add gas:" + gas.instanceName);
 				//p.getControls().addGas(g);
-				p.getBuilding().removeChild(gas);
 				p.addChild(gas);
 				//update display lists. Captured 
 				//Goodies are shown in the Control rather than
 				//Building area
-				p.getControls().getGasList().addToGasList(gas);
+				//p.getControls().getGasList().addToGasList(gas);
+				window.gasList = p.getControls().getGasList();
 
 			}
 
@@ -1191,7 +1202,6 @@ window.elefart.building = (function () {
 				var yCenter = p.top + (p.height/2);
 				ctx.clearRect(p.right, yCenter, p.nameImg.width, p.nameImg.height+ 1);
 			};
-
 
 			floor.parent.addChild(p); //defaults to
 			display.addToDisplayList(p, display.LAYERS.PEOPLE);
@@ -2698,7 +2708,7 @@ window.elefart.building = (function () {
 					elevatorHeight, //Elevator dimensions,
 					shaftStart //which ElevatorShaft to start at
 				);
-			//b.addChild(p); 
+
 
 			/* 
 			 * add a 'bot' competitor
@@ -3347,6 +3357,8 @@ window.elefart.building = (function () {
             g.instanceName = "Gas Scorecard";
             g.getBuilding = world.getBuilding;
             g.getChildByType = getChildByType;
+
+            g.gasList = [];
             
             //custom drawing for the list of Farts
             g.customDraw = function (ctx) {
@@ -3375,7 +3387,69 @@ window.elefart.building = (function () {
                     }
                 }
             }
-            
+
+            g.initGasList = function () {
+            	gList = [];
+            }
+
+            g.calcGasLayout = function (gas) {
+                var len = g.gasList.length;
+				if(len) {
+					var gList = g.gasList;
+					var w = gList[0].width;
+					var max = factory.toInt(g.width/w);
+					if(len > max) {
+						console.log("error: too much gas");
+						return;
+					}
+					//position the gas
+					var t = g.top;
+					var l = g.left; //list (not its label)
+					for(var i = 0; i < len; i++) {
+						gList[i].moveTo(l + factory.toInt(i * w), t );
+					}
+				}
+            }
+
+            g.addToGasList = function (gas) {
+				var len = gList.length;
+				for(var i = 0; i < len; i++) {
+					if(gList[i] === gas) {
+						return false; //already there (not likely)
+					}
+				}
+				gList.push(gas);
+				
+				//we have to erase a static image, and redraw it elsewhere
+				var c = display.getBackgroundCanvas();
+				//var ctx = c.getContext("2d");
+				//ctx.save();
+				display.removeFromDisplayList(gas);
+				/////////display.eraseObject(ctx, goodie);
+				//ctx.rect(goodie.left, goodie.top, goodie.width, goodie.height);
+				//ctx.clip();
+				//ctx.restore();
+				g.calcGasLayout();
+				display.addToDisplayList(gas, display.LAYERS.CONTROLS);
+				display.drawBackground();
+				return true;
+            }
+
+            //Gas is unusual in that it appears both next to Person, and in the gasList
+            g.removeFromGasList = function (gas) {
+				var len = gList.length;
+				for(var i = 0; i < len; i++) {
+					if(gList[i] === gas) {
+						gList.splice(i, 1); //remove element reference
+						calcGasLayout(); //recalculate goodie display
+						var parent = gas.parent; //remove goodie reference from parent
+						parent.removeChild(gas); //removes from all lists
+						return true;
+					}
+				}
+				return false;
+            }
+
             var labelText = "Farts:";
             var labelWidth = display.textPixelWidth (labelText, textSize + " pt " + controls.controlFont) + h + h; 
             var fl = factory.ScreenText(
@@ -3778,8 +3852,18 @@ window.elefart.building = (function () {
 			//this has to be re-set in Controller
 			world.addChild(Sky(world));
 			world.addChild(Building(world));
+
+			var lPlayer = world.getBuilding().getLocalPlayer();
+
 			controller.setLocalPlayer(world.getBuilding().getLocalPlayer());
 			world.addChild(Controls(world));
+
+			//add some starting Gas to players
+			//b.addChild(p); 
+			//add additional Player elements
+			//TODO: REFINE!!!!!!!!!!!!!!!!!!!!!!!
+			lPlayer.addGas(Gas(lPlayer, GAS_TYPES.SHUTTERBLAST));
+
 
 		} //end of if w
 	}
