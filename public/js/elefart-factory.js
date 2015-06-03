@@ -1363,6 +1363,7 @@ window.elefart.factory = (function () {
 			}
 
 			//TODO: test these conditions
+			
 			switch(side) {
 				case SIDES.TOP:
 					d = obj.top - this.top - b - this.height;

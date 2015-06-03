@@ -984,7 +984,8 @@ window.elefart.building = (function () {
 				//Goodies are shown in the Control rather than
 				//Building area
 				//p.getControls().getGasList().addToGasList(gas);
-				window.gasList = p.getControls().getGasList();
+				//window.gasList = p.getControls().getGasList();
+				p.getControls().getGasList().addToGasList(gas);
 
 			}
 
@@ -3255,6 +3256,7 @@ window.elefart.building = (function () {
 				ctx.save();
 				display.removeFromDisplayList(goodie);
 				display.eraseObject(ctx, goodie);
+				console.log("draw controlList Goodie at top:" + g.top + " left:" + g.left + " width:" + goodie.width + " height:" + goodie.height)
 				//ctx.rect(goodie.left, goodie.top, goodie.width, goodie.height);
 				//ctx.clip();
 				ctx.restore();
@@ -3363,6 +3365,9 @@ window.elefart.building = (function () {
             //custom drawing for the list of Farts
             g.customDraw = function (ctx) {
                 //TODO: ask the farts to redraw themselves here
+               //ctx.fillStyle="#FF0000";
+				//ctx.fillRect(gas.left, gas.top, 200, 200);
+
             }
             
             //update animation function (standard will just redraw the Rect)
@@ -3371,25 +3376,9 @@ window.elefart.building = (function () {
 				//TODO: List current Goodie List here
 			}
             
-            g.drawGas = function (person) {
-                var farts = person.getGas();
-                var len = farts.length;
-                //TODO: draw all the Farts owned by a Person
-                //compute allowed width and height for gas
-                var fartWidth = g.width/farts.width;
-                var fartHeight = g.height;
-                for(var i = 0; i < len; i++) {
-                    if(fart.img) {
-                        //draw the Image
-                    }
-                    else {
-                        //draw the InstanceName only
-                    }
-                }
-            }
 
             g.initGasList = function () {
-            	gList = [];
+            	g.gasList = [];
             }
 
             g.calcGasLayout = function (gas) {
@@ -3405,6 +3394,7 @@ window.elefart.building = (function () {
 					//position the gas
 					var t = g.top;
 					var l = g.left; //list (not its label)
+					console.log("gas layout top:" + t + " left:" + l + " width:" + gas.width + " height:" + gas.height);
 					for(var i = 0; i < len; i++) {
 						gList[i].moveTo(l + factory.toInt(i * w), t );
 					}
@@ -3412,6 +3402,7 @@ window.elefart.building = (function () {
             }
 
             g.addToGasList = function (gas) {
+            	var gList = g.gasList;
 				var len = gList.length;
 				for(var i = 0; i < len; i++) {
 					if(gList[i] === gas) {
@@ -3419,19 +3410,23 @@ window.elefart.building = (function () {
 					}
 				}
 				gList.push(gas);
-				
+				console.log("adding to GasList")
+				window.gas = gas; ///////////////////
+				g.calcGasLayout(gas);
 				//we have to erase a static image, and redraw it elsewhere
-				var c = display.getBackgroundCanvas();
-				//var ctx = c.getContext("2d");
-				//ctx.save();
+				//OK. The problem is we add to the display list very late, so we end 
+				//up being drawn in the wrong order!!!!!
+				var c = display.getForegroundCanvas();
+				var ctx = c.getContext("2d");
+				ctx.save();
 				display.removeFromDisplayList(gas);
-				/////////display.eraseObject(ctx, goodie);
-				//ctx.rect(goodie.left, goodie.top, goodie.width, goodie.height);
-				//ctx.clip();
-				//ctx.restore();
-				g.calcGasLayout();
+				display.eraseObject(ctx, gas);
+				display.eraseObject(ctx, {top:650, right:800, bottom:700, left:750});/////////////////
+				ctx.rect(gas.left, gas.top, gas.width, gas.height);
+				ctx.clip();
+				ctx.restore();
 				display.addToDisplayList(gas, display.LAYERS.CONTROLS);
-				display.drawBackground();
+				//display.drawBackground();
 				return true;
             }
 
@@ -3856,12 +3851,18 @@ window.elefart.building = (function () {
 			var lPlayer = world.getBuilding().getLocalPlayer();
 
 			controller.setLocalPlayer(world.getBuilding().getLocalPlayer());
-			world.addChild(Controls(world));
 
+			var ctls = Controls(world);
+			
 			//add some starting Gas to players
 			//b.addChild(p); 
 			//add additional Player elements
 			//TODO: REFINE!!!!!!!!!!!!!!!!!!!!!!!
+
+			world.addChild(ctls);
+
+			//TODO: WHY MUST PLAYER BE ADDED AFTER CONTROLS??????????
+
 			lPlayer.addGas(Gas(lPlayer, GAS_TYPES.SHUTTERBLAST));
 
 
