@@ -263,7 +263,8 @@ window.elefart.building = (function () {
 	DIMENSIONS[BUILDING_TYPES.GAS] = {
 		width:0.5, //RELATIVE to Person
 		height:0.5, //RELATIVE to person
-		maxGas:6
+		maxGas:6,
+        gasLoops:4 //number of animation loops
 	},
 
 	DIMENSIONS[BUILDING_TYPES.CONTROL_FPS] = {
@@ -486,7 +487,43 @@ window.elefart.building = (function () {
 		return r;
 	}
 
+	/* 
+	 * ============================
+	 * PEOPLE COMPONENTS
+	 * ============================
+	 */
 
+	 /** 
+	  * @constructor Health
+	  * @classdesc object controlling and reporting health of a Person
+	  */
+	function Health (person) {
+
+		var l = 0;
+		var t = 0;
+
+		var h = factory.ScreenPoint(
+			l, 
+			t,
+			0,
+			display.COLORS.CLEAR,
+			display.LAYERS.BACKGROUND
+			);
+		if(h) {
+
+			h.name = BUILDING_TYPES.HEALTH;
+			h.parent = person;
+			h.instanceName = person.instanceName + "'s health";
+            h.getBuilding = world.getBuilding;
+			h.getChildByType = getChildByType; //generic child getter function
+			h.value = 100; //perfect health
+			return h;
+		}
+
+		elefart.showError("failed to create Health for Person:" + person.instanceName);
+		return false;
+	}
+    
 	/* 
 	 * ============================
 	 * FLOOR GOODIES
@@ -510,7 +547,7 @@ window.elefart.building = (function () {
 		//get the Goodie spriteboard
 		var goodieBoard = display.getGoodieBoard();
 
-		//randomly compute a GoodieType
+		//randomly compute a GoodieType number
 		var goodieType = factory.getRandomInt(0, (goodieBoard.cols-1));
 
 
@@ -606,7 +643,7 @@ window.elefart.building = (function () {
 			);
 		if(g) {
 				g.name = BUILDING_TYPES.GOODIE;
-				g.instanceName = "Goodie type:" + goodieType;
+				//g.instanceName = "Goodie type:" + goodieType;
 				//g.parent = building; //do before adding to displayList
 				g.parent = goodieFloor;
                 g.getBuilding = world.getBuilding;
@@ -621,11 +658,12 @@ window.elefart.building = (function () {
 					currRow:0,
 					currCol:goodieType
 				}); //this adds .getCellRect() and .nextCellRect
-
+            
 				//set additional information about the goodieType
 				for(i in GOODIE_TYPES) {
 					if(GOODIE_TYPES[i].col === goodieType) {
-						g.goodieType = i;
+                        g.instanceName = GOODIE_TYPES[i].name;
+						g.goodieType = GOODIE_TYPES[i];
 						g.goodieScore = GOODIE_TYPES[i].score;
 					}
 				}
@@ -644,63 +682,29 @@ window.elefart.building = (function () {
 
 	}
 
-	/* 
-	 * ============================
-	 * PEOPLE COMPONENTS
-	 * ============================
-	 */
-
-	 /** 
-	  * @constructor Health
-	  * @classdesc object controlling and reporting health of a Person
-	  */
-	function Health (person) {
-
-		var l = 0;
-		var t = 0;
-
-		var h = factory.ScreenPoint(
-			l, 
-			t,
-			0,
-			display.COLORS.CLEAR,
-			display.LAYERS.BACKGROUND
-			);
-		if(h) {
-
-			h.name = BUILDING_TYPES.HEALTH;
-			h.parent = person;
-			h.instanceName = person.instanceName + "'s health";
-            h.getBuilding = world.getBuilding;
-			h.getChildByType = getChildByType; //generic child getter function
-			h.value = 100; //perfect health
-			return h;
-		}
-
-		elefart.showError("failed to create Health for Person:" + person.instanceName);
-		return false;
-	}
-
 	/** 
 	 * @constructor Gas
 	 * @classdesc the gas used as a weapon in the game
 	 * - parent: Person(s) or Elevators (can transfer)
 	 * - grandparent: ElevatorFloor or Building
 	 * - children: none
+     * When Gas is created, it is added to the ControlList, but remains a 
+     * child of the Person. Then, when activated, it runs animation, then is deleted.
 	 * @returns {Gas|false} a Gas object, or false
 	 */
 	function Gas (person, gasType) {
-
-		//get the Gas bitmaps for animation
+   
+        console.log("adding Gas type " + gasType.name + "...");
+        
+        //get the Goodie spriteboard
 		var gasBoard = display.getGasBoard();
-
-		var l = person.right;
-		var t = person.top;
-		//width and height relative to Person
-		var w = DIMENSIONS.GAS.width * person.width;
-		var h = DIMENSIONS.GAS.height * person.height;
-
-		var g = factory.ScreenRect(
+        
+        var l = 0;
+        var t = 0;
+		var h = person.height;
+		var w = h;
+        
+        var g = factory.ScreenRect(
 			l,
 			t,
 			w,
@@ -712,62 +716,67 @@ window.elefart.building = (function () {
 			gasBoard
 			);
 		if(g) {
-			g.setSpriteCoords({
-				rows:gasBoard.rows, //0-14
-				cols:gasBoard.cols, //0- 7
-				currRow:gasType,
-				currCol:0
-			}); //this adds .getCellRect() and .nextCellRect
+				g.name = BUILDING_TYPES.GAS;
+				g.parent = person;
+                g.getBuilding = world.getBuilding;
+				g.getChildByType = getChildByType;
+            
+                //set additional information about the gasType
+                g.instanceName = "Gas type:" + gasType.name;
+				g.gasScore = gasType.score;
+                g.gasLoop = 0; //current animation loop for Gas
 
-			g.name = BUILDING_TYPES.GAS;
-			g.parent = person;
-			g.instanceName = "Gas:" + gasType;
-            g.getBuilding = world.getBuilding;
-            g.getControls = world.getControls;
-			g.getChildByType = getChildByType; //generic child getter function
+                /* 
+                 * failed to draw due to the rows and columns 
+                 * being undefined
+                 * NOTE: to find the right spriteBoard, we had to count (unlike Goodies)
+                 */
+                var ct = 0;
+                for(var i in GAS_TYPES) {
+                    if(GAS_TYPES[i] === gasType) {
+                        g.setSpriteCoords({
+                            rows:gasBoard.rows, //0-14
+                            cols:gasBoard.cols, //0- 7
+                            currRow:ct,
+                            currCol:0
+                        }); //this adds .getCellRect() and other functions
+                        ct++;
+                    }
+                }
+	
+				//goodies are immobile, even if in recursive drawing
+				g.immobile = true;
+            
+                g.max = DIMENSIONS[BUILDING_TYPES.GAS].gasLoops; //shorthand
 
-			g.setSpriteCoords({
-					rows:gasBoard.rows, //0-9
-					cols:gasBoard.cols, //0-1
-					currRow:gasType,
-					currCol:0
-			}); //this ad
-			
-			//goodies are immobile, even if in recursive drawing
-			g.immobile = true;
+                g.updateByTime = function () {
+                    //add time-dependent updates
+                    console.log("Gas::updateByTime()");
+                    g.spriteCoords.setNextFrame();
+                    var f = g.spriteCoords.getFrame();
+                    if(f === 0) {
+                        g.gasLoop++;
+                    }
+                    if(g.gasLoop > g.max) {
+                        console.log("Gas::updateByTime(), removing Gas from World");
+                        g.parent.removeGas(g); //remove gas from parent
+                    }
+                }
 
-			//animate gas during discharge
-			g.updateByTime = function () {
-				//go through Gas fromes in a defined pattern with defined time intervals
+                //custom Gas drawing, e.g. stretching drawing, opacity as Gas expands
+				g.customDraw = function (ctx) {
+                    //customize the Gas
+                    if(g.gasLoop > g.max) {
+                        display.eraseObject(ctx, g);
+                    }
+				}
 
-				//g.spriteCoords.setNextFrame();
-			}
-
-			g.customDraw = function () {
-
-			}
-
-			//triggered by Person, start Gas Animation
-			g.startGas = function () {
-				controller.addToUpdateList(g);
-				display.addToDisplayList(g);
-			}
-
-			//reached the end of the script, end Gas animation
-			g.endGas = function () {
-				display.removeFromDisplayList(g);
-				controller.removeFromUpdateList(g);
-			}
-
-			//set the timeline for different Gas types (sequence of frames to play)
-			g.setTimeline = function () {
-
-			}
+			display.addToDisplayList(g, display.LAYERS.GOODIES);
 
 			return g;
 		}
 		//fallthrough
-		elefart.showError("failed to create Gas type:" + gasType + " for Person:" + person.instanceName);
+		elefart.showError("failed to create Goodie:" + shaftNum);
 		return false;
 	}
 
@@ -855,6 +864,8 @@ window.elefart.building = (function () {
             p.getBuilding = world.getBuilding; //Building
             p.getControls = world.getControls; //Controls
 			p.getChildByType = getChildByType;
+            
+            p.immobile = true; //DONT MOVE PERSON CHILD OBJECT (usually displayed in Controls)
 
 			//walking queues
 			p.shaft = NO_SHAFT;
@@ -937,6 +948,36 @@ window.elefart.building = (function () {
 			 * CONTROLLER EVENT SETTERS
 			 */
 			
+            /** 
+             * @method goodieToGas
+             * @description convert a Goodie to Gas
+             */
+            p.goodieToGas = function (goodie) {
+                var gType = false;
+                console.log("goodie.goodieType.name:" + goodie.goodieType.name);
+                switch(goodie.goodieType.name) {
+                    case GOODIE_TYPES.BEAN_CAN.name:
+                        gType = GAS_TYPES.SHUTTERBLAST;
+                        break;
+                    case GOODIE_TYPES.DAISY.name:
+                        break;
+                    case GOODIE_TYPES.FAN.name:
+                        break;
+                     case GOODIE_TYPES.GAS_MASK.name:
+                        break;
+                    case GOODIE_TYPES.ROSE_BLUE.name:
+                        break;
+                    case GOODIE_TYPES.ROSE_BROWN.name:
+                        break;
+                    case GOODIE_TYPES.ROSE_RED.name:
+                        break;
+                    case GOODIE_TYPES.TULIP.name:
+                        break;
+                    default:
+                        break;
+                }
+                return gType;
+            }
 			
 			/** 
 			 * @method addGoodie
@@ -949,16 +990,27 @@ window.elefart.building = (function () {
 			 */
 			p.addGoodie = function (goodie) {
 				console.log("add a goodie:" + goodie.instanceName);
-				//return;
-				/////////////////////////////////////////
 				p.getBuilding().removeChild(goodie);
 				p.addChild(goodie);
-				//update display lists. Captured 
-				//Goodies are shown in the Control rather than
-				//Building area
+                
+				//captured Goodies are show in the displayList in Controls
 				p.getControls().getGoodieList().addToGoodieList(goodie);
+
+                //some Goodies supply more Gas. Add the Gas. Gas is initially displayed in controls
+                var gtg = p.goodieToGas(goodie);
+                console.log("gtg:" + gtg);
+                if(gtg) {
+                    console.log("ADD GOODIE GAS.......");
+                    var g = Gas(p, gtg);
+                    p.addGas(g);
+                }
 			}
 
+            /** 
+             * @method getGoodies
+             * @description get the Goodies currently assigned to the Person
+             * @return {Array|false} an array of Goodies
+             */
 			p.getGoodies = function () {
 				return s.getChildByType(BUILDING_TYPES.GOODIES, false);
 			};
@@ -977,35 +1029,39 @@ window.elefart.building = (function () {
 			//tell the Gas to display itself in the Controls area
 			//done on startup
 			p.addGas = function (gas) {
-                console.log("add gas:" + gas.instanceName);
-				//p.getControls().addGas(g);
+                console.log("Person::add gas():" + gas.instanceName);
 				p.addChild(gas);
-				//update display lists. Captured 
-				//Goodies are shown in the Control rather than
-				//Building area
-				//p.getControls().getGasList().addToGasList(gas);
-				//window.gasList = p.getControls().getGasList();
 				p.getControls().getGasList().addToGasList(gas);
-
 			}
 
 			p.getGas = function () {
-				return s.getChildByType(BUILDING_TYPES.GAS, false);
+				return p.getChildByType(BUILDING_TYPES.GAS, false);
 			};
+            
+            p.positionGas = function (gas) {
+                gas.moveTo(p.right, p.bottom - gas.height);
+            }
 
 			//tell the Gas to remove itself from the Controls, add to the Building 
 			//animate, then disappear. When the Gas is attached to the Building, it 
 			//can affect other players
-			p.doGas = function (gas) {
+			p.doGas = function () {
 				console.log("Player " + p.instanceName + " breaking wind...");
-				//make gas visible
-				//play through a lifetie
-				//remove when done
+                var g = p.getGas()[0];
+                p.getControls().getGasList().removeFromGasList(g);
+                //position Gas next to Player
+                p.positionGas(g);
+                
+                //update Animation
+                controller.addToUpdateList(g);   
 			}
 
 			p.removeGas = function (gas) {
-				p.removeChild(gas);
-				p.getControls().getGasList().removeFromGoodieList(gas);
+               // controller.removeFromUpdateList(gas);
+               // display.removeFromDisplayList(gas);
+                console.log("in p.removeGas");
+				p.removeChild(gas, true);
+                console.log("removed Gas as a child");
 			}
 
 			/** 
@@ -3340,6 +3396,7 @@ window.elefart.building = (function () {
         var t = controls.top + controls.margin + h;
         var l = controls.right - controls.margin - w;
         
+        //create the Gas list
         var g = factory.ScreenRect (
             l,
             t,
@@ -3364,10 +3421,7 @@ window.elefart.building = (function () {
             
             //custom drawing for the list of Farts
             g.customDraw = function (ctx) {
-                //TODO: ask the farts to redraw themselves here
-               //ctx.fillStyle="#FF0000";
-				//ctx.fillRect(gas.left, gas.top, 200, 200);
-
+                //any special drawing of Gas while in the controlList
             }
             
             //update animation function (standard will just redraw the Rect)
@@ -3381,20 +3435,19 @@ window.elefart.building = (function () {
             	g.gasList = [];
             }
 
-            g.calcGasLayout = function (gas) {
+            g.calcGasLayout = function () {
                 var len = g.gasList.length;
 				if(len) {
 					var gList = g.gasList;
 					var w = gList[0].width;
 					var max = factory.toInt(g.width/w);
 					if(len > max) {
-						console.log("error: too much gas");
+						console.log("error: too much gas, len:" + len + " max:" + max);
 						return;
 					}
 					//position the gas
 					var t = g.top;
 					var l = g.left; //list (not its label)
-					console.log("gas layout top:" + t + " left:" + l + " width:" + gas.width + " height:" + gas.height);
 					for(var i = 0; i < len; i++) {
 						gList[i].moveTo(l + factory.toInt(i * w), t );
 					}
@@ -3402,49 +3455,49 @@ window.elefart.building = (function () {
             }
 
             g.addToGasList = function (gas) {
-            	var gList = g.gasList;
-				var len = gList.length;
+                var gList = g.gasList;
+                var len = gList.length;
 				for(var i = 0; i < len; i++) {
 					if(gList[i] === gas) {
-						return false; //already there (not likely)
+                        console.log("addToGasList()::Gas object already present, not adding");
+						return false; //already there
 					}
 				}
+                //add to the list
 				gList.push(gas);
-				console.log("adding to GasList")
-				window.gas = gas; ///////////////////
-				g.calcGasLayout(gas);
-				//we have to erase a static image, and redraw it elsewhere
-				//OK. The problem is we add to the display list very late, so we end 
-				//up being drawn in the wrong order!!!!!
-				var c = display.getForegroundCanvas();
-				var ctx = c.getContext("2d");
-				ctx.save();
-				display.removeFromDisplayList(gas);
-				display.eraseObject(ctx, gas);
-				display.eraseObject(ctx, {top:650, right:800, bottom:700, left:750});/////////////////
-				ctx.rect(gas.left, gas.top, gas.width, gas.height);
-				ctx.clip();
-				ctx.restore();
-				display.addToDisplayList(gas, display.LAYERS.CONTROLS);
-				//display.drawBackground();
+				g.calcGasLayout();
+                display.addToDisplayList(gas, display.LAYERS.CONTROLS);
 				return true;
             }
 
             //Gas is unusual in that it appears both next to Person, and in the gasList
             g.removeFromGasList = function (gas) {
+                var gList = g.gasList;
 				var len = gList.length;
 				for(var i = 0; i < len; i++) {
 					if(gList[i] === gas) {
+                        console.log("gasList::removeFromGasList(), found the Gas");
 						gList.splice(i, 1); //remove element reference
-						calcGasLayout(); //recalculate goodie display
-						var parent = gas.parent; //remove goodie reference from parent
-						parent.removeChild(gas); //removes from all lists
-						return true;
+				        var c = display.getForegroundCanvas();
+				        var ctx = c.getContext("2d");
+				        ctx.save();
+				        display.eraseObject(ctx, gas);
+				        ctx.rect(gas.left, gas.top, gas.width + 50, gas.height + 500);
+				        ctx.clip();
+                        display.drawForeground();
+				        ctx.restore();
+                        //TODO: ERASE NOT WORKING, ONLY WORKS FOR OBJECT INSIDE OF LIST OBJECT
+                        //TODO: NOT CLEAR WHY ERASE DOESN't WORK!!!!
+                        //TODO:
+                        g.calcGasLayout(); //recalculate goodie display
+
+				        return true;
 					}
 				}
 				return false;
             }
 
+            //label for Gas List
             var labelText = "Farts:";
             var labelWidth = display.textPixelWidth (labelText, textSize + " pt " + controls.controlFont) + h + h; 
             var fl = factory.ScreenText(
@@ -3695,7 +3748,7 @@ window.elefart.building = (function () {
 			c.getGasList = function () {
 				return c.getChildByType(BUILDING_TYPES.CONTROL_GAS_LIST, false)[0];
 			}
-
+            
 			//add control Panel to display list
 			display.addToDisplayList(c, display.LAYERS.WORLD); //visible
 
@@ -3848,26 +3901,35 @@ window.elefart.building = (function () {
 			world.addChild(Sky(world));
 			world.addChild(Building(world));
 
-			var lPlayer = world.getBuilding().getLocalPlayer();
-
-			controller.setLocalPlayer(world.getBuilding().getLocalPlayer());
+            //give the Controller fast access to the local (human) Player
+			controller.setLocalPlayer(getLocalPlayer());
 
 			var ctls = Controls(world);
-			
+            			
 			//add some starting Gas to players
 			//b.addChild(p); 
 			//add additional Player elements
 			//TODO: REFINE!!!!!!!!!!!!!!!!!!!!!!!
 
 			world.addChild(ctls);
+            
+            getLocalPlayer().addGas(Gas(getLocalPlayer(), GAS_TYPES.SHUTTERBLAST));
 
 			//TODO: WHY MUST PLAYER BE ADDED AFTER CONTROLS??????????
 
-			lPlayer.addGas(Gas(lPlayer, GAS_TYPES.SHUTTERBLAST));
-
+		
 
 		} //end of if w
 	}
+    
+    /** 
+     * @method getLocalPlayer 
+     * @description returns the local (human) player
+     * @returns {Player|false}
+     */
+    function getLocalPlayer () {
+        return world.getBuilding().getLocalPlayer();
+    }
 
 	/** 
 	 * @method getBuilding

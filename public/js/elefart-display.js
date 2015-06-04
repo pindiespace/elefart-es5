@@ -1342,9 +1342,9 @@ window.elefart.display = (function () {
 			 * column we define
 			 */
 			var r = obj.spriteCoords.getFrameRect();
-			////if(obj.instanceName == "Bob Bottoms") {
-			////	console.log("img:" + obj.img + "  l:" + r.left)
-			////}
+			if(obj.instanceName == "Gas type:shutterblast") {
+				/////////console.log("obj:" + obj.instanceName + " img:" + obj.img + " t:" + r.top + "  l:" + r.left + " b:" + r.bottom + " r:" + r.right);
+			}
 			
 				ctx.drawImage(
 				obj.img,

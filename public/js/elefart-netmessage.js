@@ -42,16 +42,24 @@
 	},
 
 	exports.GOODIE_TYPES = {
-		ROSE_RED: {row:0, col:0, score:0.1},
-		ROSE_BLUE: {row:0, col:1, score:0.2},
-		ROSE_GREEN: {row:0, col:2, score:0.05},
-		ROSE_BROWN: {row:0, col:3, score:0.02},
-		TULIP: {row:0, col:4, score:0.2},
-		DAISY: {row:0, col:5, score:0.1},
-		GAS_MASK: {row:0, col:6, score:0.8},
-		BEAN_CAN: {row:0, col:7, score:1.0},
-		PERFUME: {row:0, col:8, score:1.0},
-		FAN: {row:0, col:9, score:0.8}
+		ROSE_RED: {name:"red rose", row:0, col:0, score:0.1},
+		ROSE_BLUE: {name:"blue rose", row:0, col:1, score:0.2},
+		ROSE_GREEN: {name:"green rose", row:0, col:2, score:0.05},
+		ROSE_BROWN: {name:"brown rose", row:0, col:3, score:0.02},
+		BEAN_CAN: {name:"bean can", row:0, col:4, score:1.0},
+		DAISY: {name:"daisy", row:0, col:5, score:0.1},
+		TULIP: {name:"tulip", row:0, col:6, score:0.2},
+		GAS_MASK: {name:"gas mask", row:0, col:7, score:0.8},
+		PERFUME: {name:"perfume", row:0, col:8, score:1.0},
+		FAN: {name:"fan", row:0, col:9, score:0.8}
+	},
+
+	//types of gas emitted in Elevators
+	exports.GAS_TYPES = {
+		SHUTTERBLAST: {name:"shutterblast", row:0, col:0, score:0.1},
+		SPUTTERBLAST: {name:"sputterblast", row:1, col:0, score:0.3},
+		TRILLBLOW: {name:"trillblow", row:2, col:0, score:0.5},
+        ZEEPER: {name:"zeeper", row:3, col:0, score:0.04}
 	},
 
 	//the type of users in the game
@@ -59,13 +67,6 @@
 		LOCAL:"LOCAL",
 		REMOTE:"REMOTE",
 		BOT:"BOT"
-	},
-
-	//types of gas emitted in Elevators
-	exports.GAS_TYPES = {
-		SHUTTERBLAST: "SHUTTERBLAST",
-		SPUTTERBLAST: "SPUTTERBLAST",
-		TRILLBLOW: "TRILLBLOW"
 	},
 
 	exports.USER_MESSAGE = {

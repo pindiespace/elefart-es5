@@ -1739,7 +1739,7 @@ window.elefart.factory = (function () {
 				return false;
 			}
 		}
-		elefart.showError(this.type + " removeChild() " + child.instanceName + " not in this object("+this.instanceName+")");
+		elefart.showError(this.type + " removeChild() " + " child:" + child + " instanceName:" + child.instanceName + " id:" + child.id + " not in this object("+this.instanceName+")");
 		return false;
 	}
 
@@ -1966,6 +1966,9 @@ window.elefart.factory = (function () {
 
 		var w = Math.ceil(obj.img.width/(coordsObj.cols));
 		var h = Math.ceil(obj.img.height/(coordsObj.rows));
+        
+        this.cellWidth = w;
+        this.cellheight = h;
 
 		return {
 			nm:obj.instanceName,
