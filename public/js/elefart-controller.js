@@ -58,11 +58,17 @@ window.elefart.controller = (function () {
 	 */
 	function handleKeypress (keyCode) {
 		console.log("key pressed:" + keyCode);
-		//if spacebar, have local Person emit Gas
 		switch(keyCode) {
 			case 32:        //SPACEBAR
 				localPlayer.doGas();
 				break;
+			case 37: // 'Left Arrow'
+			case 68: // 'D' or LEFT
+				localPlayer.doSquat(true);
+				break;
+			case 39: // 'Right Arrow'
+			case 83: // 'S' or RIGHT
+				localPlayer.doSquat(false);
 			default:
 				break;
 		}
@@ -168,7 +174,7 @@ window.elefart.controller = (function () {
 		})
 
 		//key press events
-		dom.bind(document, "keypress", function (e) {
+		dom.bind(document, "keydown", function (e) {
 			var unicode = e.keyCode? e.keyCode : e.charCode
 			handleKeypress(unicode);
 		});

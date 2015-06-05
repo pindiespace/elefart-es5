@@ -759,6 +759,9 @@ window.elefart.building = (function () {
                     }
                     if(g.gasLoop > g.max) {
                         console.log("Gas::updateByTime(), removing Gas from World");
+                        //if person was squatting, stand them up
+                        var pType = PERSON_TYPES.MALE_STANDING;
+                        g.parent.spriteCoords.setTimeline(pType.row, pType.left);
                         g.parent.removeGas(g); //remove gas from parent
                     }
                 }
@@ -1065,6 +1068,30 @@ window.elefart.building = (function () {
 			}
 
 			/** 
+			 * @method doSquat
+			 * @description make Player squat in Left or Right direction
+			 */
+			p.doSquat = function (left) {
+				console.log("character " + p.instanceName + " squatting");
+				var pType = PERSON_TYPES.MALE_SQUATTING;
+				var engine = p.engine;
+				if(engine.is === ON) {
+					return; //can only do when motionless
+				}
+				engine.is = ON;
+				engine.speed = pType.speed;
+				engine.max = pType.left[1]; //max amount to squat
+				engine.squat = true;
+				console.log("in p.doSquat");
+				if(left) {
+					p.spriteCoords.setTimeline(pType.row, pType.left);
+				}
+				else {
+
+				}
+			}
+
+			/** 
 			 * @method p.addMoveToShaft
 			 * @description add a new destination for a Player, triggered
 			 * by clicking on an ElevatorShaft on the same floor as the 
@@ -1189,11 +1216,25 @@ window.elefart.building = (function () {
 					//console.log("updating");
 
 					if(engine.destObj === NO_SHAFT) {
-						//console.log("Person.updateByTime(): ERROR: update Function run, but no shaft assigned");
+						//we might be squatting
+						if(engine.squat) {
+							var frame = p.spriteCoords.getFrame();
+							console.log("COLS:" + p.spriteCoords.cols);
+							if(frame < engine.max) {
+								p.spriteCoords.setNextFrame();
+								console.log("FFFFFFFRAME:" + frame);
+							}
+							else {
+								engine.squat = false;
+								engine.is = OFF;
+								engine.speed = 0;
+								engine.max = 0;
+							}
+						}
 						return;
 					}
 
-					//TODO: see if we encountered a Goodie
+					//we are running to a ElevatorShaft
 					var goodies = p.getBuilding().getGoodies();
 					if(goodies.length > 0) {
 						var center = p.getCenter();
@@ -1214,7 +1255,7 @@ window.elefart.building = (function () {
 						return;
 					}
 
-					if(Math.abs(d) < speed) {
+					if(Math.abs(d) <= speed) {
 						//console.log("Person.updateByTime(): arrived");
 						p.removeMoveFromShaft();
 						return;
