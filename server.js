@@ -4,6 +4,8 @@
  * basic web and websockets server
  * - expressJS
  * - websockets 
+ * 
+ * - for Elefart game
  *
  * Use modules specified for 4.x (unlike many tutorials)
  * http://expressjs.com/migrating-4.html
