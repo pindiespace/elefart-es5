@@ -19,6 +19,9 @@ or extensive OOP configuration.
 
 The complete game is being built in ES6 at in the "elefart-es6" project.
 
+Some features of the game were snspired by HTML5 Games by Jacob Seidelin, 1st and 
+2nd edition.
+
 Versions
 =========
 
