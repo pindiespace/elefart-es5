@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /** 
  * @namespace
  * @fileoverview methods for loading screen when initial JS and 
@@ -50,4 +51,40 @@
 		run:run
 	};
 	
+=======
+/** @namespace */
+elefart.screens['screen-splash'] = (function () {
+	
+	var dom = elefart.dom,
+		$ = dom.$,
+		panel = document.getElementById('screen-splash');
+		firstRun = true;
+
+	/** 
+	 * @method setup
+	 */
+	function setup () {
+		dom.bind("#screen-splash", "click", function () {
+			elefart.showScreen("screen-main-menu");
+		});
+	}
+
+	/** 
+	 * @method run
+	 * BOOK: Listing 3-8, p. 52
+	 */
+	function run () {
+		//ADDED
+		console.log("elefart.screens['screen-splash']::run()");
+		if(firstRun) {
+			setup();
+			firstRun = false;
+		}
+	}
+
+	return {
+		run:run //BOOK: Listing 3-8, p. 53
+	};
+
+>>>>>>> 2728073dd04a850e35b61685d582a8bf409ef5a7
 })();

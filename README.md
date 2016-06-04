@@ -1,4 +1,5 @@
 Elefart
+<<<<<<< HEAD
 ========
 
 An elevator chase where blasts with gas keep you from reaching the top.
@@ -35,3 +36,12 @@ How to Play
 5. Pick up health "goodies" by running past them on a building floor.
 6. Arrow keys bend the player over.
 7. Hit the space bar to break wind.
+=======
+=======
+
+Adaptation from HTML5 Games: Creating Fun with HTML5, CSS3, and WebGL by Jacob Seidelin 
+
+Description
+
+Elefart is a simple web game developed from the core design and logic in Jacob Seidelin's "HTML5 Games" book. It implements a web game suitable for "app" style function under iOS.
+>>>>>>> 2728073dd04a850e35b61685d582a8bf409ef5a7

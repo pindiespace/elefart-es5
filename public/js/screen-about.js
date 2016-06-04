@@ -1,4 +1,5 @@
 /** 
+<<<<<<< HEAD
  * @namespace
  * @fileoverview Creates a screen which displays online documentation for the game.
  * @requires elefart
@@ -41,3 +42,21 @@ window.elefart.screens['screen-about'] = (function () {
 	};
 
 })();
+=======
+ * screen-game.js
+ * main game functions
+ */
+ 
+elefart.screens['screen-about'] = (function () {
+	
+	
+	function run () {
+		console.log("elefart.screens['screen-about']::run()");
+	}
+	
+	return {
+		run:run
+	};
+	
+})();
+>>>>>>> 2728073dd04a850e35b61685d582a8bf409ef5a7

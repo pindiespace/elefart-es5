@@ -11,13 +11,18 @@
  */
 
 .clearfix {
+<<<<<<< HEAD
 	*zoom: 1;
+=======
+    *zoom: 1;
+>>>>>>> 2728073dd04a850e35b61685d582a8bf409ef5a7
 }
 
 /* 
  * force smooth images in old IE
  */
 img {
+<<<<<<< HEAD
 	-ms-interpolation-mode: bicubic;
 }
 
@@ -34,4 +39,14 @@ img {
 	display: inline-block;
 	*zoom: 1;
 	*display: inline;
+=======
+    -ms-interpolation-mode: bicubic;
+}
+
+/* 
+ * fix SVG overflow in old IE
+ */
+svg:not(:root) { 
+    overflow: hidden; 
+>>>>>>> 2728073dd04a850e35b61685d582a8bf409ef5a7
 }

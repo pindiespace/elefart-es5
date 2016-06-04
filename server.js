@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -55,3 +56,15 @@ app.listen(port);
 console.log('server running at port:' + port);
 
 module.exports = app;
+
+//set up the server to listen
+
+var server = http.listen(portNum, function(e) {
+	if(e) {
+		console.log("Failed to load HTTP server, error:" + e);
+	}
+	else {
+		console.log("HTTP server running at port:" + portNum);
+	}
+
+});

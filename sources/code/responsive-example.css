@@ -1,0 +1,34 @@
+@charset "utf-8";
+/* CSS Document */
+
+
+@media
+  screen and (-webkit-device-pixel-ratio: 1) and (device-width: 1024px) and (max-device-height: 600px) and (orientation: landscape),
+  screen and (-webkit-device-pixel-ratio: 1) and (device-width: 600px) and (max-device-height: 1024px) and (orientation: portrait),
+  screen and (-o-device-pixel-ratio: 1) and (device-width: 1024px) and (max-device-height: 600px) and (orientation: landscape),
+  screen and (-o-device-pixel-ratio: 1) and (device-width: 600px) and (max-device-height: 1024px) and (orientation: portrait),
+  screen and (device-pixel-ratio: 1) and (device-width: 1024px) and (max-device-height: 600px) and (orientation: landscape),
+  screen and (device-pixel-ratio: 1) and (device-width: 600px) and (max-device-height: 1024px) and (orientation: portrait) {
+	.chrome.page-nav {
+		display:block;
+	}
+	#reporter:after { /*for debugging only*/ display:inline; content:"small tablet (e.g. Kindle Fire)"; }
+      }
+
+      /* 1024x600 tablet with pixel ratio of 3/2 (GALAXY TAB) */
+      /* Because we have a solid device-pixel-ratio we can avoid the device height */
+@media
+  screen and (-webkit-device-pixel-ratio: 1.5) and (device-width: 683px) and (orientation: landscape),
+  screen and (-webkit-device-pixel-ratio: 1.5) and (device-width: 400px) and (orientation: portrait),
+  screen and (-o-device-pixel-ratio: 3/2) and (device-width: 683px) and (orientation: landscape),
+  screen and (-o-device-pixel-ratio: 3/2) and (device-width: 400px) and (orientation: portrait),
+  screen and (device-pixel-ratio: 1.5) and (device-width: 683px) and (orientation: landscape),
+  screen and (device-pixel-ratio: 1.5) and (device-width: 400px) and (orientation: portrait),
+  screen and (device-pixel-ratio: 3/2) and (device-width: 683px) and (orientation: landscape),
+  screen and (device-pixel-ratio: 3/2) and (device-width: 400px) and (orientation: portrait) {
+	.chrome.page-nav {
+		display:block;
+	}
+	#reporter:after { /*for debugging only*/ display:inline; content:"small tablet (e.g. Galaxy Tab)"; }
+      }
+	  

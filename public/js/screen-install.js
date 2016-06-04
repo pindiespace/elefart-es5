@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /** 
  * @namespace
  * @fileoverview option to install the game to desktop, on devices (e.g. iOS)  
@@ -41,6 +42,26 @@ window.elefart.screens['screen-install'] = (function () {
 	return {
 		init:init,
 		run:run
+=======
+/** @namespace */
+elefart.screens['screen-install'] = (function () {
+	
+	var dom = elefart.dom,
+		panel = document.getElementById('screen-install');
+		firstRun = true;
+
+	/** 
+	 * @method run
+	 * BOOK: Listing 3-20, p. 65
+	 */
+	function run () {
+		//ADDED
+		console.log("elefart.screens['screen-install']::run()");
+	}
+
+	return {
+		run:run //BOOK: Listing 3-20, p. 65
+>>>>>>> 2728073dd04a850e35b61685d582a8bf409ef5a7
 	};
 
 })();

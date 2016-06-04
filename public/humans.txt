@@ -2,7 +2,11 @@
 
 
     /* TEAM */
+<<<<<<< HEAD
     Creator: Pete Markiewicz.
+=======
+    Creator: Slam Thunderhide.
+>>>>>>> 2728073dd04a850e35b61685d582a8bf409ef5a7
     Site: plyojump.com, pindiespace@gmail.com
     Twitter: @pindiespace
     Location: Los Angeles, California, USA.
@@ -13,11 +17,18 @@
                         
 
     /* SITE */
+<<<<<<< HEAD
     Last update: 2014/12/04
     Standards: HTML5, CSS3, Javascript (ECMA 5)
     Components: Native JavaScript code
     Software: NodeJS, ExpressJS, Socket.io, 
     Tools: Sublime Text, Terminal (Mac)
+=======
+    Last update: 2014/10/04
+    Standards: HTML5, CSS3, Javascript (ECMA 5), Camera API
+    Components: Modernizr, Native JavaScript code
+    Software: Sublime Text, Terminal (Mac)
+>>>>>>> 2728073dd04a850e35b61685d582a8bf409ef5a7
 
 
                     
