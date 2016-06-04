@@ -1,6 +1,6 @@
 Elefart
 
-An elevator chase where blasts with gas keep you from reaching the top.
+Exploring HTML5 game design. Draft gameplay for an elevator chase where blasts with gas keep you from reaching the top.
 
 Programmed with:
 - HTML5 standards-based markup
