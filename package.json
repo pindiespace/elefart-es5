@@ -13,23 +13,23 @@
   },
   "dependencies": {
     "path": "latest",
-    "express": "4.x",
-    "socket.io": "1.2.x",
-    "serve-favicon": "~2.x"
+    "serve-favicon": "latest"
   },
   "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-contrib-copy": "^0.7.0",
+    "express": "4.x",
+    "grunt": "latest",
+    "grunt-contrib-copy": "latest",
     "grunt-ftp-push": "latest",
-    "grunt-jsdoc": "^0.6.3",
-    "grunt-karma": "^0.10.1",
-    "jsdoc": "<=3.3.0",
+    "grunt-jsdoc": "latest",
+    "grunt-karma": "latest",
+    "jsdoc": "latest",
     "karma": "latest",
+    "jasmine-core": "latest",
     "karma-chrome-launcher": "latest",
     "karma-firefox-launcher": "latest",
     "karma-jasmine": "latest",
     "karma-junit-reporter": "latest",
-    "karma-phantomjs-launcher": "^0.1.4",
-    "phantomjs": "^1.9.16"
+    "karma-phantomjs-launcher": "latest",
+    "phantomjs-prebuilt": "latest"
   }
 }
