@@ -1,6 +1,4 @@
 Elefart
-<<<<<<< HEAD
-========
 
 An elevator chase where blasts with gas keep you from reaching the top.
 
@@ -44,4 +42,4 @@ Adaptation from HTML5 Games: Creating Fun with HTML5, CSS3, and WebGL by Jacob S
 Description
 
 Elefart is a simple web game developed from the core design and logic in Jacob Seidelin's "HTML5 Games" book. It implements a web game suitable for "app" style function under iOS.
->>>>>>> 2728073dd04a850e35b61685d582a8bf409ef5a7
+
